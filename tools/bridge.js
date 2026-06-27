@@ -8,9 +8,10 @@ const os = require('node:os');
 const CommandRouter = require('../bridge/command-router');
 const Premium = require('../bridge/premium');
 const Visual = require('../bridge/visual');
+const Worldgen = require('../bridge/worldgen');
 
-const HELPER_VERSION = '0.65.0';
-const MCP_PROXY_VERSION = '0.65.0';
+const HELPER_VERSION = '0.66.0';
+const MCP_PROXY_VERSION = '0.66.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -81,6 +82,16 @@ const MCP_PROXY_TOOLS = [
   'visual_score',
   'visual_polish',
   'visual_compare',
+  'worldgen_status',
+  'worldgen_styles',
+  'worldgen_plan',
+  'worldgen_graph',
+  'worldgen_generate',
+  'worldgen_audit',
+  'worldgen_polish',
+  'worldgen_route',
+  'worldgen_budget',
+  'worldgen_manifest',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -626,6 +637,20 @@ Usage:
   node tools/bridge.js style_bible <intent>
   node tools/bridge.js forge_assets <intent>
   node tools/bridge.js visual_critique <intent>
+  node tools/bridge.js worldgen status
+  node tools/bridge.js worldgen styles
+  node tools/bridge.js worldgen plan <goal>
+  node tools/bridge.js worldgen graph <goal>
+  node tools/bridge.js worldgen generate <goal>
+  node tools/bridge.js worldgen audit <goal-or-manifest>
+  node tools/bridge.js worldgen polish <goal-or-manifest>
+  node tools/bridge.js worldgen route <goal-or-manifest>
+  node tools/bridge.js worldgen budget <goal-or-manifest>
+  node tools/bridge.js worldgen manifest <goal-or-manifest>
+  node tools/bridge.js worldgen self-check
+  node tools/bridge.js pcg plan <goal>
+  node tools/bridge.js pcg generate <goal>
+  node tools/bridge.js generate_world <goal>
   node tools/bridge.js animation rigs|list-rigs [path]
   node tools/bridge.js animation inspect-rig <rigPath>
   node tools/bridge.js animation pose <rigPath>
@@ -6101,7 +6126,17 @@ async function runPremium(subcommand = 'status', args = []) {
 
   if (subcommand === 'world' || subcommand === 'world-grammar') {
     const manifest = localManifest();
-    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, worldGrammarPlan: manifest.worldGrammarPlan, nextCommand: `tools\\bridge.cmd premium build "${manifest.goal}"` });
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      goal: manifest.goal,
+      worldGrammarPlan: manifest.worldGrammarPlan,
+      worldgenPlan: manifest.worldgenPlan,
+      worldgenLayoutGraph: manifest.worldgenLayoutGraph,
+      worldgenBuildPlan: manifest.worldgenBuildPlan,
+      nextCommand: `tools\\bridge.cmd worldgen graph "${manifest.goal}"`,
+      premiumNextCommand: `tools\\bridge.cmd premium build "${manifest.goal}"`,
+    });
     return;
   }
 
@@ -6139,6 +6174,7 @@ async function runPremium(subcommand = 'status', args = []) {
       nextCommand: `tools\\bridge.cmd premium polish "${goal}"`,
       qualityScore,
       visualEvidenceSummary: qualityScore.visualEvidenceSummary,
+      worldgenSummary: qualityScore.worldgenSummary,
       manifestPath: manifest.manifestPath || Premium.manifestPath(goal),
     });
     return;
@@ -6156,7 +6192,8 @@ async function runPremium(subcommand = 'status', args = []) {
     }));
     print({
       ...result,
-      nextCommand: `tools\\bridge.cmd visual critique "${intent}"`,
+      nextCommand: `tools\\bridge.cmd worldgen generate "${intent}"`,
+      visualNextCommand: `tools\\bridge.cmd visual critique "${intent}"`,
       premiumNextCommand: `tools\\bridge.cmd premium critique "${intent}"`,
     });
     return;
@@ -6181,6 +6218,7 @@ async function runPremium(subcommand = 'status', args = []) {
     print({
       ...result,
       visualPolishPlan: visualCritiqueReport.polishPlan,
+      worldgenPolishPlan: Worldgen.createPolishPlan(intent, manifest.worldgenAudit),
       nextCommand: `tools\\bridge.cmd visual critique "${intent}"`,
       premiumNextCommand: `tools\\bridge.cmd premium qa "${intent}"`,
     });
@@ -6228,6 +6266,31 @@ function readVisualReport(filePath) {
   const resolved = path.resolve(filePath);
   const report = readJsonFile(resolved);
   return report.visualCritiqueReport || report.critique || report.report || report;
+}
+
+function readWorldgenTarget(target) {
+  const text = String(target || '').trim();
+  if (!text) return { goal: 'premium Roblox world' };
+  const resolved = path.resolve(text);
+  if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
+    const manifest = readJsonFile(resolved);
+    return { goal: manifest.goal || text, manifest, graph: manifest.graph || manifest.worldgenLayoutGraph };
+  }
+  return { goal: text };
+}
+
+async function worldgenStudioOptions(extra = {}) {
+  const health = await requestSafe('/health', { timeoutMs: 1200, noAutoStart: true });
+  return {
+    studioConnected: health.ok && health.value && health.value.studioConnected === true,
+    bridgeHealth: health.ok ? {
+      version: health.value.version,
+      studioConnected: health.value.studioConnected,
+      activeStudioId: health.value.activeStudioId,
+      activePlace: health.value.activePlace,
+    } : { ok: false, error: health.error },
+    ...extra,
+  };
 }
 
 async function runVisual(subcommand = 'status', args = []) {
@@ -6284,6 +6347,73 @@ async function runVisual(subcommand = 'status', args = []) {
     return;
   }
   throw new Error('visual command must be status, evidence, critique, score, polish, compare, or self-check.');
+}
+
+async function runWorldgen(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'premium Roblox world';
+  if (!subcommand || subcommand === 'status') {
+    print(Worldgen.createStatus());
+    return;
+  }
+  if (subcommand === 'self-check' || subcommand === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-worldgen.js'));
+    return;
+  }
+  if (subcommand === 'styles' || subcommand === 'catalog') {
+    const styles = Worldgen.getStyleCatalog();
+    print({ ok: true, version: HELPER_VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd worldgen plan "premium anime dungeon hub"' });
+    return;
+  }
+  if (subcommand === 'plan' || subcommand === 'intent') {
+    const goal = cleanGoal();
+    print(Worldgen.createIntentPlan(goal, { source: 'tools.bridge.worldgen.plan' }));
+    return;
+  }
+  if (subcommand === 'graph' || subcommand === 'layout') {
+    const goal = cleanGoal();
+    print(Worldgen.createLayoutGraph(goal, { source: 'tools.bridge.worldgen.graph' }));
+    return;
+  }
+  if (subcommand === 'generate' || subcommand === 'build') {
+    const goal = cleanGoal();
+    const report = Worldgen.createGenerationReport(goal, await worldgenStudioOptions({ source: 'tools.bridge.worldgen.generate' }));
+    print({
+      ...report,
+      executionNote: report.ok === false
+        ? 'Studio was not connected; no Studio objects were created.'
+        : 'Generated paths are Codex-owned target paths for the V66 layout. Studio object creation is handled by generateWorldgenLayout when run through the plugin command path.',
+    });
+    return;
+  }
+  if (subcommand === 'audit') {
+    const target = readWorldgenTarget(cleanGoal());
+    print(Worldgen.createAuditReport(target.goal, { graph: target.graph, source: 'tools.bridge.worldgen.audit' }));
+    return;
+  }
+  if (subcommand === 'polish') {
+    const target = readWorldgenTarget(cleanGoal());
+    const audit = Worldgen.createAuditReport(target.goal, { graph: target.graph, source: 'tools.bridge.worldgen.polish' });
+    print(Worldgen.createPolishPlan(target.goal, audit));
+    return;
+  }
+  if (subcommand === 'route' || subcommand === 'routes') {
+    const target = readWorldgenTarget(cleanGoal());
+    const graph = target.graph || Worldgen.createLayoutGraph(target.goal, { source: 'tools.bridge.worldgen.route' });
+    print(Worldgen.createTraversalRoute(target.goal, graph));
+    return;
+  }
+  if (subcommand === 'budget') {
+    const target = readWorldgenTarget(cleanGoal());
+    const graph = target.graph || Worldgen.createLayoutGraph(target.goal, { source: 'tools.bridge.worldgen.budget' });
+    print({ ok: true, version: HELPER_VERSION, goal: target.goal, budget: Worldgen.createPerformanceBudget(graph), warnings: [], blockers: [], nextCommand: `tools\\bridge.cmd worldgen audit "${target.goal}"` });
+    return;
+  }
+  if (subcommand === 'manifest') {
+    const target = readWorldgenTarget(cleanGoal());
+    print(target.manifest || Worldgen.createManifest(target.goal, { graph: target.graph, source: 'tools.bridge.worldgen.manifest' }));
+    return;
+  }
+  throw new Error('worldgen command must be status, styles, plan, graph, generate, audit, polish, route, budget, manifest, or self-check.');
 }
 
 async function runVision(subcommand, args) {
@@ -11115,6 +11245,16 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'worldgen') {
+    await runWorldgen(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'pcg') {
+    await runWorldgen(args[0] || 'plan', args.slice(1));
+    return;
+  }
+
   const directPremiumCommands = {
     premium_director: 'director',
     premium_plan: 'plan',
@@ -11143,6 +11283,24 @@ async function main(argv) {
   };
   if (directVisualCommands[command]) {
     await runVisual(directVisualCommands[command], args);
+    return;
+  }
+
+  const directWorldgenCommands = {
+    worldgen_status: 'status',
+    worldgen_styles: 'styles',
+    worldgen_plan: 'plan',
+    worldgen_graph: 'graph',
+    worldgen_generate: 'generate',
+    worldgen_audit: 'audit',
+    worldgen_polish: 'polish',
+    worldgen_route: 'route',
+    worldgen_budget: 'budget',
+    worldgen_manifest: 'manifest',
+    generate_world: 'generate',
+  };
+  if (directWorldgenCommands[command]) {
+    await runWorldgen(directWorldgenCommands[command], args);
     return;
   }
 

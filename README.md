@@ -1,4 +1,4 @@
-# Codex Studio Bridge V65.0
+# Codex Studio Bridge V66.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -77,6 +77,49 @@ Premium Director now includes Visual Critic evidence:
 ```
 
 Use `visual critique` after a premium build round, then use `visual polish` for the nine staged passes: composition, lighting, material, silhouette, VFX integration, UI readability, clutter reduction, mobile fallback, and final screenshot proof.
+
+## V66 Premium PCG World Generator + Layout Graph
+
+V66 adds the world/level design brain for premium Roblox maps. Use it when the goal is a lobby, dungeon, arena, hub, biome, layout graph, map polish pass, or world flow problem. It plans readable spawns, primary focal landmarks, shop/quest/portal staging, routes, vistas, occlusion, biome zones, encounter zones, lighting beats, VFX/audio/camera sockets, mobile budgets, and QA traversal paths instead of placing random parts.
+
+```powershell
+.\tools\bridge.cmd worldgen status
+.\tools\bridge.cmd worldgen styles
+.\tools\bridge.cmd worldgen plan "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen graph "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen generate "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen audit "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen polish "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen route "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen budget "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen manifest "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen self-check
+.\tools\bridge.cmd pcg plan "premium anime dungeon hub"
+.\tools\bridge.cmd pcg generate "premium anime dungeon hub"
+.\tools\bridge.cmd generate_world "premium anime dungeon hub"
+```
+
+Worldgen generation is Codex-owned only: generated objects belong under `Workspace.CodexWorldgen`, manifests under `ReplicatedStorage.CodexWorldgen`, and Premium Director summaries under `ReplicatedStorage.CodexPremiumDirector.Worldgen`. It never deletes user content, never publishes/uploads, never touches marketplace, DataStore, economy, or monetization, and returns `manualRequired`/`connect` guidance instead of pretending Studio execution happened when Studio is not connected.
+
+Premium Director uses V66 for world/map requests:
+
+```powershell
+.\tools\bridge.cmd premium plan "premium anime dungeon hub"
+.\tools\bridge.cmd premium world "premium anime dungeon hub"
+.\tools\bridge.cmd premium build "premium anime dungeon hub"
+.\tools\bridge.cmd premium score "premium anime dungeon hub"
+```
+
+Recommended V66 premium map loop:
+
+```powershell
+.\tools\bridge.cmd premium plan "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen graph "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen generate "premium anime dungeon hub"
+.\tools\bridge.cmd visual critique "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen audit "premium anime dungeon hub"
+.\tools\bridge.cmd premium polish "premium anime dungeon hub"
+```
 
 For day-to-day connection and pairing help:
 

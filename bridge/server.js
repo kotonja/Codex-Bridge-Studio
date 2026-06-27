@@ -8,8 +8,9 @@ const { URL } = require('node:url');
 const CommandRouter = require('./command-router');
 const Premium = require('./premium');
 const Visual = require('./visual');
+const Worldgen = require('./worldgen');
 
-const VERSION = '0.65.0';
+const VERSION = '0.66.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -341,6 +342,30 @@ const supportedCommands = new Set([
   'getVisualCompareReport',
   'requestVisualEvidenceCapture',
   'bakeVisualCritiqueManifest',
+  'getWorldgenStatus',
+  'getWorldgenStyleCatalog',
+  'getWorldgenIntentPlan',
+  'getWorldgenLayoutGraph',
+  'getWorldgenBuildPlan',
+  'getWorldgenAuditReport',
+  'getWorldgenPolishPlan',
+  'getWorldgenTraversalRoute',
+  'getWorldgenPerformanceBudget',
+  'getWorldgenManifest',
+  'generateWorldgenLayout',
+  'polishWorldgenLayout',
+  'bakeWorldgenManifest',
+  'worldgen_status',
+  'worldgen_styles',
+  'worldgen_plan',
+  'worldgen_graph',
+  'worldgen_generate',
+  'worldgen_audit',
+  'worldgen_polish',
+  'worldgen_route',
+  'worldgen_budget',
+  'worldgen_manifest',
+  'generate_world',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
   'bakePremiumDirectorManifest',
@@ -1025,6 +1050,10 @@ const mutatingCommands = new Set([
   'bakePremiumDirectorManifest',
   'requestVisualEvidenceCapture',
   'bakeVisualCritiqueManifest',
+  'generateWorldgenLayout',
+  'polishWorldgenLayout',
+  'bakeWorldgenManifest',
+  'generate_world',
   'premium_build_round',
   'premium_polish',
 ]);
@@ -3839,6 +3868,23 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'worldgen',
+    title: 'V66 Premium PCG World Generator + Layout Graph',
+    safety: 'readOnlyLayoutPlanOrFullTrustCodexOwnedWorldgen',
+    readiness: ['bridge', 'plugin', 'codexReady', 'visualCritic', 'buildDirector', 'testPilot'],
+    commands: [
+      { command: 'tools\\bridge.cmd worldgen status', example: 'tools\\bridge.cmd worldgen status', bestFor: 'Check V66 worldgen readiness, integrations, and roots.' },
+      { command: 'tools\\bridge.cmd worldgen styles', example: 'tools\\bridge.cmd worldgen styles', bestFor: 'List premium world layout styles and design languages.' },
+      { command: 'tools\\bridge.cmd worldgen plan <goal>', example: 'tools\\bridge.cmd worldgen plan "premium anime dungeon hub"', bestFor: 'Turn world/map intent into style, flow, zones, landmarks, sockets, and budget.' },
+      { command: 'tools\\bridge.cmd worldgen graph <goal>', example: 'tools\\bridge.cmd worldgen graph "premium anime dungeon hub"', bestFor: 'Create the structured layout graph with zones, paths, vistas, occluders, sockets, and QA routes.' },
+      { command: 'tools\\bridge.cmd worldgen generate <goal>', example: 'tools\\bridge.cmd worldgen generate "premium anime dungeon hub"', bestFor: 'Create or plan Codex-owned worldgen output under Workspace.CodexWorldgen and ReplicatedStorage.CodexWorldgen.' },
+      { command: 'tools\\bridge.cmd worldgen audit <goal>', example: 'tools\\bridge.cmd worldgen audit "premium anime dungeon hub"', bestFor: 'Score player flow, landmarks, sockets, mobile safety, performance, and premium world feel.' },
+      { command: 'tools\\bridge.cmd worldgen polish <goal>', example: 'tools\\bridge.cmd worldgen polish "premium anime dungeon hub"', bestFor: 'Return the 11-stage map polish plan.' },
+      { command: 'tools\\bridge.cmd worldgen route <goal>', example: 'tools\\bridge.cmd worldgen route "premium anime dungeon hub"', bestFor: 'Generate traversal QA routes.' },
+      { command: 'tools\\bridge.cmd generate_world <goal>', example: 'tools\\bridge.cmd generate_world "portal hub layout"', bestFor: 'Direct alias for V66 world generation.' },
+    ],
+  },
+  {
     id: 'robloxBrain',
     title: 'Roblox Brain Core / Unified Game Creator OS',
     safety: 'fullTrustOrchestratedLocalActions',
@@ -5895,6 +5941,72 @@ async function route(req, res) {
   if (req.method === 'POST' && path === '/codex/visual/compare') {
     const body = await readBody(req);
     sendJson(res, 200, Visual.createVisualCompareReport(body.reportA || body.before, body.reportB || body.after, body));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/status') {
+    sendJson(res, 200, Worldgen.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/styles') {
+    const styles = Worldgen.getStyleCatalog();
+    sendJson(res, 200, { ok: true, version: VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd worldgen plan "premium anime dungeon hub"' });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/plan') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
+    sendJson(res, 200, Worldgen.createIntentPlan(goal, { source: 'bridge.http.worldgen.plan' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/graph') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
+    sendJson(res, 200, Worldgen.createLayoutGraph(goal, { source: 'bridge.http.worldgen.graph' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/generate') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
+    const active = getActiveStudioEntry();
+    sendJson(res, 200, Worldgen.createGenerationReport(goal, {
+      source: 'bridge.http.worldgen.generate',
+      studioConnected: Boolean(active && isPlaceFresh(active)),
+    }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/audit') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
+    sendJson(res, 200, Worldgen.createAuditReport(goal, { source: 'bridge.http.worldgen.audit' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/polish') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
+    const audit = Worldgen.createAuditReport(goal, { source: 'bridge.http.worldgen.polish' });
+    sendJson(res, 200, Worldgen.createPolishPlan(goal, audit));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/route') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
+    const graph = Worldgen.createLayoutGraph(goal, { source: 'bridge.http.worldgen.route' });
+    sendJson(res, 200, Worldgen.createTraversalRoute(goal, graph));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/budget') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
+    const graph = Worldgen.createLayoutGraph(goal, { source: 'bridge.http.worldgen.budget' });
+    sendJson(res, 200, { ok: true, version: VERSION, goal, budget: Worldgen.createPerformanceBudget(graph), warnings: [], blockers: [], nextCommand: `tools\\bridge.cmd worldgen audit "${goal}"` });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldgen/manifest') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
+    sendJson(res, 200, Worldgen.createManifest(goal, { source: 'bridge.http.worldgen.manifest' }));
     return;
   }
 

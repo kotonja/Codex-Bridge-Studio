@@ -33,6 +33,8 @@ function createRoute(rawQuery = '', options = {}) {
   const has = (...words) => words.some((word) => q.includes(word));
   const visualSignal = has('look at it', 'does this look premium', 'why does it look cheap', 'make it look expensive', 'make it look premium', 'visual critique', 'screenshot critique', 'compare before after', 'polish the visuals', 'fix the lighting', 'improve focal point', 'make the map look better')
     || ((has('visual', 'screenshot', 'lighting', 'focal point', 'composition', 'cheap looking', 'looks cheap') && has('critique', 'polish', 'fix', 'improve', 'compare', 'score', 'look')));
+  const worldgenSignal = has('generate world', 'build map', 'make a map', 'pcg world', 'layout graph', 'make the lobby layout', 'make a dungeon map', 'make arena layout', 'generate biome', 'make portal hub layout', 'world layout', 'map polish', 'audit map', 'fix map flow')
+    || ((has('map', 'world', 'layout', 'zone', 'biome', 'dungeon', 'arena', 'hub', 'lobby') && has('generate', 'build', 'make', 'pcg', 'graph', 'layout', 'polish', 'audit', 'flow')));
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
   const premiumBuildSignal = has('build premium roblox game', 'premium anime boss lobby', 'premium simulator lobby', 'premium hub', 'premium lobby', 'premium game', 'premium world', 'premium scene')
@@ -149,6 +151,26 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd visual critique ${quoteForCommand(intent)}`,
         visualCommand,
         `tools\\bridge.cmd visual score ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (worldgenSignal && !premiumBuildSignal) {
+    const action = has('audit', 'score') ? 'audit'
+      : has('polish', 'fix map flow', 'map polish') ? 'polish'
+        : has('graph', 'layout graph', 'layout') ? 'graph'
+          : has('budget', 'mobile') ? 'budget'
+            : has('route', 'traversal', 'flow') ? 'route'
+              : has('generate', 'build', 'make') ? 'generate'
+                : 'plan';
+    setRoute({
+      category: 'worldgen',
+      title: 'V66 Premium PCG World Generator',
+      confidence: 0.94,
+      safety: action === 'generate' || action === 'polish' ? 'fullTrustCodexOwnedWorldgen' : 'readOnlyWorldgenPlan',
+      reason: 'Map/world/layout/PCG language detected. Use V66 layout graph before placing world content.',
+      commands: [
+        `tools\\bridge.cmd worldgen plan ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd worldgen ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd worldgen audit ${quoteForCommand(intent)}`,
       ],
     });
   } else if (premiumSignal) {
@@ -338,6 +360,9 @@ function catalog(version = null) {
     ['build portal lobby scene', 'tools\\bridge.cmd generate_scene "anime portal lobby with shop stands and VFX sockets"'],
     ['make this premium', 'tools\\bridge.cmd premium plan "<goal>"'],
     ['visual critique', 'tools\\bridge.cmd visual critique "<goal>"'],
+    ['make a dungeon map', 'tools\\bridge.cmd worldgen plan "make a dungeon map"'],
+    ['generate world layout', 'tools\\bridge.cmd worldgen graph "<goal>"'],
+    ['pcg world', 'tools\\bridge.cmd pcg plan "<goal>"'],
     ['make it look premium', 'tools\\bridge.cmd visual polish "<goal>"'],
     ['compare before after', 'tools\\bridge.cmd visual compare <before-report.json> <after-report.json>'],
     ['top dev quality hub', 'tools\\bridge.cmd premium build "<goal>"'],

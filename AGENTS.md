@@ -219,6 +219,38 @@ V63 Premium Director Core is the preferred first entry point when the user asks 
 
 For `upgrade everything`, route to `premium plan` first unless the user explicitly includes `--execute`. Premium Director writes manifests under `ReplicatedStorage.CodexPremiumDirector` and routes clear work through Build Director, Roblox Brain, VFX, Animation, Motion+VFX, Ability Forge, Audio Director, Camera/Screen, and Test Pilot instead of duplicating those specialists.
 
+V66 Premium PCG World Generator is the preferred specialist when the user asks for a map, world, lobby layout, dungeon, arena layout, portal hub layout, biome, PCG world, map polish, map audit, or flow fix. It plans structured layout graphs with spawn readability, player flow, focal landmarks, secondary landmarks, gameplay sockets, shops/quests/portals, verticality, vistas, occluders, biomes, encounter zones, lighting, VFX/audio/camera sockets, mobile budgets, and traversal QA routes:
+
+```powershell
+.\tools\bridge.cmd worldgen status
+.\tools\bridge.cmd worldgen styles
+.\tools\bridge.cmd worldgen plan "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen graph "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen generate "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen audit "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen polish "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen route "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen budget "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen manifest "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen self-check
+.\tools\bridge.cmd pcg plan "premium anime dungeon hub"
+.\tools\bridge.cmd pcg generate "premium anime dungeon hub"
+.\tools\bridge.cmd generate_world "premium anime dungeon hub"
+```
+
+Use `premium world "<goal>"` for Premium Director's worldgen-backed map plan. Whole premium game requests still route to Premium Director; explicit VFX, visual critique, and pairing requests keep their specialist routes. Generated worldgen work is Codex-owned only: `Workspace.CodexWorldgen`, `ReplicatedStorage.CodexWorldgen`, and `ReplicatedStorage.CodexPremiumDirector.Worldgen`. It must not delete user content, publish/upload, touch marketplace, DataStore, economy, or monetization. If Studio is not connected, V66 must return structured `manualRequired` or `connect` guidance instead of claiming Studio objects were created.
+
+Recommended V66 premium map loop:
+
+```powershell
+.\tools\bridge.cmd premium plan "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen graph "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen generate "premium anime dungeon hub"
+.\tools\bridge.cmd visual critique "premium anime dungeon hub"
+.\tools\bridge.cmd worldgen audit "premium anime dungeon hub"
+.\tools\bridge.cmd premium polish "premium anime dungeon hub"
+```
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

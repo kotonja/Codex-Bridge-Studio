@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.65.0';
+const VERSION = '0.66.0';
 
 const ROOTS = {
   base: 'ReplicatedStorage.CodexPremiumDirector',

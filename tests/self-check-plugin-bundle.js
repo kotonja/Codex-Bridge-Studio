@@ -48,7 +48,7 @@ function main() {
 
   assert(fs.existsSync(pluginPath), 'Bundled plugin file does not exist.');
   assert(Buffer.byteLength(plugin, 'utf8') > 500000, 'Bundled plugin is suspiciously tiny.');
-  assert(plugin.includes('VERSION = "0.65.0"'), 'Bundled plugin does not contain VERSION = "0.65.0".');
+  assert(plugin.includes('VERSION = "0.66.0"'), 'Bundled plugin does not contain VERSION = "0.66.0".');
   assert(plugin.includes('bridgeUrl') || plugin.includes('127.0.0.1') || plugin.includes('DEFAULT_PORT'), 'Bundled plugin lacks bridge URL/default port evidence.');
   assert(plugin.includes('/studio/pair') || plugin.toLowerCase().includes('pairing'), 'Bundled plugin lacks pairing endpoint/evidence.');
   assert(plugin.includes('/studio/heartbeat') || plugin.toLowerCase().includes('heartbeat'), 'Bundled plugin lacks heartbeat endpoint/evidence.');
@@ -64,7 +64,7 @@ function main() {
 
   console.log(JSON.stringify({
     ok: true,
-    version: '0.65.0',
+    version: '0.66.0',
     bundleBytes: info.bytes,
     bundleSha256: info.sha256,
     includedFileCount: info.includedFiles.length,

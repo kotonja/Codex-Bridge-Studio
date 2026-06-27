@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.65.0';
+const VERSION = '0.66.0';
 
 const ROOTS = {
   base: 'ReplicatedStorage.CodexPremiumDirector',
@@ -14,6 +14,7 @@ const ROOTS = {
   visualCritiques: 'ReplicatedStorage.CodexPremiumDirector.VisualCritiques',
   visualEvidence: 'ReplicatedStorage.CodexPremiumDirector.VisualEvidence',
   visualPolishPlans: 'ReplicatedStorage.CodexPremiumDirector.VisualPolishPlans',
+  worldgen: 'ReplicatedStorage.CodexPremiumDirector.Worldgen',
 };
 
 const BUILD_PHASES = [

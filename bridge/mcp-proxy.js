@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
-const VERSION = '0.65.0';
+const VERSION = '0.66.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -542,7 +542,7 @@ const toolHandlers = {
   premium_plan: async (args) => readCommand('getPremiumProductionBrief', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   premium_style: async (args) => readCommand('getPremiumStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   premium_assets: async (args) => readCommand('getPremiumAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
-  premium_world: async (args) => readCommand('getPremiumWorldGrammarPlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
+  premium_world: async (args) => requestBridge('GET', `/codex/worldgen/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
   premium_build: async (args) => mutationCommand('executePremiumBuildRound', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', manifest: args.manifest }),
   premium_critique: async (args) => readCommand('getPremiumVisualCritiquePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   premium_qa: async (args) => readCommand('getPremiumQaPlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
@@ -554,9 +554,18 @@ const toolHandlers = {
   visual_score: async (args) => requestBridge('GET', `/codex/visual/score?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox scene')}`, undefined, 2500),
   visual_polish: async (args) => requestBridge('GET', `/codex/visual/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox scene')}`, undefined, 2500),
   visual_compare: async (args) => requestBridge('POST', '/codex/visual/compare', { reportA: args.reportA || args.before, reportB: args.reportB || args.after, goal: args.goal || args.intent || args.text }, 2500),
+  worldgen_status: async () => requestBridge('GET', '/codex/worldgen/status', undefined, 2500),
+  worldgen_styles: async () => requestBridge('GET', '/codex/worldgen/styles', undefined, 2500),
+  worldgen_plan: async (args) => requestBridge('GET', `/codex/worldgen/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
+  worldgen_graph: async (args) => requestBridge('GET', `/codex/worldgen/graph?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
+  worldgen_generate: async (args) => requestBridge('GET', `/codex/worldgen/generate?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
+  worldgen_audit: async (args) => requestBridge('GET', `/codex/worldgen/audit?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
+  worldgen_polish: async (args) => requestBridge('GET', `/codex/worldgen/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
+  worldgen_route: async (args) => requestBridge('GET', `/codex/worldgen/route?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
+  worldgen_budget: async (args) => requestBridge('GET', `/codex/worldgen/budget?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
+  worldgen_manifest: async (args) => requestBridge('GET', `/codex/worldgen/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
   style_bible: async (args) => readCommand('getCreatorStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   forge_assets: async (args) => readCommand('getCreatorAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
-  visual_critique: async (args) => readCommand('getCreatorVisualCritiquePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   execute_luau: async (args) => ({
     ok: false,
     code: 'unsupportedUnsafeRawExecution',
@@ -624,7 +633,7 @@ const toolDefinitions = [
   ['premium_plan', 'Create a V63 premium production brief and full director manifest plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['premium_style', 'Return a V63 premium style bible for a Roblox build/game intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['premium_assets', 'Return a V63 asset forge plan for premium meshes, textures, kitbash, VFX, UI, animation, and audio roles.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
-  ['premium_world', 'Return a V63 premium world grammar plan: landmarks, paths, vistas, zones, sockets, and camera beats.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['premium_world', 'Return the V66 Premium PCG Worldgen plan used by Premium Director for map, lobby, arena, dungeon, and hub goals.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['premium_build', 'Execute a V63 Codex-owned premium build round and bake a director manifest.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, manifest: { type: 'object' } }],
   ['premium_critique', 'Return a V63 visual critique plan for premium feel, silhouette, lighting, materials, VFX, and mobile readability.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['premium_qa', 'Return a V63 QA plan for premium build/game slices.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
@@ -636,9 +645,18 @@ const toolDefinitions = [
   ['visual_score', 'Return the V65 weighted visual quality score and sub-scores.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['visual_polish', 'Return the V65 nine-stage visual polish plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['visual_compare', 'Compare two V65 visual critique reports.', { reportA: { type: 'object' }, reportB: { type: 'object' }, before: { type: 'object' }, after: { type: 'object' }, goal: { type: 'string' } }],
+  ['worldgen_status', 'Return V66 Premium PCG World Generator readiness and integrations.', {}],
+  ['worldgen_styles', 'List V66 world layout style catalog entries.', {}],
+  ['worldgen_plan', 'Turn map/world intent into V66 required zones, routes, sockets, and budgets.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldgen_graph', 'Return a V66 layout graph with zones, paths, landmarks, vistas, sockets, and QA routes.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldgen_generate', 'Return or execute a V66 Codex-owned worldgen generation plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldgen_audit', 'Audit a V66 worldgen layout for flow, readability, performance, and premium feel.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldgen_polish', 'Return the V66 eleven-stage world layout polish plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldgen_route', 'Return V66 traversal QA routes for map flow testing.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldgen_budget', 'Return V66 mobile/performance budgets for the worldgen graph.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldgen_manifest', 'Return a V66 worldgen manifest shape.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['style_bible', 'Return a V62 style bible for a Roblox game/build intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['forge_assets', 'Return a V62 asset forge plan for meshes, textures, materials, audio, animations, and reusable kits.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
-  ['visual_critique', 'Return a V62 visual critique loop for screenshot comparison, polish, and performance/readability scoring.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['execute_luau', 'Return safe StudioBridge alternatives for arbitrary Luau execution.', { code: { type: 'string' } }],
 ].map(([name, description, properties]) => ({
   name,
