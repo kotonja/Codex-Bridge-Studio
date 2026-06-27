@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
-const VERSION = '0.61.1';
+const VERSION = '0.62.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -536,6 +536,12 @@ const toolHandlers = {
   improve_game: async (args) => mutationCommand('improveGameFromGoal', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: 'improve' }),
   test_game: async (args) => mutationCommand('testGameFromGoal', { ...basePayload(args), goal: args.goal || args.intent || args.text || 'full game QA', intent: args.intent || args.goal || args.text || 'full game QA', action: 'test' }),
   polish_game: async (args) => mutationCommand('polishGameFromGoal', { ...basePayload(args), goal: args.goal || args.intent || args.text || 'premium game polish', intent: args.intent || args.goal || args.text || 'premium game polish', action: 'polish' }),
+  creator_os: async (args) => mutationCommand('generateCreatorOsPackage', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: args.action || 'build' }),
+  create_game: async (args) => mutationCommand('generateCreatorOsPackage', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: 'build' }),
+  premium_build: async (args) => mutationCommand('generateCreatorOsPackage', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: 'build' }),
+  style_bible: async (args) => readCommand('getCreatorStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
+  forge_assets: async (args) => readCommand('getCreatorAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
+  visual_critique: async (args) => readCommand('getCreatorVisualCritiquePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   execute_luau: async (args) => ({
     ok: false,
     code: 'unsupportedUnsafeRawExecution',
@@ -597,6 +603,12 @@ const toolDefinitions = [
   ['improve_game', 'Use the Roblox Brain to improve an existing game slice with specialist tools and audit notes.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['test_game', 'Use the Roblox Brain to route universal Play/Test/watch/output QA for a goal.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['polish_game', 'Use the Roblox Brain to polish generated gameplay, visuals, audio, motion, and performance.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['creator_os', 'Generate a V62 Creator OS package: style bible, asset forge, production blueprint, and specialist route.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
+  ['create_game', 'Use Creator OS to create a coordinated premium Roblox game slice from intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['premium_build', 'Use Creator OS for premium build planning/generation with style bible and visual critique workflow.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['style_bible', 'Return a V62 style bible for a Roblox game/build intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['forge_assets', 'Return a V62 asset forge plan for meshes, textures, materials, audio, animations, and reusable kits.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
+  ['visual_critique', 'Return a V62 visual critique loop for screenshot comparison, polish, and performance/readability scoring.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['execute_luau', 'Return safe StudioBridge alternatives for arbitrary Luau execution.', { code: { type: 'string' } }],
 ].map(([name, description, properties]) => ({
   name,

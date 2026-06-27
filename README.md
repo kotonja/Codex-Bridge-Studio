@@ -1,4 +1,4 @@
-# Codex Studio Bridge V59.2
+# Codex Studio Bridge V62.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -77,6 +77,27 @@ If Codex direct Roblox MCP tools return `Transport closed` while local bridge he
 
 `mcp-proxy install` backs up the current Codex MCP config, preserves the raw Roblox Studio MCP entry as `Roblox_Studio_Raw`, disables that raw backup by default, and points `Roblox_Studio` to `bridge\mcp-proxy.js`. Reload Codex after install so the next tool discovery uses the durable proxy. The proxy routes `list_roblox_studios`, `get_studio_state`, script/search/play/test/animation/VFX/audio/build/brain helper tools through StudioBridge on `127.0.0.1:28123` and returns structured recovery states instead of crashing with `Transport closed`. Keep `Roblox_Studio_Raw` disabled unless debugging official Roblox MCP directly.
 
+## Roblox Creator OS + Asset Forge
+
+V62 adds a production-pipeline layer for premium Roblox creation. Use it when Codex needs to build something with a clear style bible, reusable asset plan, custom mesh/material strategy, visual critique loop, and coordinated specialist execution:
+
+```powershell
+.\tools\bridge.cmd creator status
+.\tools\bridge.cmd creator style "slime and bubble escape hub"
+.\tools\bridge.cmd creator assets "premium anime boss arena"
+.\tools\bridge.cmd creator pipeline "premium simulator lobby"
+.\tools\bridge.cmd creator blueprint "slime and bubble escape hub"
+.\tools\bridge.cmd creator generate "premium slime and bubble escape hub"
+.\tools\bridge.cmd creator critique "premium slime hub"
+.\tools\bridge.cmd creator polish "premium slime hub"
+.\tools\bridge.cmd creator_os "premium anime lobby"
+.\tools\bridge.cmd style_bible "bubble simulator hub"
+.\tools\bridge.cmd forge_assets "anime beam arena"
+.\tools\bridge.cmd visual_critique "portal lobby"
+```
+
+Creator OS writes manifests under `ReplicatedStorage.CodexCreatorOS`, then routes clear generated work through Roblox Brain, Build Director, Pro VFX, Animation, Motion+VFX, Ability Forge, Audio, Camera/Screen, and Test Pilot. It is intentionally honest: Roblox primitives handle blockouts and many generated models, while true reference-level premium scenes may need custom meshes, PBR-style textures, decals, and screenshot critique iterations.
+
 ## Roblox Brain Core
 
 V61 adds a central Roblox Brain layer that routes whole-game goals through the existing specialist directors:
@@ -96,7 +117,7 @@ V61 adds a central Roblox Brain layer that routes whole-game goals through the e
 .\tools\bridge.cmd polish_game "combat feedback"
 ```
 
-The brain writes central manifests under `ReplicatedStorage.CodexRobloxBrain`, then calls the clearest Codex-owned specialist path such as Build Director, Pro VFX, Animation Choreographer, Motion+VFX, Ability Forge, Audio Director, or Test Pilot. V61.1 waits for the final Studio result before printing and returns a compact execution contract: primary domain, specialist, created paths, manifest path, warnings/blockers, and exact next command. Use `commands --full` only when debugging the raw command envelope.
+The brain writes central manifests under `ReplicatedStorage.CodexRobloxBrain`, then calls the clearest Codex-owned specialist path such as Build Director, Pro VFX, Animation Choreographer, Motion+VFX, Ability Forge, Audio Director, or Test Pilot. V62 keeps the V61.1 compact execution contract: primary domain, specialist, created paths, manifest path, warnings/blockers, and exact next command. Use `commands --full` only when debugging the raw command envelope.
 
 ## Build Director
 

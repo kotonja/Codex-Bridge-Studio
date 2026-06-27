@@ -7,7 +7,7 @@ const pathModule = require('node:path');
 const { URL } = require('node:url');
 const CommandRouter = require('./command-router');
 
-const VERSION = '0.61.1';
+const VERSION = '0.62.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -313,6 +313,24 @@ const supportedCommands = new Set([
   'improve_game',
   'test_game',
   'polish_game',
+  'getCreatorOsStatus',
+  'getCreatorOsCapabilityMap',
+  'getCreatorStyleBible',
+  'getCreatorAssetForgePlan',
+  'getCreatorProductionPipeline',
+  'getCreatorVisualCritiquePlan',
+  'getCreatorGameBlueprint',
+  'getCreatorDirectorReport',
+  'generateCreatorOsPackage',
+  'applyCreatorOsPlan',
+  'bakeCreatorStyleBible',
+  'polishCreatorOsPackage',
+  'creator_os',
+  'create_game',
+  'premium_build',
+  'style_bible',
+  'forge_assets',
+  'visual_critique',
   'getAnimationRigInventory',
   'list_rigs',
   'inspectAnimationRig',
@@ -754,6 +772,13 @@ const supportedCommands = new Set([
   'improve_game',
   'test_game',
   'polish_game',
+  'generateCreatorOsPackage',
+  'applyCreatorOsPlan',
+  'bakeCreatorStyleBible',
+  'polishCreatorOsPackage',
+  'creator_os',
+  'create_game',
+  'premium_build',
 ]);
 
 const mutatingCommands = new Set([
@@ -3750,6 +3775,26 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'creatorOS',
+    title: 'Roblox Creator OS / Asset Forge',
+    safety: 'fullTrustCodexOwnedProductionPipeline',
+    readiness: ['bridge', 'plugin', 'codexReady', 'toolManifest', 'cameraScreen'],
+    commands: [
+      { command: 'tools\\bridge.cmd creator status', example: 'tools\\bridge.cmd creator status', bestFor: 'Check the V62 Creator OS and Asset Forge readiness.' },
+      { command: 'tools\\bridge.cmd creator style <intent>', example: 'tools\\bridge.cmd creator style "slime and bubble escape hub"', bestFor: 'Generate a style bible: palette, materials, shape grammar, lighting, signage, VFX/audio language.' },
+      { command: 'tools\\bridge.cmd creator assets <intent>', example: 'tools\\bridge.cmd creator assets "premium anime boss arena"', bestFor: 'Plan asset roles, reusable kit roots, missing meshes/textures/audio, and generated output folders.' },
+      { command: 'tools\\bridge.cmd creator pipeline <intent>', example: 'tools\\bridge.cmd creator pipeline "premium simulator lobby"', bestFor: 'Show the full production pipeline from reference/style through build, visual critique, polish, and QA.' },
+      { command: 'tools\\bridge.cmd creator blueprint <intent>', example: 'tools\\bridge.cmd creator blueprint "slime and bubble escape hub"', bestFor: 'Create a unified game blueprint with style bible, asset forge, production phases, quality gates, and specialist route.' },
+      { command: 'tools\\bridge.cmd creator generate <intent>', example: 'tools\\bridge.cmd creator generate "premium slime and bubble escape hub"', bestFor: 'Generate Codex-owned Creator OS manifests and route clear work through the specialist stack.' },
+      { command: 'tools\\bridge.cmd creator critique <intent>', example: 'tools\\bridge.cmd creator critique "premium slime hub"', bestFor: 'Plan screenshot/visual critique loops for composition, materials, VFX, lighting, mobile readability, and performance.' },
+      { command: 'tools\\bridge.cmd creator polish <intent>', example: 'tools\\bridge.cmd creator polish "premium slime hub"', bestFor: 'Route polish through Creator OS plus Roblox Brain with exact next visual/test commands.' },
+      { command: 'tools\\bridge.cmd creator_os <intent>', example: 'tools\\bridge.cmd creator_os "premium anime lobby"', bestFor: 'Direct alias for Creator OS package generation.' },
+      { command: 'tools\\bridge.cmd style_bible <intent>', example: 'tools\\bridge.cmd style_bible "bubble simulator hub"', bestFor: 'Direct style-bible alias.' },
+      { command: 'tools\\bridge.cmd forge_assets <intent>', example: 'tools\\bridge.cmd forge_assets "anime beam arena"', bestFor: 'Direct asset-forge alias.' },
+      { command: 'tools\\bridge.cmd visual_critique <intent>', example: 'tools\\bridge.cmd visual_critique "portal lobby"', bestFor: 'Direct visual-critique alias.' },
+    ],
+  },
+  {
     id: 'animation',
     title: 'Professional Animation Director',
     safety: 'fullTrustCodexOwnedGeneratedContent',
@@ -3844,6 +3889,12 @@ const V46_DIRECT_ALIASES = [
   'improve_game',
   'test_game',
   'polish_game',
+  'creator_os',
+  'create_game',
+  'premium_build',
+  'style_bible',
+  'forge_assets',
+  'visual_critique',
   'motion_vfx',
   'plan_motion_vfx',
   'generate_motion_vfx',
@@ -5453,6 +5504,7 @@ function bridgeBootstrapSummary() {
       { id: 'ability', commands: ['tools\\bridge.cmd ability styles', 'tools\\bridge.cmd ability plan <intent>', 'tools\\bridge.cmd ability generate <intent>', 'tools\\bridge.cmd ability preview <abilityPath>', 'tools\\bridge.cmd generate_ability <intent>'] },
       { id: 'inspect', commands: ['tools\\bridge.cmd tree Workspace 3', 'tools\\bridge.cmd ui deep', 'tools\\bridge.cmd world audit', 'tools\\bridge.cmd code doctor'] },
       { id: 'build', commands: ['tools\\bridge.cmd template recommend', 'tools\\bridge.cmd feature preview <id>', 'tools\\bridge.cmd milestone preview <id>'] },
+      { id: 'creator-os', commands: ['tools\\bridge.cmd creator status', 'tools\\bridge.cmd creator blueprint <intent>', 'tools\\bridge.cmd creator generate <intent>', 'tools\\bridge.cmd creator critique <intent>', 'tools\\bridge.cmd creator_os <intent>'] },
     ],
     safety: capability.safety,
     bestNextCommand: status.next.command || 'tools\\bridge.cmd start',

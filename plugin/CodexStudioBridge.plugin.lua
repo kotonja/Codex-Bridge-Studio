@@ -1,7 +1,7 @@
--- Codex Studio Bridge V61.1
+-- Codex Studio Bridge V62.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.61.1"
+local VERSION = "0.62.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0
@@ -96,6 +96,7 @@ local V54 = { last = {} }
 local V59 = { last = {} }
 local V60 = { last = {} }
 local V61 = { last = {} }
+local V62 = { last = {} }
 
 local instanceIds = setmetatable({}, { __mode = "k" })
 local idInstances = {}
@@ -20053,6 +20054,64 @@ local function executeCommand(command)
 		return V61.executeRobloxBrainPlan(V61.withAction(payload, "polish"))
 	end
 
+	local creatorCommandAliases = {
+		creator_os = "generateCreatorOsPackage",
+		create_game = "generateCreatorOsPackage",
+		premium_build = "generateCreatorOsPackage",
+		style_bible = "getCreatorStyleBible",
+		forge_assets = "getCreatorAssetForgePlan",
+		visual_critique = "getCreatorVisualCritiquePlan",
+	}
+	commandType = creatorCommandAliases[commandType] or commandType
+
+	if commandType == "getCreatorOsStatus" then
+		return V62.getCreatorOsStatus(payload)
+	end
+
+	if commandType == "getCreatorOsCapabilityMap" then
+		return V62.getCreatorOsCapabilityMap(payload)
+	end
+
+	if commandType == "getCreatorStyleBible" then
+		return V62.getCreatorStyleBible(payload)
+	end
+
+	if commandType == "getCreatorAssetForgePlan" then
+		return V62.getCreatorAssetForgePlan(payload)
+	end
+
+	if commandType == "getCreatorProductionPipeline" then
+		return V62.getCreatorProductionPipeline(payload)
+	end
+
+	if commandType == "getCreatorVisualCritiquePlan" then
+		return V62.getCreatorVisualCritiquePlan(payload)
+	end
+
+	if commandType == "getCreatorGameBlueprint" then
+		return V62.getCreatorGameBlueprint(payload)
+	end
+
+	if commandType == "getCreatorDirectorReport" then
+		return V62.getCreatorDirectorReport(payload)
+	end
+
+	if commandType == "generateCreatorOsPackage" then
+		return V62.generateCreatorOsPackage(payload)
+	end
+
+	if commandType == "applyCreatorOsPlan" then
+		return V62.applyCreatorOsPlan(payload)
+	end
+
+	if commandType == "bakeCreatorStyleBible" then
+		return V62.bakeCreatorStyleBible(payload)
+	end
+
+	if commandType == "polishCreatorOsPackage" then
+		return V62.polishCreatorOsPackage(payload)
+	end
+
 	local abilityCommandAliases = {
 		generate_ability = "generateAbilityFromIntent",
 		preview_ability = "previewAbilityPackage",
@@ -21515,6 +21574,13 @@ V33.testAutomationTypes = {
 	improve_game = true,
 	test_game = true,
 	polish_game = true,
+	generateCreatorOsPackage = true,
+	applyCreatorOsPlan = true,
+	bakeCreatorStyleBible = true,
+	polishCreatorOsPackage = true,
+	creator_os = true,
+	create_game = true,
+	premium_build = true,
 	installAnimationWorkbenchHarness = true,
 	removeAnimationWorkbenchHarness = true,
 	applyRigPose = true,
@@ -22924,6 +22990,7 @@ function V35.commandGroups()
 		{ id = "motionVfx", title = "Cinematic Motion + VFX Fusion", commands = { "tools\\bridge.cmd motion-vfx catalog", "tools\\bridge.cmd motion-vfx plan <intent>", "tools\\bridge.cmd motion-vfx generate <intent>", "tools\\bridge.cmd generate_motion_vfx <intent>", "tools\\bridge.cmd motion-vfx audit <packagePath>", "tools\\bridge.cmd motion-vfx polish <packagePath>", "tools\\bridge.cmd motion-vfx sync <animationPath> <vfxPath>" } },
 		{ id = "ability", title = "Universal Ability Forge", commands = { "tools\\bridge.cmd ability styles", "tools\\bridge.cmd ability plan \"heavy purple beam attack\"", "tools\\bridge.cmd ability generate \"heavy purple beam attack\"", "tools\\bridge.cmd generate_ability \"electric sword slash combo\"", "tools\\bridge.cmd ability audit <abilityPath>", "tools\\bridge.cmd ability preview <abilityPath>", "tools\\bridge.cmd ability test <abilityPath>", "tools\\bridge.cmd ability attach <abilityPath> <targetPath>" } },
 		{ id = "build", title = "Universal Build Director", commands = { "tools\\bridge.cmd build styles", "tools\\bridge.cmd build plan <intent>", "tools\\bridge.cmd generate_model <intent>", "tools\\bridge.cmd generate_scene <intent>", "tools\\bridge.cmd build kit Workspace", "tools\\bridge.cmd audit_build <modelPath>", "tools\\bridge.cmd polish_build <modelPath>", "tools\\bridge.cmd optimize_build <modelPath>" } },
+		{ id = "creatorOS", title = "Roblox Creator OS / Asset Forge", commands = { "tools\\bridge.cmd creator status", "tools\\bridge.cmd creator style <intent>", "tools\\bridge.cmd creator assets <intent>", "tools\\bridge.cmd creator pipeline <intent>", "tools\\bridge.cmd creator blueprint <intent>", "tools\\bridge.cmd creator generate <intent>", "tools\\bridge.cmd creator critique <intent>", "tools\\bridge.cmd creator polish <intent>", "tools\\bridge.cmd creator_os <intent>" } },
 		{ id = "robloxBrain", title = "Roblox Brain Core / Unified Game Creator OS", commands = { "tools\\bridge.cmd brain status", "tools\\bridge.cmd brain scan", "tools\\bridge.cmd brain plan <goal>", "tools\\bridge.cmd roblox_brain <goal>", "tools\\bridge.cmd build_game <goal>", "tools\\bridge.cmd improve_game <goal>", "tools\\bridge.cmd test_game <goal>", "tools\\bridge.cmd polish_game <goal>" } },
 		{ id = "handoff", title = "Cross-Chat Handoff", commands = { "tools\\bridge.cmd handoff markdown", "tools\\bridge.cmd autoload markdown", "tools\\bridge.cmd session export" } },
 	}
@@ -23168,6 +23235,16 @@ function V46.toolCategories()
 			{ command = "tools\\bridge.cmd polish_build <modelPath>", example = "tools\\bridge.cmd polish_build <modelPath>", bestFor = "Add Codex-owned trims, focal detail, sockets, and readability polish." },
 			{ command = "tools\\bridge.cmd optimize_build <modelPath>", example = "tools\\bridge.cmd optimize_build <modelPath>", bestFor = "Create optimization manifest and guidance for generated builds." },
 		} },
+		{ id = "creatorOS", title = "Roblox Creator OS / Asset Forge", safety = "fullTrustCodexOwnedProductionPipeline", commands = {
+			{ command = "tools\\bridge.cmd creator status", example = "tools\\bridge.cmd creator status", bestFor = "Check Creator OS readiness and the last generated production package." },
+			{ command = "tools\\bridge.cmd creator style <intent>", example = "tools\\bridge.cmd creator style \"slime and bubble escape hub\"", bestFor = "Generate a style bible with palette, materials, shape grammar, lighting, signage, VFX, audio, and performance rules." },
+			{ command = "tools\\bridge.cmd creator assets <intent>", example = "tools\\bridge.cmd creator assets \"premium anime boss arena\"", bestFor = "Plan reusable kit assets, missing meshes/textures/materials/audio/animation, and output folders." },
+			{ command = "tools\\bridge.cmd creator pipeline <intent>", example = "tools\\bridge.cmd creator pipeline \"premium simulator lobby\"", bestFor = "Show the full production pipeline from reference/style to build, critique, polish, and QA." },
+			{ command = "tools\\bridge.cmd creator blueprint <intent>", example = "tools\\bridge.cmd creator blueprint \"premium slime and bubble hub\"", bestFor = "Create a unified blueprint with style bible, asset forge, production phases, quality gates, and brain route." },
+			{ command = "tools\\bridge.cmd creator generate <intent>", example = "tools\\bridge.cmd creator generate \"premium slime and bubble hub\"", bestFor = "Generate a Codex-owned Creator OS package and route clear work through specialist tools." },
+			{ command = "tools\\bridge.cmd creator critique <intent>", example = "tools\\bridge.cmd creator critique \"portal lobby\"", bestFor = "Plan screenshot/visual critique loops for composition, materials, VFX, lighting, mobile readability, and performance." },
+			{ command = "tools\\bridge.cmd creator_os <intent>", example = "tools\\bridge.cmd creator_os \"premium anime lobby\"", bestFor = "Direct alias for Creator OS package generation." },
+		} },
 		{ id = "robloxBrain", title = "Roblox Brain Core / Unified Game Creator OS", safety = "fullTrustOrchestratedLocalActions", commands = {
 			{ command = "tools\\bridge.cmd brain status", example = "tools\\bridge.cmd brain status", bestFor = "See unified brain readiness, active context, and best next action." },
 			{ command = "tools\\bridge.cmd brain scan", example = "tools\\bridge.cmd brain scan", bestFor = "Summarize the live place, tool stack, watch state, output state, and creator memory." },
@@ -23234,6 +23311,7 @@ function V46.directAliases()
 		"generate_vfx", "plan_vfx", "audit_vfx", "attach_vfx", "animate_vfx", "pro_vfx", "generate_pro_vfx", "polish_vfx", "compare_vfx", "retime_vfx", "optimize_vfx", "vfx_budget", "vfx_recipes",
 		"generate_model", "generate_scene", "plan_build", "audit_build", "polish_build", "optimize_build",
 		"roblox_brain", "build_game", "improve_game", "test_game", "polish_game",
+		"creator_os", "create_game", "premium_build", "style_bible", "forge_assets", "visual_critique",
 		"motion_vfx", "plan_motion_vfx", "generate_motion_vfx", "audit_motion_vfx", "polish_motion_vfx", "sync_motion_vfx",
 		"list_rigs", "inspect_rig", "get_rig_pose", "set_rig_pose", "reset_rig_pose", "create_animation",
 		"generate_animation", "choreograph_animation", "ability_animation_plan", "motion_audit_animation", "sync_animation_vfx", "generate_animation_variant",
@@ -33045,6 +33123,282 @@ function V61.executeRobloxBrainPlan(payload)
 	}
 	V61.last.execution = result
 	return result
+end
+
+-- V62 Roblox Creator OS + Asset Forge
+function V62.safeIntent(payload)
+	payload = payload or {}
+	return tostring(payload.intent or payload.goal or payload.text or payload.query or "premium Roblox game experience")
+end
+
+function V62.styleFromIntent(intent)
+	local style = "premiumUniversal"
+	if V61.has(intent, "slime", "bubble", "cute", "pet", "simulator", "candy") then style = "toyBrightSimulator" end
+	if V61.has(intent, "anime", "aura", "beam", "sword", "boss", "ultimate") then style = "animeCinematic" end
+	if V61.has(intent, "sci", "cyber", "tech", "neon", "space") then style = "neonTech" end
+	if V61.has(intent, "horror", "dark", "haunted", "scary") then style = "darkAtmospheric" end
+	if V61.has(intent, "fantasy", "magic", "portal", "castle") then style = "fantasyAdventure" end
+	return style
+end
+
+function V62.archetypeFromIntent(intent)
+	if V61.has(intent, "lobby", "hub", "spawn") then return "spawnHub" end
+	if V61.has(intent, "arena", "boss", "combat") then return "combatArena" end
+	if V61.has(intent, "obby", "course", "stage") then return "obbyCourse" end
+	if V61.has(intent, "tycoon", "factory", "dropper") then return "tycoonBase" end
+	if V61.has(intent, "ability", "power", "attack", "skill") then return "abilityPackage" end
+	if V61.has(intent, "vfx", "effect", "beam", "aura", "projectile") then return "vfxPackage" end
+	return "premiumGameSlice"
+end
+
+function V62.materialLanguage(style)
+	if style == "toyBrightSimulator" then
+		return { "glossy white plastic", "transparent glass tubes", "gold rounded trim", "colored portal glow", "slime decals", "bubble particles" }
+	elseif style == "animeCinematic" then
+		return { "high contrast neon accents", "dark readable bases", "emissive aura cores", "trail-ready metal", "impact flash materials" }
+	elseif style == "neonTech" then
+		return { "black satin metal", "cyan/magenta neon", "panel seams", "glass screens", "thin gold or chrome trims" }
+	elseif style == "darkAtmospheric" then
+		return { "rough stone", "desaturated wood", "fog layers", "warm diegetic lights", "high contrast silhouette props" }
+	end
+	return { "primary material family", "secondary contrast material", "trim material", "glass/glow material", "ground/readability material" }
+end
+
+function V62.shapeGrammar(style, archetype)
+	local grammar = {
+		primaryShapes = { "large readable silhouettes", "rounded bevel-like trims", "clear focal center", "layered height tiers" },
+		modules = { "base plinth", "portal/entry frame", "trim rail", "sign frame", "VFX socket", "interaction pad" },
+		detailRules = { "big shape first", "repeated trim rhythm", "color-coded interactables", "avoid tiny noise at player scale", "reserve glow for important actions" },
+	}
+	if archetype == "spawnHub" then
+		grammar.modules = { "spawn pad", "central core", "radial paths", "shop portals", "leaderboard bay", "upgrade/pets/rebirth bays", "background landmarks" }
+	elseif archetype == "combatArena" then
+		grammar.modules = { "central fight floor", "cover pieces", "entry gates", "spectator rim", "VFX-safe impact zones", "camera-readable landmarks" }
+	elseif archetype == "abilityPackage" or archetype == "vfxPackage" then
+		grammar.modules = { "attachment targets", "animation markers", "charge layer", "release flash", "projectile/trail layer", "impact/residue layer", "audio cue slots" }
+	end
+	if style == "toyBrightSimulator" then
+		grammar.primaryShapes = { "soft cylinders", "rounded arches", "chunky signs", "fat pipes", "bubble circles", "dripping slime silhouettes" }
+	end
+	return grammar
+end
+
+function V62.getCreatorStyleBible(payload)
+	local intent = V62.safeIntent(payload)
+	local style = V62.styleFromIntent(intent)
+	local archetype = V62.archetypeFromIntent(intent)
+	local bible = {
+		name = style .. " Style Bible",
+		intent = intent,
+		style = style,
+		archetype = archetype,
+		visualPromise = "Make every generated asset feel intentional, readable, premium, mobile-safe, and connected to gameplay purpose.",
+		palette = style == "toyBrightSimulator" and {
+			primary = "sky cyan",
+			secondary = "bubble pink",
+			accent = "slime green",
+			trim = "warm gold",
+			neutral = "soft white stone",
+		} or {
+			primary = "clear focal color from intent",
+			secondary = "cool/warm contrast color",
+			accent = "limited high-energy glow",
+			trim = "premium metallic or dark outline",
+			neutral = "readable base material",
+		},
+		materials = V62.materialLanguage(style),
+		shapeGrammar = V62.shapeGrammar(style, archetype),
+		lighting = { "strong readable key light", "soft fill", "Bloom only on focal VFX", "Atmosphere/DepthOfField tuned after screenshot compare" },
+		signage = { "3D sign frames", "large readable labels", "icon support", "color-coded service zones", "avoid tiny text on mobile" },
+		vfxLanguage = { "ambient motion at low cost", "action VFX only at gameplay beats", "particles support silhouette instead of hiding it", "cleanup and mobile budget required" },
+		audioLanguage = { "UI clicks are crisp and quiet", "major actions need impact cues", "ambience stays below gameplay SFX", "mix profile chosen by intent" },
+		performanceBudget = { parts = "prefer modular repetition", particles = "cap emitters and burst counts", lights = "few focal lights", mobile = "first-class target" },
+	}
+	V62.last.styleBible = bible
+	return { ok = true, at = isoNow(), version = VERSION, styleBible = bible, nextCommand = "tools\\bridge.cmd creator assets \"" .. intent .. "\"" }
+end
+
+function V62.getCreatorAssetForgePlan(payload)
+	local intent = V62.safeIntent(payload)
+	local style = V62.styleFromIntent(intent)
+	local archetype = V62.archetypeFromIntent(intent)
+	local kitRoots = { payload and payload.assetRoot or nil, "Workspace", "ReplicatedStorage", "StarterGui", "SoundService" }
+	local roles = {
+		meshes = { "arches/domescaps", "pipes/tubes", "trim rings", "sign boards", "projectile cores", "shockwave rings", "portal frames" },
+		materials = V62.materialLanguage(style),
+		textures = { "trim sheet", "decal icons", "slime/noise/glow masks", "portal swirl", "spark/smoke/slash particles" },
+		audio = { "UI click", "portal hum", "charge", "release", "impact", "reward" },
+		animation = { "idle loop", "interact pose", "ability charge", "impact reaction", "emote/cinematic beat" },
+	}
+	return {
+		ok = true,
+		at = isoNow(),
+		version = VERSION,
+		intent = intent,
+		style = style,
+		archetype = archetype,
+		assetForge = {
+			kitRoots = kitRoots,
+			reuseFirst = true,
+			createWhenMissing = { "simple primitive modules in Studio", "mesh export plan for Blender/Open Cloud when Roblox primitives cannot hit the silhouette", "generated decals/textures only through explicit local asset workflow" },
+			roles = roles,
+			indexCommands = { "tools\\bridge.cmd build kit Workspace", "tools\\bridge.cmd vfx textures Workspace", "tools\\bridge.cmd audio catalog Workspace", "tools\\bridge.cmd animation list Workspace" },
+			outputFolders = { "Workspace.CodexBuildDirector", "ReplicatedStorage.CodexVfxWorkbench", "ReplicatedStorage.GeneratedAnimations", "ReplicatedStorage.CodexCreatorOS" },
+		},
+		nextCommand = "tools\\bridge.cmd creator pipeline \"" .. intent .. "\"",
+	}
+end
+
+function V62.getCreatorProductionPipeline(payload)
+	local intent = V62.safeIntent(payload)
+	local style = V62.styleFromIntent(intent)
+	return {
+		ok = true,
+		at = isoNow(),
+		version = VERSION,
+		intent = intent,
+		style = style,
+		pipeline = {
+			{ id = "reference", command = "tools\\bridge.cmd creator style \"" .. intent .. "\"", evidence = "style bible, shape grammar, material language" },
+			{ id = "inventory", command = "tools\\bridge.cmd creator assets \"" .. intent .. "\"", evidence = "asset roles, reusable kit roots, missing asset list" },
+			{ id = "blockout", command = "tools\\bridge.cmd build plan \"" .. intent .. "\"", evidence = "layout, scale, sockets, modular grammar" },
+			{ id = "generate", command = "tools\\bridge.cmd creator generate \"" .. intent .. "\"", evidence = "Codex-owned manifests plus specialist generated assets" },
+			{ id = "visual-pass", command = "tools\\bridge.cmd camera director", evidence = "camera framing and screenshot targets" },
+			{ id = "critique", command = "tools\\bridge.cmd creator critique \"" .. intent .. "\"", evidence = "compare composition/material/detail/readability against style bible" },
+			{ id = "polish", command = "tools\\bridge.cmd creator polish \"" .. intent .. "\"", evidence = "trim/detail/VFX/audio/lighting/performance iteration" },
+			{ id = "qa", command = "tools\\bridge.cmd test_game \"full launch QA for " .. intent .. "\"", evidence = "runtime, UI, output, movement, interaction, performance" },
+		},
+		externalPipeline = {
+			"Use Blender/Python or future mesh generator for rounded custom silhouettes Roblox primitives cannot match.",
+			"Use glTF/PBR-style material thinking for SurfaceAppearance/texture atlas plans.",
+			"Use screenshot compare loops instead of trusting first-pass generation.",
+			"Use Open Cloud/manual import only when creator credentials and Roblox upload flow allow it.",
+		},
+		nextCommand = "tools\\bridge.cmd creator generate \"" .. intent .. "\"",
+	}
+end
+
+function V62.getCreatorVisualCritiquePlan(payload)
+	local intent = V62.safeIntent(payload)
+	local style = V62.styleFromIntent(intent)
+	return {
+		ok = true,
+		at = isoNow(),
+		version = VERSION,
+		intent = intent,
+		style = style,
+		critique = {
+			scoreAreas = { "composition/focal point", "shape silhouette", "material harmony", "detail density", "VFX sync", "lighting/camera", "mobile readability", "performance budget", "gameplay clarity" },
+			loop = {
+				"capture current camera/screen",
+				"compare against style bible and target intent",
+				"list exact misses by priority",
+				"route fixes to Build/VFX/Animation/Audio/Camera/Test specialists",
+				"repeat until the visual promise is met",
+			},
+			commands = { "tools\\bridge.cmd camera director", "tools\\bridge.cmd screen status", "tools\\bridge.cmd build audit <modelPath>", "tools\\bridge.cmd vfx audit <presetPath>", "tools\\bridge.cmd audio audit Workspace", "tools\\bridge.cmd creator polish \"" .. intent .. "\"" },
+		},
+		nextCommand = "tools\\bridge.cmd creator polish \"" .. intent .. "\"",
+	}
+end
+
+function V62.getCreatorGameBlueprint(payload)
+	local intent = V62.safeIntent(payload)
+	local styleBible = V62.getCreatorStyleBible({ intent = intent }).styleBible
+	local assetForge = V62.getCreatorAssetForgePlan({ intent = intent, assetRoot = payload and payload.assetRoot or nil }).assetForge
+	local pipeline = V62.getCreatorProductionPipeline({ intent = intent }).pipeline
+	local profile = V61.classify(intent)
+	local blueprint = {
+		intent = intent,
+		styleBible = styleBible,
+		assetForge = assetForge,
+		productionPipeline = pipeline,
+		brainRoute = V61.getRobloxBrainRoute({ goal = intent, intent = intent }),
+		qualityGates = {
+			"clear player purpose in first camera view",
+			"large silhouette reads before small detail",
+			"materials and colors obey style bible",
+			"all key interactions have VFX/audio/animation feedback",
+			"mobile budget and output errors checked before calling it done",
+		},
+		profile = profile,
+	}
+	V62.last.blueprint = blueprint
+	return { ok = true, at = isoNow(), version = VERSION, blueprint = blueprint, nextCommand = "tools\\bridge.cmd creator generate \"" .. intent .. "\"" }
+end
+
+function V62.writeCreatorManifest(kind, payload)
+	local intent = V62.safeIntent(payload)
+	local safe = V60.safeName(kind .. "_" .. intent, "CreatorOS")
+	local path = "ReplicatedStorage.CodexCreatorOS." .. tostring(kind) .. "." .. safe .. "_" .. tostring(os.time())
+	local sourcePayload = { kind = kind, intent = intent, generatedAt = isoNow(), version = VERSION, payload = payload }
+	return applyBuildPlan({ blueprint = { name = "CodexCreatorOS" .. tostring(kind), mode = "fullTrustCreatorOSManifest", steps = { { type = "ensureFolder", path = "ReplicatedStorage.CodexCreatorOS" }, { type = "ensureFolder", path = "ReplicatedStorage.CodexCreatorOS.StyleBibles" }, { type = "ensureFolder", path = "ReplicatedStorage.CodexCreatorOS.AssetForge" }, { type = "ensureFolder", path = "ReplicatedStorage.CodexCreatorOS.Blueprints" }, { type = "ensureFolder", path = "ReplicatedStorage.CodexCreatorOS.Packages" }, { type = "writeScript", className = "ModuleScript", path = path, source = V60.manifestSource(sourcePayload), overwrite = false } } } }), path
+end
+
+function V62.bakeCreatorStyleBible(payload)
+	local report = V62.getCreatorStyleBible(payload or {})
+	local result, manifestPath = V62.writeCreatorManifest("StyleBibles", report.styleBible)
+	report.status = result and result.status or "written"
+	report.manifestPath = manifestPath
+	report.result = result
+	V62.last.styleBake = report
+	return report
+end
+
+function V62.applyCreatorOsPlan(payload)
+	payload = payload or {}
+	local intent = V62.safeIntent(payload)
+	local blueprint = V62.getCreatorGameBlueprint({ intent = intent, assetRoot = payload.assetRoot }).blueprint
+	local brainExecution = V61.executeRobloxBrainPlan({ goal = intent, intent = intent, action = payload.action or "build", rigPath = payload.rigPath, targetPath = payload.targetPath, assetRoot = payload.assetRoot })
+	local result, manifestPath = V62.writeCreatorManifest("Packages", { intent = intent, blueprint = blueprint, brainExecution = brainExecution })
+	local artifacts = {}
+	if type(brainExecution.artifacts) == "table" then
+		for _, value in ipairs(brainExecution.artifacts) do table.insert(artifacts, value) end
+	end
+	table.insert(artifacts, manifestPath)
+	local package = {
+		ok = brainExecution.ok ~= false and (result == nil or result.ok ~= false),
+		status = "executed",
+		contract = "creatorOSPackage.v1",
+		at = isoNow(),
+		version = VERSION,
+		intent = intent,
+		style = blueprint.styleBible.style,
+		archetype = blueprint.styleBible.archetype,
+		manifestPath = manifestPath,
+		brainExecution = brainExecution,
+		artifacts = artifacts,
+		warnings = brainExecution.warnings or {},
+		blockers = brainExecution.blockers or {},
+		summary = "Creator OS generated a style bible, asset forge plan, production blueprint, and routed the goal through the unified Roblox Brain.",
+		nextCommand = "tools\\bridge.cmd creator critique \"" .. intent .. "\"",
+	}
+	V62.last.package = package
+	return package
+end
+
+function V62.generateCreatorOsPackage(payload)
+	return V62.applyCreatorOsPlan(payload or {})
+end
+
+function V62.polishCreatorOsPackage(payload)
+	local intent = V62.safeIntent(payload)
+	local critique = V62.getCreatorVisualCritiquePlan({ intent = intent })
+	local brainPolish = V61.executeRobloxBrainPlan({ goal = intent, intent = intent, action = "polish", rigPath = payload and payload.rigPath or nil, targetPath = payload and payload.targetPath or nil, assetRoot = payload and payload.assetRoot or nil })
+	local result, manifestPath = V62.writeCreatorManifest("Packages", { intent = intent, critique = critique, polish = brainPolish })
+	return { ok = brainPolish.ok ~= false, at = isoNow(), version = VERSION, intent = intent, status = "polishRouted", critique = critique, polish = brainPolish, manifestPath = manifestPath, writeResult = result, nextCommand = "tools\\bridge.cmd creator critique \"" .. intent .. "\"" }
+end
+
+function V62.getCreatorOsStatus(payload)
+	return { ok = true, at = isoNow(), version = VERSION, status = "ready", name = "Roblox Creator OS + Asset Forge", fullTrust = V41.mode(), last = V62.last, capabilities = { "style bible", "asset forge", "procedural build grammar", "VFX/animation/audio sync", "external mesh/material pipeline plan", "visual critique loop", "unified specialist routing" }, nextCommand = "tools\\bridge.cmd creator blueprint <intent>" }
+end
+
+function V62.getCreatorOsCapabilityMap(payload)
+	return { ok = true, at = isoNow(), version = VERSION, categories = { build = "V60 Build Director", brain = "V61 Roblox Brain", creatorOs = "V62 style/asset/critique/package brain", vfx = "V51/V52 pro VFX", animation = "V53 choreographer", motionVfx = "V54 fusion", ability = "V44 forge", audio = "V59 director", test = "V45 pilot", camera = "V37/V38 camera/screen" }, directCommands = { "creator_os", "create_game", "premium_build", "style_bible", "forge_assets", "visual_critique" }, nextCommand = "tools\\bridge.cmd creator director" }
+end
+
+function V62.getCreatorDirectorReport(payload)
+	return { ok = true, at = isoNow(), version = VERSION, status = "ready", statusReport = V62.getCreatorOsStatus(payload or {}), capabilityMap = V62.getCreatorOsCapabilityMap(payload or {}), workflow = { "tools\\bridge.cmd creator style <intent>", "tools\\bridge.cmd creator assets <intent>", "tools\\bridge.cmd creator blueprint <intent>", "tools\\bridge.cmd creator generate <intent>", "tools\\bridge.cmd creator critique <intent>", "tools\\bridge.cmd creator polish <intent>" }, last = V62.last, nextCommand = "tools\\bridge.cmd creator blueprint <intent>" }
 end
 
 mutatingTypes = {

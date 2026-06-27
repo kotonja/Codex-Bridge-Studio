@@ -33,6 +33,8 @@ function createRoute(rawQuery = '', options = {}) {
   const has = (...words) => words.some((word) => q.includes(word));
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
+  const creatorSignal = has('creator os', 'asset forge', 'style bible', 'visual critique', 'production pipeline', 'build like this', 'premium build', 'custom mesh', 'mesh pipeline', 'texture factory', 'material pipeline', 'game creator')
+    || ((has('premium', 'beautiful', 'exactly', 'crazy', 'massive', 'top dev') && has('build', 'scene', 'hub', 'game', 'world', 'roblox')));
   const brainSignal = has('roblox brain', 'game creator', 'creator os', 'whole game', 'everything together', 'unified', 'orchestrate', 'make game', 'build game', 'improve game', 'polish game', 'premium game', 'top dev', 'full creator')
     || ((has('make', 'create', 'build', 'improve', 'polish') && has('game', 'experience', 'roblox')));
   const buildSignal = has('build', 'model', 'scene', 'prop', 'parts', 'part', 'structure', 'building', 'lobby', 'arena', 'map', 'portal', 'crate', 'shop stand', 'decorate', 'blockout', 'procedural')
@@ -97,7 +99,7 @@ function createRoute(rawQuery = '', options = {}) {
       reason: 'Fast live context request.',
       commands: ['tools\\bridge.cmd codex-context', 'tools\\bridge.cmd watch now', 'tools\\bridge.cmd watch errors'],
     });
-  } else if (has('place', 'places', 'universe', 'riftarena', 'hub', 'switch')) {
+  } else if (has('places', 'universe', 'riftarena') || ((has('place', 'hub', 'match', 'dungeon', 'arena') && has('switch', 'use ', 'current', 'select', 'target')))) {
     const placeTarget = q.includes('riftarena') ? 'RiftArena' : (q.includes('hub') ? 'Hub' : '<place>');
     setRoute({
       category: 'places',
@@ -119,6 +121,16 @@ function createRoute(rawQuery = '', options = {}) {
       confidence: 0.9,
       reason: 'Tool/capability discovery request.',
       commands: search ? [`tools\\bridge.cmd tools search ${quoteForCommand(search)}`, 'tools\\bridge.cmd tools'] : ['tools\\bridge.cmd tools', 'tools\\bridge.cmd command-index', 'tools\\bridge.cmd manual'],
+    });
+  } else if (creatorSignal) {
+    const action = has('critique', 'compare', 'screenshot') ? 'critique' : has('polish') ? 'polish' : has('style') ? 'style' : has('asset', 'mesh', 'texture') ? 'assets' : has('plan', 'blueprint') ? 'blueprint' : 'generate';
+    setRoute({
+      category: 'creatorOS',
+      title: 'Roblox Creator OS + Asset Forge',
+      confidence: 0.95,
+      safety: 'fullTrustCodexOwnedProductionPipeline',
+      reason: 'Premium production-pipeline language detected. Use Creator OS for style bible, asset forge, build grammar, visual critique, and specialist routing.',
+      commands: [`tools\\bridge.cmd creator blueprint ${quoteForCommand(intent)}`, `tools\\bridge.cmd creator ${action} ${quoteForCommand(intent)}`, 'tools\\bridge.cmd creator director'],
     });
   } else if (brainSignal) {
     const action = has('test', 'qa') ? 'test' : has('polish') ? 'polish' : has('improve') ? 'improve' : 'build';
@@ -266,6 +278,9 @@ function catalog(version = null) {
     ['check loud sounds', 'tools\\bridge.cmd audio live'],
     ['generate detailed sci-fi crate model', 'tools\\bridge.cmd generate_model "detailed sci-fi crate with vents and warning trims"'],
     ['build portal lobby scene', 'tools\\bridge.cmd generate_scene "anime portal lobby with shop stands and VFX sockets"'],
+    ['build premium hub like this image', 'tools\\bridge.cmd creator generate "premium hub matching the reference style"'],
+    ['make a style bible', 'tools\\bridge.cmd creator style "<intent>"'],
+    ['plan custom meshes and textures', 'tools\\bridge.cmd creator assets "<intent>"'],
     ['test game movement', 'tools\\bridge.cmd test snapshot'],
     ['click shop button', 'tools\\bridge.cmd action ui list'],
     ['start play', 'tools\\bridge.cmd play start'],

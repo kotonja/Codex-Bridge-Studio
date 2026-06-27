@@ -7,8 +7,8 @@ const childProcess = require('node:child_process');
 const os = require('node:os');
 const CommandRouter = require('../bridge/command-router');
 
-const HELPER_VERSION = '0.61.1';
-const MCP_PROXY_VERSION = '0.61.1';
+const HELPER_VERSION = '0.62.0';
+const MCP_PROXY_VERSION = '0.62.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -61,6 +61,12 @@ const MCP_PROXY_TOOLS = [
   'improve_game',
   'test_game',
   'polish_game',
+  'creator_os',
+  'create_game',
+  'premium_build',
+  'style_bible',
+  'forge_assets',
+  'visual_critique',
   'execute_luau',
 ];
 const DEFAULT_BASE_URL = `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
@@ -567,6 +573,21 @@ Usage:
   node tools/bridge.js improve_game <goal>
   node tools/bridge.js test_game <goal>
   node tools/bridge.js polish_game <goal>
+  node tools/bridge.js creator status
+  node tools/bridge.js creator style <intent>
+  node tools/bridge.js creator assets <intent>
+  node tools/bridge.js creator pipeline <intent>
+  node tools/bridge.js creator blueprint <intent>
+  node tools/bridge.js creator generate <intent>
+  node tools/bridge.js creator critique <intent>
+  node tools/bridge.js creator polish <intent>
+  node tools/bridge.js creator director
+  node tools/bridge.js creator_os <intent>
+  node tools/bridge.js create_game <intent>
+  node tools/bridge.js premium_build <intent>
+  node tools/bridge.js style_bible <intent>
+  node tools/bridge.js forge_assets <intent>
+  node tools/bridge.js visual_critique <intent>
   node tools/bridge.js animation rigs|list-rigs [path]
   node tools/bridge.js animation inspect-rig <rigPath>
   node tools/bridge.js animation pose <rigPath>
@@ -5841,6 +5862,99 @@ async function runBrain(subcommand, args) {
   throw new Error(`Unknown brain command: ${subcommand}`);
 }
 
+async function runCreator(subcommand, args) {
+  const context = await resolveProjectProfile();
+  const now = new Date().toISOString();
+  const basePayload = brainPayload(context);
+
+  if (!subcommand || subcommand === 'status') {
+    print(await runReadCommand('getCreatorOsStatus', basePayload));
+    return;
+  }
+
+  if (subcommand === 'capabilities' || subcommand === 'tools' || subcommand === 'map') {
+    print(await runReadCommand('getCreatorOsCapabilityMap', basePayload));
+    return;
+  }
+
+  if (subcommand === 'style' || subcommand === 'style-bible') {
+    const intent = args.join(' ').trim() || context.placeMemory.currentFocus || 'premium Roblox game experience';
+    print(await runReadCommand('getCreatorStyleBible', { ...basePayload, intent, goal: intent }));
+    return;
+  }
+
+  if (subcommand === 'assets' || subcommand === 'asset-forge' || subcommand === 'forge') {
+    const intent = args.join(' ').trim() || context.placeMemory.currentFocus || 'premium Roblox game experience';
+    print(await runReadCommand('getCreatorAssetForgePlan', { ...basePayload, intent, goal: intent }));
+    return;
+  }
+
+  if (subcommand === 'pipeline') {
+    const intent = args.join(' ').trim() || context.placeMemory.currentFocus || 'premium Roblox game experience';
+    print(await runReadCommand('getCreatorProductionPipeline', { ...basePayload, intent, goal: intent }));
+    return;
+  }
+
+  if (subcommand === 'critique' || subcommand === 'visual-critique') {
+    const intent = args.join(' ').trim() || context.placeMemory.currentFocus || 'premium Roblox game experience';
+    print(await runReadCommand('getCreatorVisualCritiquePlan', { ...basePayload, intent, goal: intent }));
+    return;
+  }
+
+  if (subcommand === 'blueprint' || subcommand === 'plan') {
+    const intent = args.join(' ').trim() || context.placeMemory.currentFocus || 'premium Roblox game experience';
+    const result = await runReadCommand('getCreatorGameBlueprint', { ...basePayload, intent, goal: intent });
+    context.placeMemory.lastCreatorOsBlueprint = {
+      at: now,
+      intent,
+      style: result.blueprint && result.blueprint.styleBible && result.blueprint.styleBible.style,
+      archetype: result.blueprint && result.blueprint.styleBible && result.blueprint.styleBible.archetype,
+      nextCommand: result.nextCommand,
+    };
+    context.memory.places[context.place.key] = context.placeMemory;
+    writeMemory(context.memory);
+    print(result);
+    return;
+  }
+
+  if (subcommand === 'generate' || subcommand === 'build' || subcommand === 'create') {
+    const intent = args.join(' ').trim() || context.placeMemory.currentFocus;
+    if (!intent) throw new Error(`creator ${subcommand} requires <intent>.`);
+    const result = await queueBrainCommand('generateCreatorOsPackage', { ...basePayload, intent, goal: intent, action: 'build' });
+    context.placeMemory.lastCreatorOsExecution = { at: now, intent, manifestPath: result.manifestPath, nextCommand: result.nextCommand };
+    pushLimited(context.placeMemory.recentReports, { at: now, type: 'creatorOsPackage', intent, manifestPath: result.manifestPath, artifacts: result.artifacts, nextCommand: result.nextCommand }, 30);
+    context.memory.places[context.place.key] = context.placeMemory;
+    writeMemory(context.memory);
+    print(result);
+    return;
+  }
+
+  if (subcommand === 'bake-style' || subcommand === 'save-style') {
+    const intent = args.join(' ').trim() || context.placeMemory.currentFocus;
+    if (!intent) throw new Error(`creator ${subcommand} requires <intent>.`);
+    print(await queueBrainCommand('bakeCreatorStyleBible', { ...basePayload, intent, goal: intent }));
+    return;
+  }
+
+  if (subcommand === 'polish' || subcommand === 'improve') {
+    const intent = args.join(' ').trim() || context.placeMemory.currentFocus || 'premium Roblox game polish';
+    const result = await queueBrainCommand('polishCreatorOsPackage', { ...basePayload, intent, goal: intent });
+    context.placeMemory.lastCreatorOsExecution = { at: now, intent, manifestPath: result.manifestPath, nextCommand: result.nextCommand };
+    pushLimited(context.placeMemory.recentReports, { at: now, type: 'creatorOsPolish', intent, manifestPath: result.manifestPath, nextCommand: result.nextCommand }, 30);
+    context.memory.places[context.place.key] = context.placeMemory;
+    writeMemory(context.memory);
+    print(result);
+    return;
+  }
+
+  if (subcommand === 'director' || subcommand === 'report') {
+    print(await runReadCommand('getCreatorDirectorReport', basePayload));
+    return;
+  }
+
+  throw new Error('creator command must be status, capabilities, style, assets, pipeline, blueprint, generate, critique, polish, bake-style, or director.');
+}
+
 async function runVision(subcommand, args) {
   const context = await resolveProjectProfile();
   if (!subcommand || subcommand === 'snapshot') {
@@ -10657,6 +10771,24 @@ async function main(argv) {
 
   if (command === 'brain') {
     await runBrain(args[0], args.slice(1));
+    return;
+  }
+
+  if (command === 'creator') {
+    await runCreator(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  const directCreatorCommands = {
+    creator_os: 'generate',
+    create_game: 'generate',
+    premium_build: 'generate',
+    style_bible: 'style',
+    forge_assets: 'assets',
+    visual_critique: 'critique',
+  };
+  if (directCreatorCommands[command]) {
+    await runCreator(directCreatorCommands[command], args);
     return;
   }
 

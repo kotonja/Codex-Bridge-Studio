@@ -171,7 +171,29 @@ Visible Roblox screen control is also available after Codex Ready setup:
 .\tools\bridge.cmd screen clear
 ```
 
-Roblox Brain Core is the preferred V61 entry point for whole-game goals. Use it when the user asks Codex to build, improve, polish, test, or understand an entire Roblox game slice instead of one isolated subsystem:
+Roblox Creator OS + Asset Forge is the preferred V62 entry point when the user wants Codex to build premium Roblox worlds, hubs, systems, or game slices with a real production pipeline instead of random parts. Use it for style bibles, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
+
+```powershell
+.\tools\bridge.cmd creator status
+.\tools\bridge.cmd creator style "slime and bubble escape hub"
+.\tools\bridge.cmd creator assets "premium anime boss arena"
+.\tools\bridge.cmd creator pipeline "premium simulator lobby"
+.\tools\bridge.cmd creator blueprint "slime and bubble escape hub"
+.\tools\bridge.cmd creator generate "premium slime and bubble escape hub"
+.\tools\bridge.cmd creator critique "premium slime hub"
+.\tools\bridge.cmd creator polish "premium slime hub"
+.\tools\bridge.cmd creator director
+.\tools\bridge.cmd creator_os "premium anime lobby"
+.\tools\bridge.cmd create_game "premium simulator lobby"
+.\tools\bridge.cmd premium_build "reference-quality portal hub"
+.\tools\bridge.cmd style_bible "bubble simulator hub"
+.\tools\bridge.cmd forge_assets "anime beam arena"
+.\tools\bridge.cmd visual_critique "portal lobby"
+```
+
+Creator OS writes manifests under `ReplicatedStorage.CodexCreatorOS`, then routes clear work through Roblox Brain, Build Director, VFX, Animation, Motion+VFX, Ability Forge, Audio Director, Camera/Screen, and Test Pilot. Be honest about limits: Roblox primitives can produce strong modular builds, but reference-level premium scenes usually require custom meshes, PBR-style textures/decals, asset-kit reuse, and repeated screenshot critique/polish loops.
+
+Roblox Brain Core is still the preferred V61/V62 entry point for whole-game goals when the user asks Codex to build, improve, polish, test, or understand an entire Roblox game slice instead of one isolated subsystem:
 
 ```powershell
 .\tools\bridge.cmd brain status
@@ -192,7 +214,7 @@ Roblox Brain Core is the preferred V61 entry point for whole-game goals. Use it 
 .\tools\bridge.cmd polish_game "combat feedback"
 ```
 
-The brain routes goals through the existing specialist stack: Build Director, VFX, Animation, Motion+VFX, Ability Forge, Audio Director, Test Pilot, camera/screen, code/output, and handoff. It writes central manifests under `ReplicatedStorage.CodexRobloxBrain` and then calls the clearest Codex-owned specialist route when confidence is high. V61.1 waits for the final Studio result before printing and returns a compact execution summary with the primary domain, specialist, created paths, manifest path, warnings/blockers, and next command; use `commands --full` only for raw debugging.
+The brain routes goals through the existing specialist stack: Build Director, VFX, Animation, Motion+VFX, Ability Forge, Audio Director, Test Pilot, camera/screen, code/output, and handoff. It writes central manifests under `ReplicatedStorage.CodexRobloxBrain` and then calls the clearest Codex-owned specialist route when confidence is high. V62 keeps the V61.1 compact execution summary with the primary domain, specialist, created paths, manifest path, warnings/blockers, and next command; use `commands --full` only for raw debugging.
 
 Universal Build Director tools create clean Roblox models/scenes with part grammar, scale rules, material palettes, sockets, manifests, and audit/optimization passes:
 
