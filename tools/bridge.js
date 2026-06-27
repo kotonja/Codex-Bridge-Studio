@@ -6,9 +6,10 @@ const crypto = require('node:crypto');
 const childProcess = require('node:child_process');
 const os = require('node:os');
 const CommandRouter = require('../bridge/command-router');
+const Premium = require('../bridge/premium');
 
-const HELPER_VERSION = '0.62.0';
-const MCP_PROXY_VERSION = '0.62.0';
+const HELPER_VERSION = '0.63.0';
+const MCP_PROXY_VERSION = '0.63.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -64,6 +65,15 @@ const MCP_PROXY_TOOLS = [
   'creator_os',
   'create_game',
   'premium_build',
+  'premium_director',
+  'premium_plan',
+  'premium_style',
+  'premium_assets',
+  'premium_world',
+  'premium_critique',
+  'premium_qa',
+  'premium_polish',
+  'premium_score',
   'style_bible',
   'forge_assets',
   'visual_critique',
@@ -291,6 +301,18 @@ Usage:
   node tools/bridge.js run "<request>"
   node tools/bridge.js run --json "<request>"
   node tools/bridge.js nohang status
+  node tools/bridge.js premium status
+  node tools/bridge.js premium plan "<goal>"
+  node tools/bridge.js premium style "<goal>"
+  node tools/bridge.js premium assets "<goal>"
+  node tools/bridge.js premium world "<goal>"
+  node tools/bridge.js premium build "<goal>"
+  node tools/bridge.js premium critique "<goal>"
+  node tools/bridge.js premium qa "<goal>"
+  node tools/bridge.js premium polish "<goal>"
+  node tools/bridge.js premium director
+  node tools/bridge.js premium score <manifestPath-or-goal>
+  node tools/bridge.js premium self-check
   node tools/bridge.js do-tools
   node tools/bridge.js do-search <query>
   node tools/bridge.js codex-context
@@ -5955,6 +5977,148 @@ async function runCreator(subcommand, args) {
   throw new Error('creator command must be status, capabilities, style, assets, pipeline, blueprint, generate, critique, polish, bake-style, or director.');
 }
 
+async function runPremium(subcommand = 'status', args = []) {
+  const cleanIntent = () => args.join(' ').trim() || 'premium Roblox game slice';
+  const localManifest = (intent = cleanIntent()) => Premium.createPremiumManifest(intent, {
+    source: 'tools.bridge.premium',
+    helperVersion: HELPER_VERSION,
+  });
+
+  if (!subcommand || subcommand === 'status') {
+    print(Premium.getStatus());
+    return;
+  }
+
+  if (subcommand === 'self-check' || subcommand === 'selfcheck') {
+    const script = path.join(process.cwd(), 'tests', 'self-check-premium.js');
+    const result = childProcess.spawnSync(process.execPath, [script], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      timeout: 12000,
+    });
+    let parsed = null;
+    try {
+      parsed = result.stdout ? JSON.parse(result.stdout) : null;
+    } catch (_) {
+      parsed = null;
+    }
+    print({
+      ok: result.status === 0,
+      version: HELPER_VERSION,
+      command: `node ${path.relative(process.cwd(), script)}`,
+      result: parsed,
+      stdout: parsed ? undefined : (result.stdout || '').trim(),
+      stderr: (result.stderr || '').trim() || undefined,
+      exitCode: result.status,
+    });
+    return;
+  }
+
+  if (subcommand === 'director' || subcommand === 'report') {
+    const studio = await runReadCommandSafe('getPremiumDirectorStatus', { helperVersion: HELPER_VERSION, expectedVersion: HELPER_VERSION });
+    print(studio.ok ? studio.value : Premium.createDirectorReport(null, { warning: studio.error }));
+    return;
+  }
+
+  if (subcommand === 'plan' || subcommand === 'brief') {
+    const intent = cleanIntent();
+    const studio = await runReadCommandSafe('getPremiumProductionBrief', { helperVersion: HELPER_VERSION, expectedVersion: HELPER_VERSION, goal: intent, intent });
+    if (studio.ok && studio.value && studio.value.manifest) {
+      print(studio.value);
+    } else {
+      print({ ok: true, version: HELPER_VERSION, mode: 'localPremiumPlan', manifest: localManifest(intent), studioFallback: studio.error || null });
+    }
+    return;
+  }
+
+  if (subcommand === 'style' || subcommand === 'style-bible') {
+    const manifest = localManifest();
+    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, styleBible: manifest.styleBible, nextCommand: `tools\\bridge.cmd premium assets "${manifest.goal}"` });
+    return;
+  }
+
+  if (subcommand === 'assets' || subcommand === 'asset-forge') {
+    const manifest = localManifest();
+    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, assetForgePlan: manifest.assetForgePlan, nextCommand: `tools\\bridge.cmd premium world "${manifest.goal}"` });
+    return;
+  }
+
+  if (subcommand === 'world' || subcommand === 'world-grammar') {
+    const manifest = localManifest();
+    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, worldGrammarPlan: manifest.worldGrammarPlan, nextCommand: `tools\\bridge.cmd premium build "${manifest.goal}"` });
+    return;
+  }
+
+  if (subcommand === 'critique' || subcommand === 'visual-critique') {
+    const manifest = localManifest();
+    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, visualCritiquePlan: manifest.visualCritiquePlan, qualityScore: manifest.qualityScore, nextCommand: `tools\\bridge.cmd premium polish "${manifest.goal}"` });
+    return;
+  }
+
+  if (subcommand === 'qa' || subcommand === 'test') {
+    const manifest = localManifest();
+    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, qaPlan: manifest.qaPlan, performanceBudget: manifest.performanceBudget, nextCommand: `tools\\bridge.cmd premium score "${manifest.goal}"` });
+    return;
+  }
+
+  if (subcommand === 'score') {
+    const target = cleanIntent();
+    let manifest = null;
+    const localPath = path.resolve(target);
+    if (fs.existsSync(localPath) && fs.statSync(localPath).isFile()) {
+      manifest = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+    } else {
+      manifest = localManifest(target);
+    }
+    print({ ok: true, version: HELPER_VERSION, target, qualityScore: Premium.scoreFromManifest(manifest), manifestPath: manifest.manifestPath || Premium.manifestPath(manifest.goal || target) });
+    return;
+  }
+
+  if (subcommand === 'build' || subcommand === 'execute') {
+    const intent = cleanIntent();
+    const manifest = localManifest(intent);
+    const context = await resolveProjectProfile();
+    const result = await queueBrainCommand('executePremiumBuildRound', brainPayload(context, {
+      intent,
+      goal: intent,
+      manifest,
+      source: 'tools.bridge.premium.build',
+    }));
+    print(result);
+    return;
+  }
+
+  if (subcommand === 'polish' || subcommand === 'improve') {
+    const intent = cleanIntent();
+    const manifest = localManifest(intent);
+    const context = await resolveProjectProfile();
+    const result = await queueBrainCommand('polishPremiumBuildRound', brainPayload(context, {
+      intent,
+      goal: intent,
+      manifest,
+      source: 'tools.bridge.premium.polish',
+    }));
+    print(result);
+    return;
+  }
+
+  if (subcommand === 'bake' || subcommand === 'manifest') {
+    const intent = cleanIntent();
+    const manifest = localManifest(intent);
+    const context = await resolveProjectProfile();
+    const result = await queueBrainCommand('bakePremiumDirectorManifest', brainPayload(context, {
+      intent,
+      goal: intent,
+      manifest,
+      source: 'tools.bridge.premium.bake',
+    }));
+    print(result);
+    return;
+  }
+
+  throw new Error('premium command must be status, plan, style, assets, world, build, critique, qa, polish, director, score, bake, or self-check.');
+}
+
 async function runVision(subcommand, args) {
   const context = await resolveProjectProfile();
   if (!subcommand || subcommand === 'snapshot') {
@@ -10769,6 +10933,29 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'premium') {
+    await runPremium(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  const directPremiumCommands = {
+    premium_director: 'director',
+    premium_plan: 'plan',
+    premium_style: 'style',
+    premium_assets: 'assets',
+    premium_world: 'world',
+    premium_build: 'build',
+    premium_build_round: 'build',
+    premium_critique: 'critique',
+    premium_qa: 'qa',
+    premium_polish: 'polish',
+    premium_score: 'score',
+  };
+  if (directPremiumCommands[command]) {
+    await runPremium(directPremiumCommands[command], args);
+    return;
+  }
+
   if (command === 'brain') {
     await runBrain(args[0], args.slice(1));
     return;
@@ -10782,7 +10969,6 @@ async function main(argv) {
   const directCreatorCommands = {
     creator_os: 'generate',
     create_game: 'generate',
-    premium_build: 'generate',
     style_bible: 'style',
     forge_assets: 'assets',
     visual_critique: 'critique',

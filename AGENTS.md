@@ -171,7 +171,29 @@ Visible Roblox screen control is also available after Codex Ready setup:
 .\tools\bridge.cmd screen clear
 ```
 
-Roblox Creator OS + Asset Forge is the preferred V62 entry point when the user wants Codex to build premium Roblox worlds, hubs, systems, or game slices with a real production pipeline instead of random parts. Use it for style bibles, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
+V63 Premium Director Core is the preferred first entry point when the user asks for premium/top-dev/reference-quality Roblox output, says `make this premium`, `make it look expensive`, `fix cheap looking build`, `visual critique`, `top dev quality`, `build premium Roblox game`, or broad `upgrade everything`. It creates a production brief, style bible, asset forge plan, world grammar, build round, visual critique, performance budget, QA plan, and premium quality score before routing work through the specialist stack:
+
+```powershell
+.\tools\bridge.cmd premium status
+.\tools\bridge.cmd premium plan "premium anime boss lobby"
+.\tools\bridge.cmd premium style "slime bubble escape hub"
+.\tools\bridge.cmd premium assets "premium boss arena"
+.\tools\bridge.cmd premium world "premium simulator hub"
+.\tools\bridge.cmd premium build "premium anime boss lobby"
+.\tools\bridge.cmd premium critique "premium lobby"
+.\tools\bridge.cmd premium qa "premium hub"
+.\tools\bridge.cmd premium polish "premium boss lobby"
+.\tools\bridge.cmd premium score <manifestPath-or-goal>
+.\tools\bridge.cmd premium director
+.\tools\bridge.cmd premium self-check
+.\tools\bridge.cmd premium_plan "premium anime boss lobby"
+.\tools\bridge.cmd premium_build "premium anime boss lobby"
+.\tools\bridge.cmd premium_critique "premium lobby"
+```
+
+For `upgrade everything`, route to `premium plan` first unless the user explicitly includes `--execute`. Premium Director writes manifests under `ReplicatedStorage.CodexPremiumDirector` and routes clear work through Build Director, Roblox Brain, VFX, Animation, Motion+VFX, Ability Forge, Audio Director, Camera/Screen, and Test Pilot instead of duplicating those specialists.
+
+Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell
 .\tools\bridge.cmd creator status
@@ -185,7 +207,6 @@ Roblox Creator OS + Asset Forge is the preferred V62 entry point when the user w
 .\tools\bridge.cmd creator director
 .\tools\bridge.cmd creator_os "premium anime lobby"
 .\tools\bridge.cmd create_game "premium simulator lobby"
-.\tools\bridge.cmd premium_build "reference-quality portal hub"
 .\tools\bridge.cmd style_bible "bubble simulator hub"
 .\tools\bridge.cmd forge_assets "anime beam arena"
 .\tools\bridge.cmd visual_critique "portal lobby"

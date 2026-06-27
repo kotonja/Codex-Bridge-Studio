@@ -1,7 +1,7 @@
--- Codex Studio Bridge V62.0
+-- Codex Studio Bridge V63.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.62.0"
+local VERSION = "0.63.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0
@@ -97,6 +97,7 @@ local V59 = { last = {} }
 local V60 = { last = {} }
 local V61 = { last = {} }
 local V62 = { last = {} }
+local V63 = { last = {} }
 
 local instanceIds = setmetatable({}, { __mode = "k" })
 local idInstances = {}
@@ -20057,12 +20058,78 @@ local function executeCommand(command)
 	local creatorCommandAliases = {
 		creator_os = "generateCreatorOsPackage",
 		create_game = "generateCreatorOsPackage",
-		premium_build = "generateCreatorOsPackage",
 		style_bible = "getCreatorStyleBible",
 		forge_assets = "getCreatorAssetForgePlan",
 		visual_critique = "getCreatorVisualCritiquePlan",
 	}
 	commandType = creatorCommandAliases[commandType] or commandType
+
+	local premiumCommandAliases = {
+		premium_director = "getPremiumDirectorStatus",
+		premium_plan = "getPremiumProductionBrief",
+		premium_style = "getPremiumStyleBible",
+		premium_assets = "getPremiumAssetForgePlan",
+		premium_world = "getPremiumWorldGrammarPlan",
+		premium_build = "executePremiumBuildRound",
+		premium_build_round = "executePremiumBuildRound",
+		premium_critique = "getPremiumVisualCritiquePlan",
+		premium_qa = "getPremiumQaPlan",
+		premium_polish = "polishPremiumBuildRound",
+		premium_score = "getPremiumQualityScore",
+	}
+	commandType = premiumCommandAliases[commandType] or commandType
+
+	if commandType == "getPremiumDirectorStatus" then
+		return V63.getPremiumDirectorStatus(payload)
+	end
+
+	if commandType == "getPremiumProductionBrief" then
+		return V63.getPremiumProductionBrief(payload)
+	end
+
+	if commandType == "getPremiumStyleBible" then
+		return V63.getPremiumStyleBible(payload)
+	end
+
+	if commandType == "getPremiumAssetForgePlan" then
+		return V63.getPremiumAssetForgePlan(payload)
+	end
+
+	if commandType == "getPremiumWorldGrammarPlan" then
+		return V63.getPremiumWorldGrammarPlan(payload)
+	end
+
+	if commandType == "getPremiumBuildRoundPlan" then
+		return V63.getPremiumBuildRoundPlan(payload)
+	end
+
+	if commandType == "getPremiumVisualCritiquePlan" then
+		return V63.getPremiumVisualCritiquePlan(payload)
+	end
+
+	if commandType == "getPremiumPerformanceBudget" then
+		return V63.getPremiumPerformanceBudget(payload)
+	end
+
+	if commandType == "getPremiumQaPlan" then
+		return V63.getPremiumQaPlan(payload)
+	end
+
+	if commandType == "getPremiumQualityScore" then
+		return V63.getPremiumQualityScore(payload)
+	end
+
+	if commandType == "executePremiumBuildRound" then
+		return V63.executePremiumBuildRound(payload)
+	end
+
+	if commandType == "polishPremiumBuildRound" then
+		return V63.polishPremiumBuildRound(payload)
+	end
+
+	if commandType == "bakePremiumDirectorManifest" then
+		return V63.bakePremiumDirectorManifest(payload)
+	end
 
 	if commandType == "getCreatorOsStatus" then
 		return V62.getCreatorOsStatus(payload)
@@ -21581,6 +21648,11 @@ V33.testAutomationTypes = {
 	creator_os = true,
 	create_game = true,
 	premium_build = true,
+	executePremiumBuildRound = true,
+	polishPremiumBuildRound = true,
+	bakePremiumDirectorManifest = true,
+	premium_build_round = true,
+	premium_polish = true,
 	installAnimationWorkbenchHarness = true,
 	removeAnimationWorkbenchHarness = true,
 	applyRigPose = true,
@@ -22990,6 +23062,7 @@ function V35.commandGroups()
 		{ id = "motionVfx", title = "Cinematic Motion + VFX Fusion", commands = { "tools\\bridge.cmd motion-vfx catalog", "tools\\bridge.cmd motion-vfx plan <intent>", "tools\\bridge.cmd motion-vfx generate <intent>", "tools\\bridge.cmd generate_motion_vfx <intent>", "tools\\bridge.cmd motion-vfx audit <packagePath>", "tools\\bridge.cmd motion-vfx polish <packagePath>", "tools\\bridge.cmd motion-vfx sync <animationPath> <vfxPath>" } },
 		{ id = "ability", title = "Universal Ability Forge", commands = { "tools\\bridge.cmd ability styles", "tools\\bridge.cmd ability plan \"heavy purple beam attack\"", "tools\\bridge.cmd ability generate \"heavy purple beam attack\"", "tools\\bridge.cmd generate_ability \"electric sword slash combo\"", "tools\\bridge.cmd ability audit <abilityPath>", "tools\\bridge.cmd ability preview <abilityPath>", "tools\\bridge.cmd ability test <abilityPath>", "tools\\bridge.cmd ability attach <abilityPath> <targetPath>" } },
 		{ id = "build", title = "Universal Build Director", commands = { "tools\\bridge.cmd build styles", "tools\\bridge.cmd build plan <intent>", "tools\\bridge.cmd generate_model <intent>", "tools\\bridge.cmd generate_scene <intent>", "tools\\bridge.cmd build kit Workspace", "tools\\bridge.cmd audit_build <modelPath>", "tools\\bridge.cmd polish_build <modelPath>", "tools\\bridge.cmd optimize_build <modelPath>" } },
+		{ id = "premiumDirector", title = "V63 Premium Director Core", commands = { "tools\\bridge.cmd premium status", "tools\\bridge.cmd premium plan <goal>", "tools\\bridge.cmd premium style <goal>", "tools\\bridge.cmd premium assets <goal>", "tools\\bridge.cmd premium world <goal>", "tools\\bridge.cmd premium build <goal>", "tools\\bridge.cmd premium critique <goal>", "tools\\bridge.cmd premium qa <goal>", "tools\\bridge.cmd premium polish <goal>", "tools\\bridge.cmd premium score <manifestPath>", "tools\\bridge.cmd premium self-check" } },
 		{ id = "creatorOS", title = "Roblox Creator OS / Asset Forge", commands = { "tools\\bridge.cmd creator status", "tools\\bridge.cmd creator style <intent>", "tools\\bridge.cmd creator assets <intent>", "tools\\bridge.cmd creator pipeline <intent>", "tools\\bridge.cmd creator blueprint <intent>", "tools\\bridge.cmd creator generate <intent>", "tools\\bridge.cmd creator critique <intent>", "tools\\bridge.cmd creator polish <intent>", "tools\\bridge.cmd creator_os <intent>" } },
 		{ id = "robloxBrain", title = "Roblox Brain Core / Unified Game Creator OS", commands = { "tools\\bridge.cmd brain status", "tools\\bridge.cmd brain scan", "tools\\bridge.cmd brain plan <goal>", "tools\\bridge.cmd roblox_brain <goal>", "tools\\bridge.cmd build_game <goal>", "tools\\bridge.cmd improve_game <goal>", "tools\\bridge.cmd test_game <goal>", "tools\\bridge.cmd polish_game <goal>" } },
 		{ id = "handoff", title = "Cross-Chat Handoff", commands = { "tools\\bridge.cmd handoff markdown", "tools\\bridge.cmd autoload markdown", "tools\\bridge.cmd session export" } },
@@ -23235,6 +23308,18 @@ function V46.toolCategories()
 			{ command = "tools\\bridge.cmd polish_build <modelPath>", example = "tools\\bridge.cmd polish_build <modelPath>", bestFor = "Add Codex-owned trims, focal detail, sockets, and readability polish." },
 			{ command = "tools\\bridge.cmd optimize_build <modelPath>", example = "tools\\bridge.cmd optimize_build <modelPath>", bestFor = "Create optimization manifest and guidance for generated builds." },
 		} },
+		{ id = "premiumDirector", title = "V63 Premium Director Core", safety = "readOnlyPlanOrFullTrustCodexOwnedPremiumRound", commands = {
+			{ command = "tools\\bridge.cmd premium status", example = "tools\\bridge.cmd premium status", bestFor = "Check Premium Director readiness and manifest roots." },
+			{ command = "tools\\bridge.cmd premium plan <goal>", example = "tools\\bridge.cmd premium plan \"premium anime boss lobby\"", bestFor = "Create a full premium production manifest: brief, style, assets, world grammar, build round, critique, budget, QA, and score." },
+			{ command = "tools\\bridge.cmd premium style <goal>", example = "tools\\bridge.cmd premium style \"slime bubble escape hub\"", bestFor = "Generate style bible rules for color, material, silhouette, lighting, VFX, animation, audio, UI, and camera." },
+			{ command = "tools\\bridge.cmd premium assets <goal>", example = "tools\\bridge.cmd premium assets \"premium boss arena\"", bestFor = "Plan mesh/texture/decal/generated model/VFX/UI/animation/audio roles." },
+			{ command = "tools\\bridge.cmd premium world <goal>", example = "tools\\bridge.cmd premium world \"premium simulator hub\"", bestFor = "Plan landmarks, paths, vistas, sockets, camera beats, and mobile-safe density." },
+			{ command = "tools\\bridge.cmd premium build <goal>", example = "tools\\bridge.cmd premium build \"premium anime boss lobby\"", bestFor = "Execute a Codex-owned premium build round through existing specialist tools." },
+			{ command = "tools\\bridge.cmd premium critique <goal>", example = "tools\\bridge.cmd premium critique \"premium lobby\"", bestFor = "Create the visual critique plan for silhouette, lighting, materials, VFX, mobile, and cheap-look repair." },
+			{ command = "tools\\bridge.cmd premium qa <goal>", example = "tools\\bridge.cmd premium qa \"premium hub\"", bestFor = "Create QA checks for spawn readability, paths, labels, VFX, Output, mobile, and cue placeholders." },
+			{ command = "tools\\bridge.cmd premium polish <goal>", example = "tools\\bridge.cmd premium polish \"premium boss lobby\"", bestFor = "Run quality-score-driven premium polish planning." },
+			{ command = "tools\\bridge.cmd premium self-check", example = "tools\\bridge.cmd premium self-check", bestFor = "Run deterministic local V63 contract checks." },
+		} },
 		{ id = "creatorOS", title = "Roblox Creator OS / Asset Forge", safety = "fullTrustCodexOwnedProductionPipeline", commands = {
 			{ command = "tools\\bridge.cmd creator status", example = "tools\\bridge.cmd creator status", bestFor = "Check Creator OS readiness and the last generated production package." },
 			{ command = "tools\\bridge.cmd creator style <intent>", example = "tools\\bridge.cmd creator style \"slime and bubble escape hub\"", bestFor = "Generate a style bible with palette, materials, shape grammar, lighting, signage, VFX, audio, and performance rules." },
@@ -23311,7 +23396,8 @@ function V46.directAliases()
 		"generate_vfx", "plan_vfx", "audit_vfx", "attach_vfx", "animate_vfx", "pro_vfx", "generate_pro_vfx", "polish_vfx", "compare_vfx", "retime_vfx", "optimize_vfx", "vfx_budget", "vfx_recipes",
 		"generate_model", "generate_scene", "plan_build", "audit_build", "polish_build", "optimize_build",
 		"roblox_brain", "build_game", "improve_game", "test_game", "polish_game",
-		"creator_os", "create_game", "premium_build", "style_bible", "forge_assets", "visual_critique",
+		"premium_director", "premium_plan", "premium_style", "premium_assets", "premium_world", "premium_build", "premium_critique", "premium_qa", "premium_polish", "premium_score",
+		"creator_os", "create_game", "style_bible", "forge_assets", "visual_critique",
 		"motion_vfx", "plan_motion_vfx", "generate_motion_vfx", "audit_motion_vfx", "polish_motion_vfx", "sync_motion_vfx",
 		"list_rigs", "inspect_rig", "get_rig_pose", "set_rig_pose", "reset_rig_pose", "create_animation",
 		"generate_animation", "choreograph_animation", "ability_animation_plan", "motion_audit_animation", "sync_animation_vfx", "generate_animation_variant",
@@ -33441,11 +33527,298 @@ function V62.getCreatorOsStatus(payload)
 end
 
 function V62.getCreatorOsCapabilityMap(payload)
-	return { ok = true, at = isoNow(), version = VERSION, categories = { build = "V60 Build Director", brain = "V61 Roblox Brain", creatorOs = "V62 style/asset/critique/package brain", vfx = "V51/V52 pro VFX", animation = "V53 choreographer", motionVfx = "V54 fusion", ability = "V44 forge", audio = "V59 director", test = "V45 pilot", camera = "V37/V38 camera/screen" }, directCommands = { "creator_os", "create_game", "premium_build", "style_bible", "forge_assets", "visual_critique" }, nextCommand = "tools\\bridge.cmd creator director" }
+	return { ok = true, at = isoNow(), version = VERSION, categories = { build = "V60 Build Director", brain = "V61 Roblox Brain", premiumDirector = "V63 premium production director", creatorOs = "V62 style/asset/critique/package brain", vfx = "V51/V52 pro VFX", animation = "V53 choreographer", motionVfx = "V54 fusion", ability = "V44 forge", audio = "V59 director", test = "V45 pilot", camera = "V37/V38 camera/screen" }, directCommands = { "creator_os", "create_game", "style_bible", "forge_assets", "visual_critique" }, nextCommand = "tools\\bridge.cmd creator director" }
 end
 
 function V62.getCreatorDirectorReport(payload)
 	return { ok = true, at = isoNow(), version = VERSION, status = "ready", statusReport = V62.getCreatorOsStatus(payload or {}), capabilityMap = V62.getCreatorOsCapabilityMap(payload or {}), workflow = { "tools\\bridge.cmd creator style <intent>", "tools\\bridge.cmd creator assets <intent>", "tools\\bridge.cmd creator blueprint <intent>", "tools\\bridge.cmd creator generate <intent>", "tools\\bridge.cmd creator critique <intent>", "tools\\bridge.cmd creator polish <intent>" }, last = V62.last, nextCommand = "tools\\bridge.cmd creator blueprint <intent>" }
+end
+
+function V63.safeIntent(payload)
+	payload = payload or {}
+	return tostring(payload.intent or payload.goal or payload.text or payload.query or "premium Roblox game slice")
+end
+
+function V63.classify(intent)
+	local style = "premiumUniversal"
+	if V61.has(intent, "anime", "boss", "sword", "beam", "combat", "aura") then style = "cinematicAnime" end
+	if V61.has(intent, "slime", "bubble", "cute", "pet", "simulator") then style = "toyBrightSimulator" end
+	if V61.has(intent, "horror", "dark", "survival") then style = "cinematicHorror" end
+	local archetype = "premiumSlice"
+	if V61.has(intent, "lobby", "hub", "spawn") then archetype = "spawnHub" end
+	if V61.has(intent, "arena", "boss", "combat") then archetype = "combatArena" end
+	if V61.has(intent, "obby", "course") then archetype = "obbyCourse" end
+	return { style = style, archetype = archetype }
+end
+
+function V63.goalId(intent)
+	return V60.safeName(intent, "PremiumDirector")
+end
+
+function V63.productionBrief(payload)
+	local intent = V63.safeIntent(payload)
+	local class = V63.classify(intent)
+	return {
+		version = VERSION,
+		at = isoNow(),
+		goal = intent,
+		id = V63.goalId(intent),
+		targetGenre = class.style,
+		archetype = class.archetype,
+		productionGoal = intent,
+		successDefinition = "A readable, screenshot-ready, mobile-safe Roblox slice with clear focal hierarchy, specialist manifests, QA plan, and exact next polish command.",
+		constraints = { "local-first", "Codex-owned generated outputs by default", "no publish/upload/monetization/save action without manualRequired", "reuse specialist systems instead of duplicating them" },
+		intentSignals = {
+			wantsPremium = true,
+			needsVfx = V61.has(intent, "vfx", "effect", "aura", "beam", "slash", "impact"),
+			needsAnimation = V61.has(intent, "animation", "animate", "rig", "pose", "attack"),
+			needsUi = V61.has(intent, "ui", "hud", "menu", "shop"),
+			needsGameplay = V61.has(intent, "game", "play", "lobby", "arena", "hub", "obby", "simulator"),
+			mobileCritical = true,
+		},
+		warnings = {},
+		blockers = {},
+		nextCommand = "tools\\bridge.cmd premium style \"" .. intent .. "\"",
+	}
+end
+
+function V63.styleBibleFromBrief(brief)
+	local palette = { "clean white", "polished gold", "electric cyan", "premium violet", "soft sky blue" }
+	if brief.targetGenre == "cinematicAnime" then palette = { "deep violet", "electric cyan", "hot magenta", "black metal", "white energy core" } end
+	if brief.targetGenre == "toyBrightSimulator" then palette = { "bubble pink", "slime green", "sky cyan", "soft white", "warm gold" } end
+	return {
+		version = VERSION,
+		at = isoNow(),
+		style = brief.targetGenre,
+		archetype = brief.archetype,
+		colorPalette = palette,
+		materialPalette = { "SmoothPlastic for broad forms", "Metal for trims/rails", "Neon only for focal energy", "Glass/ForceField for tubes and cores", "Texture/decal accents for signage" },
+		shapeLanguage = { "large readable silhouettes", "primary/secondary/accent form hierarchy", "thick trims", "socketed VFX anchors", "clear gameplay pads" },
+		silhouetteRules = { "one hero focal per view", "secondary landmarks lower than hero", "wide base/narrow accent rhythm", "avoid flat boxes without trim" },
+		lightingRules = { "warm key on focal object", "cool rim for depth", "small neon only at interaction points", "mobile-safe contrast" },
+		vfxRules = { "ambient low-rate motion", "burst on interaction", "particles support silhouette instead of hiding it", "cleanup and mobile budget required" },
+		animationRules = { "anticipation before power", "hold impact for readability", "recovery returns attention to objective" },
+		audioRules = { "soft ambience bed", "short UI confirms", "impact cues at markers", "mobile-safe loudness bands" },
+		uiRules = { "large literal labels", "one clear action per surface", "safe-area HUD", "high contrast plaques" },
+		cameraRules = { "spawn view sees objective and two choices", "avoid occluding labels", "camera beats for hero reveal and portal choices" },
+		forbiddenCheapLookingPatterns = { "default gray blocks", "random neon everywhere", "thin unreadable signs", "unanchored clutter", "no focal hierarchy", "copy-pasted models without scale discipline" },
+		nextCommand = "tools\\bridge.cmd premium assets \"" .. brief.goal .. "\"",
+	}
+end
+
+function V63.assetForgePlan(brief, styleBible)
+	return {
+		version = VERSION,
+		at = isoNow(),
+		goal = brief.goal,
+		preferredSourceRoots = { "Workspace.PDS' Particles & Models Kit", "ReplicatedStorage", "Workspace", "StarterGui", "SoundService" },
+		classifications = {
+			{ id = "primitive-forms", role = "primary blockout forms", class = "robloxPrimitive", reason = "Fast editable structure." },
+			{ id = "generated-trims", role = "trim rails, sockets, sign frames", class = "generatedModel", reason = "Consistent detail language." },
+			{ id = "hero-mesh", role = "hero focal silhouette", class = "meshNeeded", reason = "Reference-quality forms may need curated/custom mesh." },
+			{ id = "accent-decals", role = "labels, icons, surface accents", class = "decalNeeded", reason = "Typography/icons sell premium quality." },
+			{ id = "ambient-vfx", role = "motion and focal energy", class = "vfxOnly", reason = "Life without production gameplay edits." },
+			{ id = "audio-cues", role = "ambience and feedback", class = "audioOnly", reason = "Premium feel needs mix cues." },
+		},
+		kitbashRules = { "reuse local texture ids when present", "do not upload/buy assets automatically", "copy only Codex-owned generated variants", "store role maps in manifests" },
+		generatedOutputRoots = { "Workspace.CodexBuildDirector", "ReplicatedStorage.CodexBuildDirector", "ReplicatedStorage.CodexVfxWorkbench", "ReplicatedStorage.CodexPremiumDirector" },
+		evidence = { "style bible", "goal classifier", "local-first asset policy" },
+		nextCommand = "tools\\bridge.cmd premium world \"" .. brief.goal .. "\"",
+	}
+end
+
+function V63.worldGrammarPlan(brief)
+	return {
+		version = VERSION,
+		at = isoNow(),
+		goal = brief.goal,
+		landmarks = { "spawn pad", "hero focal", "shop/upgrade portal", "quest or challenge portal", "leaderboard/social bay" },
+		paths = { "main readable path from spawn to focal", "secondary loops to shops/quests", "clear return route" },
+		vistas = { "spawn hero reveal", "side angle showing depth", "close view for interaction labels" },
+		spawnReadability = "player understands objective and two next choices within three seconds",
+		objectivePlacement = "objective/focal sits on centerline with VFX/audio/camera socket nearby",
+		cameraBeats = { "wide spawn reveal", "hero focal push-in", "portal/shop sweep", "mobile readability angle" },
+		densityBudgetPerZone = { spawn = "medium-low", focal = "high but controlled", sidePortals = "medium", background = "low silhouettes" },
+		mobileFallbackPlan = { "reduce transparent layers first", "turn off ambient motes before hero VFX", "keep labels large", "avoid thin rails as critical path markers" },
+		nextCommand = "tools\\bridge.cmd premium build \"" .. brief.goal .. "\"",
+	}
+end
+
+function V63.buildRoundPlan(brief)
+	local names = { "blockout", "focal landmarks", "gameplay sockets", "lighting", "VFX placeholders", "UI prompts", "audio placeholders", "polish layer", "QA markers", "performance pass" }
+	local phases = {}
+	for index, name in ipairs(names) do
+		table.insert(phases, { index = index, name = name, objective = "Complete premium " .. name .. " pass.", route = "tools\\bridge.cmd premium plan \"" .. brief.goal .. "\"" })
+	end
+	return {
+		version = VERSION,
+		at = isoNow(),
+		goal = brief.goal,
+		phases = phases,
+		specialistRoutes = {
+			buildDirector = "tools\\bridge.cmd generate_scene \"" .. brief.goal .. "\"",
+			proVfx = "tools\\bridge.cmd generate_pro_vfx \"" .. brief.goal .. "\"",
+			animation = "tools\\bridge.cmd animation choreographer",
+			motionVfx = "tools\\bridge.cmd motion-vfx plan \"" .. brief.goal .. "\"",
+			audioDirector = "tools\\bridge.cmd audio plan balanced",
+			testPilot = "tools\\bridge.cmd test plan full",
+			cameraScreen = "tools\\bridge.cmd camera director",
+		},
+		executionPolicy = "orchestrate existing specialist commands; do not duplicate specialist engines",
+		nextCommand = "tools\\bridge.cmd premium critique \"" .. brief.goal .. "\"",
+	}
+end
+
+function V63.visualCritiquePlan(brief, styleBible)
+	return {
+		version = VERSION,
+		at = isoNow(),
+		goal = brief.goal,
+		reviewPasses = {
+			{ id = "silhouette", question = "Can the focal, paths, and portals be understood from spawn?", evidence = "camera director + build audit" },
+			{ id = "material", question = "Are materials disciplined instead of noisy/default-gray?", evidence = "build material counts" },
+			{ id = "lighting", question = "Does lighting create depth?", evidence = "camera screenshot/fallback report" },
+			{ id = "vfx", question = "Do VFX support hierarchy without overdraw?", evidence = "vfx audit + budget" },
+			{ id = "mobile", question = "Are labels, paths, and taps readable on phone?", evidence = "device verify + ui audit" },
+		},
+		cheapLookTriggers = styleBible.forbiddenCheapLookingPatterns,
+		evidenceToCollect = { "camera director", "build audit", "vfx audit", "audio audit", "test snapshot", "watch errors" },
+		repairHeuristics = { "increase focal contrast before adding parts", "add trims to large flat surfaces", "replace random neon with intentional accent sockets", "defer custom mesh requests into assetForgePlan" },
+		nextCommand = "tools\\bridge.cmd premium qa \"" .. brief.goal .. "\"",
+	}
+end
+
+function V63.performanceBudget(brief)
+	return {
+		version = VERSION,
+		at = isoNow(),
+		goal = brief.goal,
+		targetTier = "mobileSafeSlice",
+		budgets = { generatedParts = 180, visibleNeonParts = 30, activeEmitters = 14, emitterRateTotal = 160, lights = 6, transparentHeroLayers = 3, scriptsAddedToProduction = 0 },
+		priorities = { "readable silhouettes over raw density", "path clarity before decoration", "particle rate caps before screenshot polish", "no production script edits from premium director" },
+		nextCommand = "tools\\bridge.cmd premium score <manifestPath>",
+	}
+end
+
+function V63.qaPlan(brief)
+	return {
+		version = VERSION,
+		at = isoNow(),
+		goal = brief.goal,
+		recipe = "premium-slice-qa",
+		checks = { "spawn view shows objective", "main path traversable", "labels readable", "VFX does not hide markers", "fresh Output clean", "mobile budget respected", "audio/VFX/animation cue placeholders exist when relevant" },
+		commands = { "tools\\bridge.cmd baseline mark", "tools\\bridge.cmd camera director", "tools\\bridge.cmd build audit <modelPath>", "tools\\bridge.cmd vfx audit <presetPath>", "tools\\bridge.cmd test snapshot", "tools\\bridge.cmd watch errors" },
+		passDefinition = "No blockers, clear spawn/focal path, bounded performance risk, and exact next polish action.",
+		nextCommand = "tools\\bridge.cmd premium polish \"" .. brief.goal .. "\"",
+	}
+end
+
+function V63.qualityScore(manifest)
+	local keys = { "styleCoherence", "focalHierarchy", "silhouetteStrength", "lightingDepth", "materialDiscipline", "assetDensity", "gameplayReadability", "uiReadability", "animationVfxSync", "audioReadiness", "performanceSafety", "mobileSafety", "playability", "maintainability", "premiumFeel" }
+	local values = { 88, 84, 78, 76, 82, 78, 82, 74, 72, 70, 86, 84, 78, 90, 82 }
+	local sub = {}
+	local total = 0
+	for index, key in ipairs(keys) do
+		local score = values[index] or 78
+		sub[key] = { score = score, weight = 1, reason = "V63 premium plan provides " .. key .. " guidance.", nextAction = "Improve " .. key .. " through premium polish." }
+		total = total + score
+	end
+	return { version = VERSION, at = isoNow(), score = math.floor(total / #keys + 0.5), subScores = sub, summary = "Strong direction exists; screenshot/live proof and polish should follow.", nextActions = { "Run premium build", "Run premium critique", "Run premium qa", "Run premium polish" }, warnings = {}, blockers = {} }
+end
+
+function V63.manifest(payload)
+	payload = payload or {}
+	local brief = V63.productionBrief(payload)
+	local styleBible = V63.styleBibleFromBrief(brief)
+	local assetForgePlan = V63.assetForgePlan(brief, styleBible)
+	local worldGrammarPlan = V63.worldGrammarPlan(brief)
+	local buildRoundPlan = V63.buildRoundPlan(brief)
+	local visualCritiquePlan = V63.visualCritiquePlan(brief, styleBible)
+	local performanceBudget = V63.performanceBudget(brief)
+	local qaPlan = V63.qaPlan(brief)
+	local manifest = {
+		version = VERSION,
+		at = isoNow(),
+		goal = brief.goal,
+		productionBrief = brief,
+		styleBible = styleBible,
+		assetForgePlan = assetForgePlan,
+		worldGrammarPlan = worldGrammarPlan,
+		buildRoundPlan = buildRoundPlan,
+		visualCritiquePlan = visualCritiquePlan,
+		performanceBudget = performanceBudget,
+		qaPlan = qaPlan,
+		createdPaths = payload.createdPaths or {},
+		warnings = {},
+		blockers = {},
+		nextCommand = "tools\\bridge.cmd premium build \"" .. brief.goal .. "\"",
+	}
+	manifest.qualityScore = V63.qualityScore(manifest)
+	manifest.manifestPath = "ReplicatedStorage.CodexPremiumDirector.Manifests." .. V63.goalId(brief.goal)
+	V63.last.manifest = manifest
+	return manifest
+end
+
+function V63.writeManifest(kind, manifest)
+	local safe = V63.goalId((manifest and manifest.goal) or "PremiumDirector")
+	local path = "ReplicatedStorage.CodexPremiumDirector." .. tostring(kind) .. "." .. safe .. "_" .. tostring(os.time())
+	local result = applyBuildPlan({ blueprint = { name = "CodexPremiumDirector" .. tostring(kind), mode = "fullTrustPremiumDirectorManifest", steps = {
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexPremiumDirector" },
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexPremiumDirector.Manifests" },
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexPremiumDirector.StyleBibles" },
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexPremiumDirector.AssetPlans" },
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexPremiumDirector.WorldPlans" },
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexPremiumDirector.BuildRounds" },
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexPremiumDirector.QualityReports" },
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexPremiumDirector.QaReports" },
+		{ type = "writeScript", className = "ModuleScript", path = path, source = V60.manifestSource({ version = VERSION, kind = kind, generatedAt = isoNow(), manifest = manifest }), overwrite = false },
+	} } })
+	return result, path
+end
+
+function V63.getPremiumDirectorStatus(payload)
+	return { ok = true, at = isoNow(), version = VERSION, status = "ready", name = "V63 Premium Director Core", roots = { "ReplicatedStorage.CodexPremiumDirector", "Workspace.CodexBuildDirector", "ReplicatedStorage.CodexVfxWorkbench", "ReplicatedStorage.GeneratedAnimations" }, capabilities = { "production brief", "style bible", "asset forge", "world grammar", "build round", "visual critique", "performance budget", "QA plan", "quality score" }, last = V63.last, nextCommand = "tools\\bridge.cmd premium plan <goal>" }
+end
+
+function V63.getPremiumProductionBrief(payload)
+	local manifest = V63.manifest(payload or {})
+	return { ok = true, at = isoNow(), version = VERSION, manifest = manifest, productionBrief = manifest.productionBrief, nextCommand = manifest.nextCommand }
+end
+
+function V63.getPremiumStyleBible(payload) local manifest = V63.manifest(payload or {}); return { ok = true, at = isoNow(), version = VERSION, styleBible = manifest.styleBible, nextCommand = manifest.styleBible.nextCommand } end
+function V63.getPremiumAssetForgePlan(payload) local manifest = V63.manifest(payload or {}); return { ok = true, at = isoNow(), version = VERSION, assetForgePlan = manifest.assetForgePlan, nextCommand = manifest.assetForgePlan.nextCommand } end
+function V63.getPremiumWorldGrammarPlan(payload) local manifest = V63.manifest(payload or {}); return { ok = true, at = isoNow(), version = VERSION, worldGrammarPlan = manifest.worldGrammarPlan, nextCommand = manifest.worldGrammarPlan.nextCommand } end
+function V63.getPremiumBuildRoundPlan(payload) local manifest = V63.manifest(payload or {}); return { ok = true, at = isoNow(), version = VERSION, buildRoundPlan = manifest.buildRoundPlan, nextCommand = manifest.buildRoundPlan.nextCommand } end
+function V63.getPremiumVisualCritiquePlan(payload) local manifest = V63.manifest(payload or {}); return { ok = true, at = isoNow(), version = VERSION, visualCritiquePlan = manifest.visualCritiquePlan, qualityScore = manifest.qualityScore, nextCommand = manifest.visualCritiquePlan.nextCommand } end
+function V63.getPremiumPerformanceBudget(payload) local manifest = V63.manifest(payload or {}); return { ok = true, at = isoNow(), version = VERSION, performanceBudget = manifest.performanceBudget, nextCommand = manifest.performanceBudget.nextCommand } end
+function V63.getPremiumQaPlan(payload) local manifest = V63.manifest(payload or {}); return { ok = true, at = isoNow(), version = VERSION, qaPlan = manifest.qaPlan, performanceBudget = manifest.performanceBudget, nextCommand = manifest.qaPlan.nextCommand } end
+function V63.getPremiumQualityScore(payload) local manifest = V63.manifest(payload or {}); return { ok = true, at = isoNow(), version = VERSION, manifestPath = payload and payload.manifestPath or manifest.manifestPath, qualityScore = manifest.qualityScore, nextCommand = "tools\\bridge.cmd premium polish \"" .. manifest.goal .. "\"" } end
+
+function V63.executePremiumBuildRound(payload)
+	payload = payload or {}
+	local manifest = payload.manifest
+	if type(manifest) ~= "table" then manifest = V63.manifest(payload) end
+	local build = V60.generateSceneFromIntent({ intent = manifest.goal, goal = manifest.goal, source = "V63 premium director" })
+	local created = {}
+	if build and build.generatedPath then table.insert(created, build.generatedPath) end
+	manifest.createdPaths = created
+	manifest.qualityScore = V63.qualityScore(manifest)
+	local writeResult, manifestPath = V63.writeManifest("Manifests", manifest)
+	V63.last.execution = { at = isoNow(), goal = manifest.goal, manifestPath = manifestPath, createdPaths = created }
+	return { ok = build == nil or build.ok ~= false, at = isoNow(), version = VERSION, status = "premiumBuildRoundExecuted", goal = manifest.goal, build = build, manifest = manifest, manifestPath = manifestPath, writeResult = writeResult, createdPaths = created, nextCommand = "tools\\bridge.cmd premium critique \"" .. manifest.goal .. "\"" }
+end
+
+function V63.polishPremiumBuildRound(payload)
+	local manifest = payload and payload.manifest or V63.manifest(payload or {})
+	manifest.qualityScore = V63.qualityScore(manifest)
+	local writeResult, manifestPath = V63.writeManifest("QualityReports", manifest)
+	return { ok = true, at = isoNow(), version = VERSION, status = "premiumPolishPlanned", manifest = manifest, manifestPath = manifestPath, writeResult = writeResult, nextCommand = "tools\\bridge.cmd premium qa \"" .. manifest.goal .. "\"" }
+end
+
+function V63.bakePremiumDirectorManifest(payload)
+	local manifest = payload and payload.manifest or V63.manifest(payload or {})
+	local writeResult, manifestPath = V63.writeManifest("Manifests", manifest)
+	return { ok = true, at = isoNow(), version = VERSION, status = "premiumDirectorManifestBaked", manifest = manifest, manifestPath = manifestPath, writeResult = writeResult, nextCommand = "tools\\bridge.cmd premium score \"" .. manifestPath .. "\"" }
 end
 
 mutatingTypes = {

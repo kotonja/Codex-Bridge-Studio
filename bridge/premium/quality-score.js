@@ -1,0 +1,86 @@
+'use strict';
+
+const { VERSION, SCORE_KEYS, DEFAULT_WEIGHTS, nowIso } = require('./schema');
+
+function clampScore(value) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function createReason(key, score) {
+  const level = score >= 86 ? 'strong' : score >= 72 ? 'usable' : 'needs polish';
+  const notes = {
+    styleCoherence: 'Style bible, material palette, and forbidden-pattern rules exist.',
+    focalHierarchy: 'World grammar defines spawn reveal, hero focal, and secondary landmarks.',
+    silhouetteStrength: 'Build phases prioritize large forms before micro detail.',
+    lightingDepth: 'Lighting rules and camera beats are explicit but still need screenshot verification.',
+    materialDiscipline: 'Material rules limit neon/transparent overuse.',
+    assetDensity: 'Asset forge separates primitives, generated models, kitbash, meshes, decals, VFX, UI, animation, and audio.',
+    gameplayReadability: 'World grammar includes objective placement and portal/shop/quest distances.',
+    uiReadability: 'UI rules and QA checks cover labels/prompts, but final UI screenshot proof is separate.',
+    animationVfxSync: 'Motion/VFX/ability marker route is planned; actual assets need specialist execution.',
+    audioReadiness: 'Audio profile and placeholders are planned; live mix proof is separate.',
+    performanceSafety: 'Budgets cap parts, emitters, lights, transparency, and production scripts.',
+    mobileSafety: 'Mobile fallback rules and QA checks are included.',
+    playability: 'QA plan checks spawn, paths, labels, output, and test snapshot.',
+    maintainability: 'Generated work remains Codex-owned, versioned, and manifest-backed.',
+    premiumFeel: 'Premium feel is planned through style, focal hierarchy, VFX/audio/camera, and critique loops.',
+  };
+  return `${level}: ${notes[key] || 'Covered by V63 manifest evidence.'}`;
+}
+
+function scoreFromManifest(manifest) {
+  const hasStyle = Boolean(manifest.styleBible);
+  const hasAssets = Boolean(manifest.assetForgePlan);
+  const hasWorld = Boolean(manifest.worldGrammarPlan);
+  const hasBuild = Boolean(manifest.buildRoundPlan);
+  const hasQa = Boolean(manifest.qaPlan);
+  const hasBudget = Boolean(manifest.performanceBudget);
+  const base = {
+    styleCoherence: hasStyle ? 88 : 45,
+    focalHierarchy: hasWorld ? 84 : 45,
+    silhouetteStrength: hasBuild ? 78 : 44,
+    lightingDepth: hasStyle && hasWorld ? 76 : 42,
+    materialDiscipline: hasStyle ? 82 : 45,
+    assetDensity: hasAssets ? 78 : 40,
+    gameplayReadability: hasWorld && hasQa ? 82 : 45,
+    uiReadability: hasStyle && hasQa ? 74 : 42,
+    animationVfxSync: hasBuild ? 72 : 38,
+    audioReadiness: hasQa ? 70 : 38,
+    performanceSafety: hasBudget ? 86 : 40,
+    mobileSafety: hasBudget && hasWorld ? 84 : 42,
+    playability: hasQa ? 78 : 40,
+    maintainability: manifest.version && manifest.nextCommand ? 90 : 55,
+    premiumFeel: hasStyle && hasWorld && hasBuild ? 82 : 45,
+  };
+  const subScores = {};
+  let weightedTotal = 0;
+  let weightTotal = 0;
+  for (const key of SCORE_KEYS) {
+    const score = clampScore(base[key]);
+    const weight = DEFAULT_WEIGHTS[key] || 1;
+    subScores[key] = {
+      score,
+      weight,
+      reason: createReason(key, score),
+      nextAction: score >= 85 ? 'Preserve this strength while polishing.' : `Improve ${key} through the next premium polish pass.`,
+    };
+    weightedTotal += score * weight;
+    weightTotal += weight;
+  }
+  const score = clampScore(weightedTotal / Math.max(1, weightTotal));
+  return {
+    version: VERSION,
+    at: nowIso(),
+    score,
+    subScores,
+    summary: score >= 85 ? 'Premium-ready plan structure; now validate with screenshots/playtest.' : 'Strong direction exists, but polish and visual proof are still needed.',
+    nextActions: SCORE_KEYS
+      .filter((key) => subScores[key].score < 82)
+      .slice(0, 5)
+      .map((key) => subScores[key].nextAction),
+    warnings: [],
+    blockers: [],
+  };
+}
+
+module.exports = { scoreFromManifest };

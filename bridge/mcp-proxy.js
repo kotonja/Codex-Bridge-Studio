@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
-const VERSION = '0.62.0';
+const VERSION = '0.63.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -538,7 +538,16 @@ const toolHandlers = {
   polish_game: async (args) => mutationCommand('polishGameFromGoal', { ...basePayload(args), goal: args.goal || args.intent || args.text || 'premium game polish', intent: args.intent || args.goal || args.text || 'premium game polish', action: 'polish' }),
   creator_os: async (args) => mutationCommand('generateCreatorOsPackage', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: args.action || 'build' }),
   create_game: async (args) => mutationCommand('generateCreatorOsPackage', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: 'build' }),
-  premium_build: async (args) => mutationCommand('generateCreatorOsPackage', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: 'build' }),
+  premium_director: async (args) => readCommand('getPremiumDirectorStatus', { ...basePayload(args), goal: args.goal || args.intent || args.text || '' }),
+  premium_plan: async (args) => readCommand('getPremiumProductionBrief', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
+  premium_style: async (args) => readCommand('getPremiumStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
+  premium_assets: async (args) => readCommand('getPremiumAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
+  premium_world: async (args) => readCommand('getPremiumWorldGrammarPlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
+  premium_build: async (args) => mutationCommand('executePremiumBuildRound', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', manifest: args.manifest }),
+  premium_critique: async (args) => readCommand('getPremiumVisualCritiquePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
+  premium_qa: async (args) => readCommand('getPremiumQaPlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
+  premium_polish: async (args) => mutationCommand('polishPremiumBuildRound', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', manifest: args.manifest }),
+  premium_score: async (args) => readCommand('getPremiumQualityScore', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', manifestPath: args.manifestPath || args.path }),
   style_bible: async (args) => readCommand('getCreatorStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   forge_assets: async (args) => readCommand('getCreatorAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
   visual_critique: async (args) => readCommand('getCreatorVisualCritiquePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
@@ -605,7 +614,16 @@ const toolDefinitions = [
   ['polish_game', 'Use the Roblox Brain to polish generated gameplay, visuals, audio, motion, and performance.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['creator_os', 'Generate a V62 Creator OS package: style bible, asset forge, production blueprint, and specialist route.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['create_game', 'Use Creator OS to create a coordinated premium Roblox game slice from intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
-  ['premium_build', 'Use Creator OS for premium build planning/generation with style bible and visual critique workflow.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['premium_director', 'Return V63 Premium Director status, workflow, and quality rubric.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['premium_plan', 'Create a V63 premium production brief and full director manifest plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['premium_style', 'Return a V63 premium style bible for a Roblox build/game intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['premium_assets', 'Return a V63 asset forge plan for premium meshes, textures, kitbash, VFX, UI, animation, and audio roles.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
+  ['premium_world', 'Return a V63 premium world grammar plan: landmarks, paths, vistas, zones, sockets, and camera beats.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['premium_build', 'Execute a V63 Codex-owned premium build round and bake a director manifest.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, manifest: { type: 'object' } }],
+  ['premium_critique', 'Return a V63 visual critique plan for premium feel, silhouette, lighting, materials, VFX, and mobile readability.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['premium_qa', 'Return a V63 QA plan for premium build/game slices.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['premium_polish', 'Run a V63 quality-score-driven premium polish round.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, manifest: { type: 'object' } }],
+  ['premium_score', 'Score a V63 premium manifest or goal across production-quality dimensions.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, manifestPath: { type: 'string' }, path: { type: 'string' } }],
   ['style_bible', 'Return a V62 style bible for a Roblox game/build intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['forge_assets', 'Return a V62 asset forge plan for meshes, textures, materials, audio, animations, and reusable kits.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['visual_critique', 'Return a V62 visual critique loop for screenshot comparison, polish, and performance/readability scoring.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],

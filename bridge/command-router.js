@@ -33,6 +33,8 @@ function createRoute(rawQuery = '', options = {}) {
   const has = (...words) => words.some((word) => q.includes(word));
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
+  const premiumSignal = has('premium director', 'make this premium', 'build premium roblox game', 'top dev quality', 'visual critique', 'make it look expensive', 'fix cheap looking build', 'upgrade everything')
+    || ((has('premium', 'top dev', 'expensive', 'reference quality', 'high quality') && has('build', 'scene', 'hub', 'game', 'world', 'lobby', 'roblox')));
   const creatorSignal = has('creator os', 'asset forge', 'style bible', 'visual critique', 'production pipeline', 'build like this', 'premium build', 'custom mesh', 'mesh pipeline', 'texture factory', 'material pipeline', 'game creator')
     || ((has('premium', 'beautiful', 'exactly', 'crazy', 'massive', 'top dev') && has('build', 'scene', 'hub', 'game', 'world', 'roblox')));
   const brainSignal = has('roblox brain', 'game creator', 'creator os', 'whole game', 'everything together', 'unified', 'orchestrate', 'make game', 'build game', 'improve game', 'polish game', 'premium game', 'top dev', 'full creator')
@@ -121,6 +123,34 @@ function createRoute(rawQuery = '', options = {}) {
       confidence: 0.9,
       reason: 'Tool/capability discovery request.',
       commands: search ? [`tools\\bridge.cmd tools search ${quoteForCommand(search)}`, 'tools\\bridge.cmd tools'] : ['tools\\bridge.cmd tools', 'tools\\bridge.cmd command-index', 'tools\\bridge.cmd manual'],
+    });
+  } else if (premiumSignal) {
+    const wantsExecute = has('--execute', 'execute premium', 'run premium build', 'premium build now');
+    const action = has('critique', 'visual critique', 'cheap looking') ? 'critique'
+      : has('polish', 'improve') ? 'polish'
+        : has('style', 'style bible') ? 'style'
+          : has('asset', 'mesh', 'texture') ? 'assets'
+            : has('world', 'grammar', 'layout') ? 'world'
+              : has('qa', 'test') ? 'qa'
+                : (has('build', 'generate', 'create') && !has('upgrade everything')) ? 'build'
+                  : 'plan';
+    const secondCommand = action === 'build' && wantsExecute
+      ? `tools\\bridge.cmd premium build ${quoteForCommand(intent)}`
+      : `tools\\bridge.cmd premium ${action} ${quoteForCommand(intent)}`;
+    setRoute({
+      category: 'premiumDirector',
+      title: 'V63 Premium Director Core',
+      confidence: 0.97,
+      safety: action === 'build' || action === 'polish' ? 'fullTrustCodexOwnedPremiumRound' : 'readOnlyPremiumProductionPlan',
+      reason: has('upgrade everything')
+        ? 'Broad upgrade language detected; V63 plans first unless --execute is explicit.'
+        : 'Premium/top-dev production language detected. Use Premium Director before Creator OS, Brain, or raw Build tools.',
+      canRunDirectly: action !== 'build' || wantsExecute,
+      commands: [
+        `tools\\bridge.cmd premium plan ${quoteForCommand(intent)}`,
+        secondCommand,
+        'tools\\bridge.cmd premium director',
+      ],
     });
   } else if (creatorSignal) {
     const action = has('critique', 'compare', 'screenshot') ? 'critique' : has('polish') ? 'polish' : has('style') ? 'style' : has('asset', 'mesh', 'texture') ? 'assets' : has('plan', 'blueprint') ? 'blueprint' : 'generate';
@@ -255,6 +285,7 @@ function createRoute(rawQuery = '', options = {}) {
     reason,
     canRunDirectly,
     primaryCommand,
+    commands,
     exactCommands: commands,
     nextCommand: primaryCommand,
     jsonCommand: `tools\\bridge.cmd do --json ${quoteForCommand(query || 'check now')}`,
@@ -278,6 +309,9 @@ function catalog(version = null) {
     ['check loud sounds', 'tools\\bridge.cmd audio live'],
     ['generate detailed sci-fi crate model', 'tools\\bridge.cmd generate_model "detailed sci-fi crate with vents and warning trims"'],
     ['build portal lobby scene', 'tools\\bridge.cmd generate_scene "anime portal lobby with shop stands and VFX sockets"'],
+    ['make this premium', 'tools\\bridge.cmd premium plan "<goal>"'],
+    ['top dev quality hub', 'tools\\bridge.cmd premium build "<goal>"'],
+    ['visual critique premium lobby', 'tools\\bridge.cmd premium critique "<goal>"'],
     ['build premium hub like this image', 'tools\\bridge.cmd creator generate "premium hub matching the reference style"'],
     ['make a style bible', 'tools\\bridge.cmd creator style "<intent>"'],
     ['plan custom meshes and textures', 'tools\\bridge.cmd creator assets "<intent>"'],

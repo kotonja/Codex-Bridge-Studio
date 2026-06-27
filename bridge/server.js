@@ -6,8 +6,9 @@ const fs = require('node:fs');
 const pathModule = require('node:path');
 const { URL } = require('node:url');
 const CommandRouter = require('./command-router');
+const Premium = require('./premium');
 
-const VERSION = '0.62.0';
+const VERSION = '0.63.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -321,6 +322,19 @@ const supportedCommands = new Set([
   'getCreatorVisualCritiquePlan',
   'getCreatorGameBlueprint',
   'getCreatorDirectorReport',
+  'getPremiumDirectorStatus',
+  'getPremiumProductionBrief',
+  'getPremiumStyleBible',
+  'getPremiumAssetForgePlan',
+  'getPremiumWorldGrammarPlan',
+  'getPremiumBuildRoundPlan',
+  'getPremiumVisualCritiquePlan',
+  'getPremiumPerformanceBudget',
+  'getPremiumQaPlan',
+  'getPremiumQualityScore',
+  'executePremiumBuildRound',
+  'polishPremiumBuildRound',
+  'bakePremiumDirectorManifest',
   'generateCreatorOsPackage',
   'applyCreatorOsPlan',
   'bakeCreatorStyleBible',
@@ -328,6 +342,16 @@ const supportedCommands = new Set([
   'creator_os',
   'create_game',
   'premium_build',
+  'premium_director',
+  'premium_plan',
+  'premium_style',
+  'premium_assets',
+  'premium_world',
+  'premium_build_round',
+  'premium_critique',
+  'premium_qa',
+  'premium_polish',
+  'premium_score',
   'style_bible',
   'forge_assets',
   'visual_critique',
@@ -981,6 +1005,11 @@ const mutatingCommands = new Set([
   'improve_game',
   'test_game',
   'polish_game',
+  'executePremiumBuildRound',
+  'polishPremiumBuildRound',
+  'bakePremiumDirectorManifest',
+  'premium_build_round',
+  'premium_polish',
 ]);
 
 function generatePairingCode() {
@@ -3759,6 +3788,26 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'premiumDirector',
+    title: 'V63 Premium Director Core',
+    safety: 'readOnlyPlanOrFullTrustCodexOwnedPremiumRound',
+    readiness: ['bridge', 'plugin', 'codexReady', 'toolManifest', 'cameraScreen'],
+    commands: [
+      { command: 'tools\\bridge.cmd premium status', example: 'tools\\bridge.cmd premium status', bestFor: 'Check the Premium Director readiness and roots.' },
+      { command: 'tools\\bridge.cmd premium plan <goal>', example: 'tools\\bridge.cmd premium plan "premium anime boss lobby"', bestFor: 'Compile a production brief, style bible, asset forge, world grammar, build round, visual critique, performance budget, QA plan, and quality score.' },
+      { command: 'tools\\bridge.cmd premium style <goal>', example: 'tools\\bridge.cmd premium style "slime bubble escape hub"', bestFor: 'Generate a style bible with palette, materials, shape language, lighting, VFX, animation, audio, UI, and camera rules.' },
+      { command: 'tools\\bridge.cmd premium assets <goal>', example: 'tools\\bridge.cmd premium assets "premium boss arena"', bestFor: 'Plan meshes, textures, decals, generated models, kitbash, VFX, UI, animation, and audio roles.' },
+      { command: 'tools\\bridge.cmd premium world <goal>', example: 'tools\\bridge.cmd premium world "premium simulator hub"', bestFor: 'Plan landmarks, paths, vistas, zones, camera beats, and mobile-safe density budget.' },
+      { command: 'tools\\bridge.cmd premium build <goal>', example: 'tools\\bridge.cmd premium build "premium anime boss lobby"', bestFor: 'Execute a Codex-owned premium build round by routing through Build Director/Brain specialists and baking manifests.' },
+      { command: 'tools\\bridge.cmd premium critique <goal>', example: 'tools\\bridge.cmd premium critique "premium lobby"', bestFor: 'Plan visual critique passes for silhouette, materials, lighting, VFX, mobile, and cheap-look repair.' },
+      { command: 'tools\\bridge.cmd premium qa <goal>', example: 'tools\\bridge.cmd premium qa "premium hub"', bestFor: 'Create a QA plan covering spawn view, paths, labels, VFX readability, fresh Output, mobile, and cue placeholders.' },
+      { command: 'tools\\bridge.cmd premium polish <goal>', example: 'tools\\bridge.cmd premium polish "premium boss lobby"', bestFor: 'Run a Codex-owned premium polish round with quality-score-driven next actions.' },
+      { command: 'tools\\bridge.cmd premium score <manifestPath>', example: 'tools\\bridge.cmd premium score ReplicatedStorage.CodexPremiumDirector.Manifests.BossLobby_v001', bestFor: 'Score a premium manifest across 15 production-quality dimensions.' },
+      { command: 'tools\\bridge.cmd premium director', example: 'tools\\bridge.cmd premium director', bestFor: 'Show the director report and recommended premium workflow.' },
+      { command: 'tools\\bridge.cmd premium self-check', example: 'tools\\bridge.cmd premium self-check', bestFor: 'Run local deterministic V63 contract checks.' },
+    ],
+  },
+  {
     id: 'robloxBrain',
     title: 'Roblox Brain Core / Unified Game Creator OS',
     safety: 'fullTrustOrchestratedLocalActions',
@@ -5716,6 +5765,36 @@ async function route(req, res) {
       ...route,
       liveContext: includeContext ? codexLiveContext(routePlaceOptions(requestUrl)) : undefined,
       places: includeContext ? placeListSummary() : undefined,
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/premium/status') {
+    sendJson(res, 200, Premium.getStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/premium/plan') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox game slice';
+    sendJson(res, 200, {
+      ok: true,
+      version: VERSION,
+      mode: 'premiumDirectorPlan',
+      manifest: Premium.createPremiumManifest(goal, { source: 'bridge.http' }),
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/premium/score') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('manifestPath') || requestUrl.searchParams.get('q') || 'premium Roblox game slice';
+    const manifest = Premium.createPremiumManifest(goal, { source: 'bridge.http.score' });
+    sendJson(res, 200, {
+      ok: true,
+      version: VERSION,
+      mode: 'premiumDirectorScore',
+      target: goal,
+      qualityScore: Premium.scoreFromManifest(manifest),
+      manifestPath: manifest.manifestPath,
     });
     return;
   }

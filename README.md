@@ -1,4 +1,4 @@
-# Codex Studio Bridge V62.0
+# Codex Studio Bridge V63.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -77,9 +77,32 @@ If Codex direct Roblox MCP tools return `Transport closed` while local bridge he
 
 `mcp-proxy install` backs up the current Codex MCP config, preserves the raw Roblox Studio MCP entry as `Roblox_Studio_Raw`, disables that raw backup by default, and points `Roblox_Studio` to `bridge\mcp-proxy.js`. Reload Codex after install so the next tool discovery uses the durable proxy. The proxy routes `list_roblox_studios`, `get_studio_state`, script/search/play/test/animation/VFX/audio/build/brain helper tools through StudioBridge on `127.0.0.1:28123` and returns structured recovery states instead of crashing with `Transport closed`. Keep `Roblox_Studio_Raw` disabled unless debugging official Roblox MCP directly.
 
+## V63 Premium Director Core
+
+V63 adds the premium production front door. Use it when Codex needs to turn a goal into a top-quality Roblox production plan before building: style, asset strategy, world grammar, build round, visual critique, performance budget, QA, and a 15-part premium score.
+
+```powershell
+.\tools\bridge.cmd premium status
+.\tools\bridge.cmd premium plan "premium anime boss lobby"
+.\tools\bridge.cmd premium style "slime bubble escape hub"
+.\tools\bridge.cmd premium assets "premium boss arena"
+.\tools\bridge.cmd premium world "premium simulator hub"
+.\tools\bridge.cmd premium build "premium anime boss lobby"
+.\tools\bridge.cmd premium critique "premium lobby"
+.\tools\bridge.cmd premium qa "premium hub"
+.\tools\bridge.cmd premium polish "premium boss lobby"
+.\tools\bridge.cmd premium score <manifestPath-or-goal>
+.\tools\bridge.cmd premium director
+.\tools\bridge.cmd premium self-check
+```
+
+Plain-English routing sends phrases like `make this premium`, `top dev quality`, `make it look expensive`, `fix cheap looking build`, and `build premium Roblox game` to Premium Director before Creator OS, Brain, or Build Director. Broad `upgrade everything` requests plan first unless the request explicitly includes `--execute`.
+
+Premium Director writes manifests under `ReplicatedStorage.CodexPremiumDirector` and routes build/polish work through existing specialist systems instead of duplicating them: Build Director, Roblox Brain, VFX, Animation, Motion+VFX, Ability Forge, Audio Director, Camera/Screen, and Test Pilot.
+
 ## Roblox Creator OS + Asset Forge
 
-V62 adds a production-pipeline layer for premium Roblox creation. Use it when Codex needs to build something with a clear style bible, reusable asset plan, custom mesh/material strategy, visual critique loop, and coordinated specialist execution:
+V62 remains the specialist production-pipeline layer under Premium Director. Use it directly when Codex needs the older Creator OS style bible, reusable asset plan, custom mesh/material strategy, visual critique loop, and coordinated specialist execution:
 
 ```powershell
 .\tools\bridge.cmd creator status
