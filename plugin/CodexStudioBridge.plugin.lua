@@ -23979,10 +23979,42 @@ function V36.fireCameraCommand(command)
 	if #players == 0 then
 		return false, "No Play-mode players are available for client camera control."
 	end
+	local sent = 0
+	local failures = {}
 	for _, player in ipairs(players) do
-		remote:FireClient(player, command)
+		local ok, err = pcall(function()
+			remote:FireClient(player, command)
+		end)
+		if ok then
+			sent += 1
+		else
+			table.insert(failures, tostring(err))
+		end
 	end
-	return true, "Sent camera command to " .. tostring(#players) .. " client(s)."
+	if sent == 0 then
+		return false, "Play-mode camera relay is unavailable from this Studio context: " .. tostring(failures[1] or "unknown FireClient failure")
+	end
+	return true, "Sent camera command to " .. tostring(sent) .. " client(s)."
+end
+
+function V36.applyEditCameraMove(plan)
+	local camera = workspace.CurrentCamera
+	if not camera then
+		return false, "No Studio CurrentCamera is available."
+	end
+	local target = V36.vectorFromPayload(plan and plan.position, nil)
+	local lookAt = V36.vectorFromPayload(plan and plan.lookAt, nil)
+	if not target or not lookAt then
+		return false, "Camera move plan did not include a usable position/lookAt pair."
+	end
+	local ok, err = pcall(function()
+		camera.CFrame = CFrame.lookAt(target, lookAt)
+		camera.Focus = CFrame.new(lookAt)
+	end)
+	if not ok then
+		return false, tostring(err)
+	end
+	return true, "Moved the Studio edit camera directly."
 end
 
 function V36.requestCameraMove(payload)
@@ -23990,6 +24022,21 @@ function V36.requestCameraMove(payload)
 	local plan = V36.getCameraMovePlan(payload)
 	if plan.status ~= "ready" then
 		return plan
+	end
+	if payload.playClient ~= true then
+		local editOk, editMessage = V36.applyEditCameraMove(plan)
+		if editOk then
+			return {
+				at = isoNow(),
+				version = VERSION,
+				status = "movedEditCamera",
+				message = editMessage,
+				editCameraMoved = true,
+				plan = plan,
+				after = V25.getCameraViewReport(payload),
+				nextCommand = "tools\\bridge.cmd camera status",
+			}
+		end
 	end
 	local ok, message = V36.fireCameraCommand({
 		kind = "move",
