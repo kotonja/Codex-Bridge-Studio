@@ -1,20 +1,20 @@
 {
-  "version": "0.64.0",
-  "generatedAt": "2026-06-27T13:15:26.052Z",
+  "version": "0.65.0",
+  "generatedAt": "2026-06-27T14:36:51.532Z",
   "entry": "plugin/src/main.lua",
   "output": "plugin/CodexStudioBridge.plugin.lua",
-  "sha256": "e41baa5b03b527d6e7980ae4dd2bddfb737d26b3618a3da6392d8d0c59391ea0",
-  "bytes": 1343152,
+  "sha256": "7d7ea30f011577bc049edb4549d358ca83efb0d729043ac079e6ff71662e689b",
+  "bytes": 1351711,
   "includedFiles": [
     {
       "path": "plugin/src/main.lua",
       "bytes": 249,
-      "sha256": "d040b264adac25d18c65e4e440d825dd639226b12174f51ecbb4b143acbc9680"
+      "sha256": "4d58a6d4acd928b7dd095104d1d26a4a8cdbec2335fae8c4ec389c63558e0523"
     },
     {
       "path": "plugin/src/legacy/CodexStudioBridge.legacy.lua",
-      "bytes": 1342755,
-      "sha256": "7353b031c1d3d5c22ebfd51a9ed4e60c05328a6987d3c366e089165e05eeba80"
+      "bytes": 1351314,
+      "sha256": "5dbf9c095cdc45f994b56ee5e9663f1a1526604ac9c898de8f6feef7bd3f2884"
     }
   ]
 }

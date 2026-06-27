@@ -35,22 +35,26 @@ function scoreFromManifest(manifest) {
   const hasBuild = Boolean(manifest.buildRoundPlan);
   const hasQa = Boolean(manifest.qaPlan);
   const hasBudget = Boolean(manifest.performanceBudget);
+  const visualScore = manifest.visualCritiqueReport && Number.isFinite(Number(manifest.visualCritiqueReport.overallScore))
+    ? Number(manifest.visualCritiqueReport.overallScore)
+    : null;
+  const hasVisualEvidence = Boolean(manifest.visualEvidencePack || manifest.visualCritiqueReport);
   const base = {
     styleCoherence: hasStyle ? 88 : 45,
-    focalHierarchy: hasWorld ? 84 : 45,
-    silhouetteStrength: hasBuild ? 78 : 44,
-    lightingDepth: hasStyle && hasWorld ? 76 : 42,
-    materialDiscipline: hasStyle ? 82 : 45,
+    focalHierarchy: visualScore !== null ? Math.round((84 + visualScore) / 2) : (hasWorld ? 84 : 45),
+    silhouetteStrength: visualScore !== null ? Math.round((78 + visualScore) / 2) : (hasBuild ? 78 : 44),
+    lightingDepth: visualScore !== null ? Math.round((76 + visualScore) / 2) : (hasStyle && hasWorld ? 76 : 42),
+    materialDiscipline: visualScore !== null ? Math.round((82 + visualScore) / 2) : (hasStyle ? 82 : 45),
     assetDensity: hasAssets ? 78 : 40,
     gameplayReadability: hasWorld && hasQa ? 82 : 45,
     uiReadability: hasStyle && hasQa ? 74 : 42,
     animationVfxSync: hasBuild ? 72 : 38,
     audioReadiness: hasQa ? 70 : 38,
-    performanceSafety: hasBudget ? 86 : 40,
-    mobileSafety: hasBudget && hasWorld ? 84 : 42,
+    performanceSafety: hasVisualEvidence ? 84 : (hasBudget ? 86 : 40),
+    mobileSafety: hasVisualEvidence ? 80 : (hasBudget && hasWorld ? 84 : 42),
     playability: hasQa ? 78 : 40,
     maintainability: manifest.version && manifest.nextCommand ? 90 : 55,
-    premiumFeel: hasStyle && hasWorld && hasBuild ? 82 : 45,
+    premiumFeel: visualScore !== null ? Math.round((82 + visualScore) / 2) : (hasStyle && hasWorld && hasBuild ? 82 : 45),
   };
   const subScores = {};
   let weightedTotal = 0;
@@ -71,15 +75,24 @@ function scoreFromManifest(manifest) {
   return {
     version: VERSION,
     at: nowIso(),
+    goal: manifest.goal || 'premium experience',
     score,
     subScores,
     summary: score >= 85 ? 'Premium-ready plan structure; now validate with screenshots/playtest.' : 'Strong direction exists, but polish and visual proof are still needed.',
+    visualEvidenceSummary: manifest.visualCritiqueReport && manifest.visualCritiqueReport.visualEvidenceSummary
+      ? manifest.visualCritiqueReport.visualEvidenceSummary
+      : (manifest.visualEvidencePack ? {
+        actualPixels: Boolean(manifest.visualEvidencePack.availableEvidence && manifest.visualEvidencePack.availableEvidence.actualPixels),
+        shotCount: Array.isArray(manifest.visualEvidencePack.shots) ? manifest.visualEvidencePack.shots.length : 0,
+        limitation: manifest.visualEvidencePack.availableEvidence && manifest.visualEvidencePack.availableEvidence.actualPixels ? null : 'Actual screenshot pixel analysis unavailable; structured evidence used.',
+      } : null),
     nextActions: SCORE_KEYS
       .filter((key) => subScores[key].score < 82)
       .slice(0, 5)
       .map((key) => subScores[key].nextAction),
     warnings: [],
     blockers: [],
+    nextCommand: `tools\\bridge.cmd premium polish "${manifest.goal || 'premium experience'}"`,
   };
 }
 

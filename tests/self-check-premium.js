@@ -13,7 +13,7 @@ function assertNoExternalRisk(value, label) {
 function run() {
   const goal = 'premium anime boss lobby';
   const manifest = Premium.createPremiumManifest(goal);
-  assert.strictEqual(manifest.version, '0.64.0');
+  assert.strictEqual(manifest.version, '0.65.0');
   assert.strictEqual(manifest.goal, goal);
   assert.ok(manifest.nextCommand);
   assert.ok(manifest.productionBrief);
@@ -23,6 +23,9 @@ function run() {
   assert.ok(manifest.performanceBudget);
   assert.ok(manifest.qaPlan);
   assert.ok(manifest.qualityScore);
+  assert.ok(manifest.visualEvidencePack);
+  assert.ok(manifest.visualCritiqueReport);
+  assert.ok(manifest.visualPolishPlan);
 
   assert.strictEqual(manifest.buildRoundPlan.phases.length, BUILD_PHASES.length);
   for (const phase of BUILD_PHASES) {
@@ -55,6 +58,7 @@ function run() {
     routeCategory: route.category,
     phaseCount: manifest.buildRoundPlan.phases.length,
     scoreKeys: SCORE_KEYS.length,
+    visualScore: manifest.visualCritiqueReport.overallScore,
   };
 }
 

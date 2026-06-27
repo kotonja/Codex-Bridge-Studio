@@ -12,6 +12,7 @@ const { createQaPlan } = require('./qa-plan');
 const { scoreFromManifest } = require('./quality-score');
 const { buildManifest, manifestPath } = require('./manifest-store');
 const { createDirectorReport } = require('./director-report');
+const Visual = require('../visual');
 
 function productionBrief(goal, options = {}) {
   const brief = compileGoal(safeGoal(goal || options.goal || options.intent), options);
@@ -35,6 +36,9 @@ function createPremiumManifest(goal, options = {}) {
   const worldGrammarPlan = createWorldGrammarPlan(brief, styleBible);
   const buildRoundPlan = createBuildRoundPlan(brief, styleBible, assetForgePlan, worldGrammarPlan);
   const visualCritiquePlan = createVisualCritiquePlan(brief, styleBible, worldGrammarPlan);
+  const visualEvidencePack = Visual.createEvidencePack(brief.goal, { source: 'premiumDirector' });
+  const visualCritiqueReport = Visual.createCritiqueReport(brief.goal, { evidencePack: visualEvidencePack, source: 'premiumDirector' });
+  const visualPolishPlan = Visual.createVisualPolishPlan(brief.goal, visualCritiqueReport);
   const performanceBudget = createPerformanceBudget(brief);
   const qaPlan = createQaPlan(brief, worldGrammarPlan);
   const partial = buildManifest({
@@ -45,6 +49,9 @@ function createPremiumManifest(goal, options = {}) {
     worldGrammarPlan,
     buildRoundPlan,
     visualCritiquePlan,
+    visualEvidencePack,
+    visualCritiqueReport,
+    visualPolishPlan,
     performanceBudget,
     qaPlan,
     createdPaths: [],
@@ -62,7 +69,7 @@ function getStatus(lastManifest = null) {
     at: nowIso(),
     status: 'ready',
     roots: ROOTS,
-    capabilities: ['production brief', 'style bible', 'asset forge', 'world grammar', 'specialist build routing', 'visual critique', 'performance budget', 'QA plan', 'quality score'],
+    capabilities: ['production brief', 'style bible', 'asset forge', 'world grammar', 'specialist build routing', 'V65 visual critique evidence loop', 'visual polish plan', 'performance budget', 'QA plan', 'quality score'],
     nextCommand: 'tools\\bridge.cmd premium plan "premium anime boss lobby"',
     lastManifest,
   };
@@ -77,6 +84,7 @@ module.exports = {
   createWorldGrammarPlan,
   createBuildRoundPlan,
   createVisualCritiquePlan,
+  Visual,
   createPerformanceBudget,
   createQaPlan,
   scoreFromManifest,

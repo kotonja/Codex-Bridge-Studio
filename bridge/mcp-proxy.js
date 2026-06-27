@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
-const VERSION = '0.64.0';
+const VERSION = '0.65.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -548,6 +548,12 @@ const toolHandlers = {
   premium_qa: async (args) => readCommand('getPremiumQaPlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   premium_polish: async (args) => mutationCommand('polishPremiumBuildRound', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', manifest: args.manifest }),
   premium_score: async (args) => readCommand('getPremiumQualityScore', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', manifestPath: args.manifestPath || args.path }),
+  visual_status: async () => requestBridge('GET', '/codex/visual/status', undefined, 2500),
+  visual_evidence: async (args) => requestBridge('GET', `/codex/visual/evidence?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox scene')}`, undefined, 2500),
+  visual_critique: async (args) => requestBridge('GET', `/codex/visual/critique?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox scene')}`, undefined, 2500),
+  visual_score: async (args) => requestBridge('GET', `/codex/visual/score?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox scene')}`, undefined, 2500),
+  visual_polish: async (args) => requestBridge('GET', `/codex/visual/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox scene')}`, undefined, 2500),
+  visual_compare: async (args) => requestBridge('POST', '/codex/visual/compare', { reportA: args.reportA || args.before, reportB: args.reportB || args.after, goal: args.goal || args.intent || args.text }, 2500),
   style_bible: async (args) => readCommand('getCreatorStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   forge_assets: async (args) => readCommand('getCreatorAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
   visual_critique: async (args) => readCommand('getCreatorVisualCritiquePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
@@ -624,6 +630,12 @@ const toolDefinitions = [
   ['premium_qa', 'Return a V63 QA plan for premium build/game slices.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['premium_polish', 'Run a V63 quality-score-driven premium polish round.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, manifest: { type: 'object' } }],
   ['premium_score', 'Score a V63 premium manifest or goal across production-quality dimensions.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, manifestPath: { type: 'string' }, path: { type: 'string' } }],
+  ['visual_status', 'Return V65 Visual Critic readiness and screenshot evidence limitations.', {}],
+  ['visual_evidence', 'Return a V65 structured visual evidence pack and shot plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['visual_critique', 'Return a V65 evidence-backed visual critique with scores, problems, and polish actions.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['visual_score', 'Return the V65 weighted visual quality score and sub-scores.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['visual_polish', 'Return the V65 nine-stage visual polish plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['visual_compare', 'Compare two V65 visual critique reports.', { reportA: { type: 'object' }, reportB: { type: 'object' }, before: { type: 'object' }, after: { type: 'object' }, goal: { type: 'string' } }],
   ['style_bible', 'Return a V62 style bible for a Roblox game/build intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['forge_assets', 'Return a V62 asset forge plan for meshes, textures, materials, audio, animations, and reusable kits.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['visual_critique', 'Return a V62 visual critique loop for screenshot comparison, polish, and performance/readability scoring.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],

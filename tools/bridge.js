@@ -7,9 +7,10 @@ const childProcess = require('node:child_process');
 const os = require('node:os');
 const CommandRouter = require('../bridge/command-router');
 const Premium = require('../bridge/premium');
+const Visual = require('../bridge/visual');
 
-const HELPER_VERSION = '0.64.0';
-const MCP_PROXY_VERSION = '0.64.0';
+const HELPER_VERSION = '0.65.0';
+const MCP_PROXY_VERSION = '0.65.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -74,9 +75,14 @@ const MCP_PROXY_TOOLS = [
   'premium_qa',
   'premium_polish',
   'premium_score',
+  'visual_status',
+  'visual_evidence',
+  'visual_critique',
+  'visual_score',
+  'visual_polish',
+  'visual_compare',
   'style_bible',
   'forge_assets',
-  'visual_critique',
   'execute_luau',
 ];
 const DEFAULT_BASE_URL = `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
@@ -313,6 +319,13 @@ Usage:
   node tools/bridge.js premium director
   node tools/bridge.js premium score <manifestPath-or-goal>
   node tools/bridge.js premium self-check
+  node tools/bridge.js visual status
+  node tools/bridge.js visual evidence
+  node tools/bridge.js visual critique "<goal>"
+  node tools/bridge.js visual score "<goal>"
+  node tools/bridge.js visual polish "<goal>"
+  node tools/bridge.js visual compare <reportA> <reportB>
+  node tools/bridge.js visual self-check
   node tools/bridge.js plugin bundle
   node tools/bridge.js plugin check
   node tools/bridge.js plugin self-check
@@ -6094,7 +6107,9 @@ async function runPremium(subcommand = 'status', args = []) {
 
   if (subcommand === 'critique' || subcommand === 'visual-critique') {
     const manifest = localManifest();
-    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, visualCritiquePlan: manifest.visualCritiquePlan, qualityScore: manifest.qualityScore, nextCommand: `tools\\bridge.cmd premium polish "${manifest.goal}"` });
+    const evidencePack = Visual.createEvidencePack(manifest.goal, await visualEvidenceOptions({ source: 'tools.bridge.premium.critique' }));
+    const visualCritiqueReport = Visual.createCritiqueReport(manifest.goal, { evidencePack, source: 'tools.bridge.premium.critique' });
+    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, visualCritiquePlan: manifest.visualCritiquePlan, visualEvidencePack: evidencePack, visualCritiqueReport, qualityScore: manifest.qualityScore, nextCommand: `tools\\bridge.cmd premium polish "${manifest.goal}"` });
     return;
   }
 
@@ -6123,6 +6138,7 @@ async function runPremium(subcommand = 'status', args = []) {
       blockers: qualityScore.blockers || [],
       nextCommand: `tools\\bridge.cmd premium polish "${goal}"`,
       qualityScore,
+      visualEvidenceSummary: qualityScore.visualEvidenceSummary,
       manifestPath: manifest.manifestPath || Premium.manifestPath(goal),
     });
     return;
@@ -6138,13 +6154,23 @@ async function runPremium(subcommand = 'status', args = []) {
       manifest,
       source: 'tools.bridge.premium.build',
     }));
-    print(result);
+    print({
+      ...result,
+      nextCommand: `tools\\bridge.cmd visual critique "${intent}"`,
+      premiumNextCommand: `tools\\bridge.cmd premium critique "${intent}"`,
+    });
     return;
   }
 
   if (subcommand === 'polish' || subcommand === 'improve') {
     const intent = cleanIntent();
     const manifest = localManifest(intent);
+    const visualCritiqueReport = Visual.createCritiqueReport(intent, {
+      evidencePack: Visual.createEvidencePack(intent, await visualEvidenceOptions({ source: 'tools.bridge.premium.polish' })),
+      source: 'tools.bridge.premium.polish',
+    });
+    manifest.visualCritiqueReport = visualCritiqueReport;
+    manifest.visualPolishPlan = visualCritiqueReport.polishPlan;
     const context = await resolveProjectProfile();
     const result = await queueBrainCommand('polishPremiumBuildRound', brainPayload(context, {
       intent,
@@ -6152,7 +6178,12 @@ async function runPremium(subcommand = 'status', args = []) {
       manifest,
       source: 'tools.bridge.premium.polish',
     }));
-    print(result);
+    print({
+      ...result,
+      visualPolishPlan: visualCritiqueReport.polishPlan,
+      nextCommand: `tools\\bridge.cmd visual critique "${intent}"`,
+      premiumNextCommand: `tools\\bridge.cmd premium qa "${intent}"`,
+    });
     return;
   }
 
@@ -6171,6 +6202,88 @@ async function runPremium(subcommand = 'status', args = []) {
   }
 
   throw new Error('premium command must be status, plan, style, assets, world, build, critique, qa, polish, director, score, bake, or self-check.');
+}
+
+async function visualEvidenceOptions(extra = {}) {
+  const health = await requestSafe('/health', { timeoutMs: 1200, noAutoStart: true });
+  return {
+    studioConnected: health.ok && health.value && health.value.studioConnected === true,
+    liveVision: health.ok && health.value && health.value.studioConnected === true,
+    screenControl: health.ok && health.value && health.value.studioConnected === true,
+    cameraReport: health.ok && health.value && health.value.studioConnected === true,
+    playtestSnapshot: health.ok && health.value && health.value.studioConnected === true,
+    actualPixels: false,
+    pixelEvidenceVerified: false,
+    bridgeHealth: health.ok ? {
+      version: health.value.version,
+      studioConnected: health.value.studioConnected,
+      activeStudioId: health.value.activeStudioId,
+      activePlace: health.value.activePlace,
+    } : { ok: false, error: health.error },
+    ...extra,
+  };
+}
+
+function readVisualReport(filePath) {
+  const resolved = path.resolve(filePath);
+  const report = readJsonFile(resolved);
+  return report.visualCritiqueReport || report.critique || report.report || report;
+}
+
+async function runVisual(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'premium Roblox scene';
+  if (!subcommand || subcommand === 'status') {
+    print(Visual.createStatus(await visualEvidenceOptions()));
+    return;
+  }
+  if (subcommand === 'self-check' || subcommand === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-visual.js'));
+    return;
+  }
+  if (subcommand === 'evidence') {
+    const goal = cleanGoal();
+    print(Visual.createEvidencePack(goal, await visualEvidenceOptions({ source: 'tools.bridge.visual.evidence' })));
+    return;
+  }
+  if (subcommand === 'critique' || subcommand === 'report') {
+    const goal = cleanGoal();
+    const evidencePack = Visual.createEvidencePack(goal, await visualEvidenceOptions({ source: 'tools.bridge.visual.critique' }));
+    print(Visual.createCritiqueReport(goal, { evidencePack, source: 'tools.bridge.visual.critique' }));
+    return;
+  }
+  if (subcommand === 'score') {
+    const goal = cleanGoal();
+    const evidencePack = Visual.createEvidencePack(goal, await visualEvidenceOptions({ source: 'tools.bridge.visual.score' }));
+    print(Visual.createScoreReport(goal, { evidencePack, source: 'tools.bridge.visual.score' }));
+    return;
+  }
+  if (subcommand === 'polish') {
+    const goal = cleanGoal();
+    const evidencePack = Visual.createEvidencePack(goal, await visualEvidenceOptions({ source: 'tools.bridge.visual.polish' }));
+    const critique = Visual.createCritiqueReport(goal, { evidencePack, source: 'tools.bridge.visual.polish' });
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      goal,
+      critiqueSummary: {
+        overallScore: critique.overallScore,
+        rating: critique.rating,
+        topProblems: critique.topProblems.slice(0, 4),
+      },
+      visualPolishPlan: critique.polishPlan,
+      warnings: critique.warnings,
+      blockers: critique.blockers,
+      nextCommand: critique.polishPlan.nextCommand,
+    });
+    return;
+  }
+  if (subcommand === 'compare') {
+    const [beforePath, afterPath] = args;
+    if (!beforePath || !afterPath) throw new Error('visual compare requires <reportA> <reportB>.');
+    print(Visual.createVisualCompareReport(readVisualReport(beforePath), readVisualReport(afterPath)));
+    return;
+  }
+  throw new Error('visual command must be status, evidence, critique, score, polish, compare, or self-check.');
 }
 
 async function runVision(subcommand, args) {
@@ -10997,6 +11110,11 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'visual') {
+    await runVisual(args[0] || 'status', args.slice(1));
+    return;
+  }
+
   const directPremiumCommands = {
     premium_director: 'director',
     premium_plan: 'plan',
@@ -11015,6 +11133,19 @@ async function main(argv) {
     return;
   }
 
+  const directVisualCommands = {
+    visual_status: 'status',
+    visual_evidence: 'evidence',
+    visual_critique: 'critique',
+    visual_score: 'score',
+    visual_polish: 'polish',
+    visual_compare: 'compare',
+  };
+  if (directVisualCommands[command]) {
+    await runVisual(directVisualCommands[command], args);
+    return;
+  }
+
   if (command === 'brain') {
     await runBrain(args[0], args.slice(1));
     return;
@@ -11030,7 +11161,6 @@ async function main(argv) {
     create_game: 'generate',
     style_bible: 'style',
     forge_assets: 'assets',
-    visual_critique: 'critique',
   };
   if (directCreatorCommands[command]) {
     await runCreator(directCreatorCommands[command], args);

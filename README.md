@@ -1,4 +1,4 @@
-# Codex Studio Bridge V64.0
+# Codex Studio Bridge V65.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -53,6 +53,30 @@ Do not edit `plugin/CodexStudioBridge.plugin.lua` directly except for emergency 
 `scripts\install-plugin.ps1` runs the bundle checker before copying the plugin. If the bundle is stale, it prints `Plugin bundle is stale; rebuilding before install.`, rebuilds with `node scripts\bundle-plugin.js`, then continues the existing backup-and-copy install flow.
 
 V64 is intentionally a modularization foundation, not a full logic split. The next phase should extract real modules from the legacy source in tiny verified slices.
+
+## V65 Visual Critic + Screenshot Evidence
+
+V65 adds a Visual Critic layer to close the premium build loop: build, collect screenshot/camera evidence, critique, score, polish, then compare before/after. It does not fake pixel analysis. If Roblox Studio cannot provide verified screenshot pixels, reports set `actualPixels: false` and use structured evidence from live vision, screen/camera reports, playtest snapshots, Output, and shot plans.
+
+```powershell
+.\tools\bridge.cmd visual status
+.\tools\bridge.cmd visual evidence
+.\tools\bridge.cmd visual critique "premium anime boss lobby"
+.\tools\bridge.cmd visual score "premium anime boss lobby"
+.\tools\bridge.cmd visual polish "premium anime boss lobby"
+.\tools\bridge.cmd visual compare before.json after.json
+.\tools\bridge.cmd visual self-check
+```
+
+Premium Director now includes Visual Critic evidence:
+
+```powershell
+.\tools\bridge.cmd premium critique "premium anime boss lobby"
+.\tools\bridge.cmd premium score "premium anime boss lobby"
+.\tools\bridge.cmd premium polish "premium anime boss lobby"
+```
+
+Use `visual critique` after a premium build round, then use `visual polish` for the nine staged passes: composition, lighting, material, silhouette, VFX integration, UI readability, clutter reduction, mobile fallback, and final screenshot proof.
 
 For day-to-day connection and pairing help:
 

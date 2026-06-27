@@ -7,8 +7,9 @@ const pathModule = require('node:path');
 const { URL } = require('node:url');
 const CommandRouter = require('./command-router');
 const Premium = require('./premium');
+const Visual = require('./visual');
 
-const VERSION = '0.64.0';
+const VERSION = '0.65.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -332,6 +333,14 @@ const supportedCommands = new Set([
   'getPremiumPerformanceBudget',
   'getPremiumQaPlan',
   'getPremiumQualityScore',
+  'getVisualCriticStatus',
+  'getVisualEvidencePack',
+  'getVisualCritiqueReport',
+  'getVisualQualityScore',
+  'getVisualPolishPlan',
+  'getVisualCompareReport',
+  'requestVisualEvidenceCapture',
+  'bakeVisualCritiqueManifest',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
   'bakePremiumDirectorManifest',
@@ -352,6 +361,12 @@ const supportedCommands = new Set([
   'premium_qa',
   'premium_polish',
   'premium_score',
+  'visual_status',
+  'visual_evidence',
+  'visual_critique',
+  'visual_score',
+  'visual_polish',
+  'visual_compare',
   'style_bible',
   'forge_assets',
   'visual_critique',
@@ -1008,6 +1023,8 @@ const mutatingCommands = new Set([
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
   'bakePremiumDirectorManifest',
+  'requestVisualEvidenceCapture',
+  'bakeVisualCritiqueManifest',
   'premium_build_round',
   'premium_polish',
 ]);
@@ -3808,6 +3825,20 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'visual',
+    title: 'V65 Visual Critic + Screenshot Evidence',
+    safety: 'readOnlyEvidenceOrCodexOwnedPolishManifest',
+    readiness: ['bridge', 'plugin', 'cameraScreen', 'liveVision'],
+    commands: [
+      { command: 'tools\\bridge.cmd visual status', example: 'tools\\bridge.cmd visual status', bestFor: 'Check Visual Critic readiness and evidence limitations.' },
+      { command: 'tools\\bridge.cmd visual evidence', example: 'tools\\bridge.cmd visual evidence', bestFor: 'Collect a structured evidence pack with shot plan and honest screenshot availability.' },
+      { command: 'tools\\bridge.cmd visual critique <goal>', example: 'tools\\bridge.cmd visual critique "premium anime boss lobby"', bestFor: 'Score whether a scene looks premium using evidence-backed sub-scores and top problems.' },
+      { command: 'tools\\bridge.cmd visual score <goal>', example: 'tools\\bridge.cmd visual score "premium anime boss lobby"', bestFor: 'Return the weighted V65 visual score with all required sub-scores.' },
+      { command: 'tools\\bridge.cmd visual polish <goal>', example: 'tools\\bridge.cmd visual polish "premium anime boss lobby"', bestFor: 'Create the nine-stage visual polish plan with exact next commands.' },
+      { command: 'tools\\bridge.cmd visual compare <reportA> <reportB>', example: 'tools\\bridge.cmd visual compare before.json after.json', bestFor: 'Compare before/after visual critique reports.' },
+    ],
+  },
+  {
     id: 'robloxBrain',
     title: 'Roblox Brain Core / Unified Game Creator OS',
     safety: 'fullTrustOrchestratedLocalActions',
@@ -5796,6 +5827,74 @@ async function route(req, res) {
       qualityScore: Premium.scoreFromManifest(manifest),
       manifestPath: manifest.manifestPath,
     });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/visual/status') {
+    sendJson(res, 200, Visual.createStatus({
+      studioConnected: Boolean(getActiveStudioEntry() && isPlaceFresh(getActiveStudioEntry())),
+    }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/visual/evidence') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox scene';
+    const active = getActiveStudioEntry();
+    sendJson(res, 200, Visual.createEvidencePack(goal, {
+      studioConnected: Boolean(active && isPlaceFresh(active)),
+      actualPixels: false,
+      pixelEvidenceVerified: false,
+      liveVision: Boolean(awarenessStatus().latestByCategory && (awarenessStatus().latestByCategory.testClient || awarenessStatus().latestByCategory.edit)),
+      screenControl: true,
+      cameraReport: true,
+      playtestSnapshot: Boolean(awarenessStatus().latestByCategory && awarenessStatus().latestByCategory.testClient),
+    }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/visual/critique') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox scene';
+    const active = getActiveStudioEntry();
+    const evidencePack = Visual.createEvidencePack(goal, {
+      studioConnected: Boolean(active && isPlaceFresh(active)),
+      liveVision: Boolean(awarenessStatus().latestByCategory && (awarenessStatus().latestByCategory.testClient || awarenessStatus().latestByCategory.edit)),
+      screenControl: true,
+      cameraReport: true,
+      playtestSnapshot: Boolean(awarenessStatus().latestByCategory && awarenessStatus().latestByCategory.testClient),
+      actualPixels: false,
+      pixelEvidenceVerified: false,
+    });
+    sendJson(res, 200, Visual.createCritiqueReport(goal, { evidencePack, source: 'bridge.http.visual.critique' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/visual/score') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox scene';
+    const evidencePack = Visual.createEvidencePack(goal, { studioConnected: Boolean(getActiveStudioEntry() && isPlaceFresh(getActiveStudioEntry())) });
+    sendJson(res, 200, Visual.createScoreReport(goal, { evidencePack, source: 'bridge.http.visual.score' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/visual/polish') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox scene';
+    const evidencePack = Visual.createEvidencePack(goal, { studioConnected: Boolean(getActiveStudioEntry() && isPlaceFresh(getActiveStudioEntry())) });
+    const critique = Visual.createCritiqueReport(goal, { evidencePack, source: 'bridge.http.visual.polish' });
+    sendJson(res, 200, {
+      ok: true,
+      version: VERSION,
+      goal,
+      visualPolishPlan: critique.polishPlan,
+      critiqueSummary: { overallScore: critique.overallScore, rating: critique.rating, topProblems: critique.topProblems.slice(0, 4) },
+      warnings: critique.warnings,
+      blockers: critique.blockers,
+      nextCommand: critique.polishPlan.nextCommand,
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/codex/visual/compare') {
+    const body = await readBody(req);
+    sendJson(res, 200, Visual.createVisualCompareReport(body.reportA || body.before, body.reportB || body.after, body));
     return;
   }
 

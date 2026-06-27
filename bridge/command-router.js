@@ -31,9 +31,13 @@ function createRoute(rawQuery = '', options = {}) {
   const quoted = extractQuotedText(query);
   const intent = quoted || query;
   const has = (...words) => words.some((word) => q.includes(word));
+  const visualSignal = has('look at it', 'does this look premium', 'why does it look cheap', 'make it look expensive', 'make it look premium', 'visual critique', 'screenshot critique', 'compare before after', 'polish the visuals', 'fix the lighting', 'improve focal point', 'make the map look better')
+    || ((has('visual', 'screenshot', 'lighting', 'focal point', 'composition', 'cheap looking', 'looks cheap') && has('critique', 'polish', 'fix', 'improve', 'compare', 'score', 'look')));
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
-  const premiumSignal = has('premium director', 'make this premium', 'build premium roblox game', 'top dev quality', 'visual critique', 'make it look expensive', 'fix cheap looking build', 'upgrade everything')
+  const premiumBuildSignal = has('build premium roblox game', 'premium anime boss lobby', 'premium simulator lobby', 'premium hub', 'premium lobby', 'premium game', 'premium world', 'premium scene')
+    || ((has('premium', 'top dev', 'expensive', 'reference quality', 'high quality') && has('build', 'scene', 'hub', 'game', 'world', 'lobby', 'roblox')));
+  const premiumSignal = has('premium director', 'make this premium', 'build premium roblox game', 'top dev quality', 'fix cheap looking build', 'upgrade everything')
     || ((has('premium', 'top dev', 'expensive', 'reference quality', 'high quality') && has('build', 'scene', 'hub', 'game', 'world', 'lobby', 'roblox')));
   const creatorSignal = has('creator os', 'asset forge', 'style bible', 'visual critique', 'production pipeline', 'build like this', 'premium build', 'custom mesh', 'mesh pipeline', 'texture factory', 'material pipeline', 'game creator')
     || ((has('premium', 'beautiful', 'exactly', 'crazy', 'massive', 'top dev') && has('build', 'scene', 'hub', 'game', 'world', 'roblox')));
@@ -123,6 +127,29 @@ function createRoute(rawQuery = '', options = {}) {
       confidence: 0.9,
       reason: 'Tool/capability discovery request.',
       commands: search ? [`tools\\bridge.cmd tools search ${quoteForCommand(search)}`, 'tools\\bridge.cmd tools'] : ['tools\\bridge.cmd tools', 'tools\\bridge.cmd command-index', 'tools\\bridge.cmd manual'],
+    });
+  } else if (visualSignal && !premiumBuildSignal) {
+    const action = has('score') ? 'score'
+      : has('polish', 'make it look expensive', 'make it look premium', 'fix the lighting', 'improve focal point', 'make the map look better') ? 'polish'
+        : has('compare') ? 'compare'
+          : has('evidence', 'screenshot') ? 'evidence'
+            : 'critique';
+    const visualCommand = action === 'compare'
+      ? 'tools\\bridge.cmd visual compare <before-report.json> <after-report.json>'
+      : action === 'evidence'
+        ? `tools\\bridge.cmd visual evidence`
+        : `tools\\bridge.cmd visual ${action} ${quoteForCommand(intent)}`;
+    setRoute({
+      category: 'visual',
+      title: 'V65 Visual Critic + Screenshot Evidence',
+      confidence: 0.94,
+      safety: action === 'polish' ? 'readOnlyPlanOrCodexOwnedPolishActions' : 'readOnlyVisualEvidence',
+      reason: 'Visual critique/polish language detected. Use V65 screenshot-evidence contracts before more build changes.',
+      commands: [
+        `tools\\bridge.cmd visual critique ${quoteForCommand(intent)}`,
+        visualCommand,
+        `tools\\bridge.cmd visual score ${quoteForCommand(intent)}`,
+      ],
     });
   } else if (premiumSignal) {
     const wantsExecute = has('--execute', 'execute premium', 'run premium build', 'premium build now');
@@ -310,6 +337,9 @@ function catalog(version = null) {
     ['generate detailed sci-fi crate model', 'tools\\bridge.cmd generate_model "detailed sci-fi crate with vents and warning trims"'],
     ['build portal lobby scene', 'tools\\bridge.cmd generate_scene "anime portal lobby with shop stands and VFX sockets"'],
     ['make this premium', 'tools\\bridge.cmd premium plan "<goal>"'],
+    ['visual critique', 'tools\\bridge.cmd visual critique "<goal>"'],
+    ['make it look premium', 'tools\\bridge.cmd visual polish "<goal>"'],
+    ['compare before after', 'tools\\bridge.cmd visual compare <before-report.json> <after-report.json>'],
     ['top dev quality hub', 'tools\\bridge.cmd premium build "<goal>"'],
     ['visual critique premium lobby', 'tools\\bridge.cmd premium critique "<goal>"'],
     ['build premium hub like this image', 'tools\\bridge.cmd creator generate "premium hub matching the reference style"'],

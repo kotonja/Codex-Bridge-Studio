@@ -183,6 +183,20 @@ Do not edit `plugin/CodexStudioBridge.plugin.lua` directly unless it is an emerg
 
 `scripts\install-plugin.ps1` checks the bundle before copying. If the bundle is stale, it rebuilds first, then keeps the existing backup behavior. Treat V64 as the foundation for safer future module extraction; do not attempt a giant manual plugin rewrite.
 
+V65 Visual Critic + Screenshot Evidence closes the premium visual loop. Use it after premium/build/creator output when the user asks whether something actually looks premium, why it looks cheap, how to polish the visuals, how to fix lighting/focal point/readability, or how to compare before/after:
+
+```powershell
+.\tools\bridge.cmd visual status
+.\tools\bridge.cmd visual evidence
+.\tools\bridge.cmd visual critique "premium anime boss lobby"
+.\tools\bridge.cmd visual score "premium anime boss lobby"
+.\tools\bridge.cmd visual polish "premium anime boss lobby"
+.\tools\bridge.cmd visual compare before.json after.json
+.\tools\bridge.cmd visual self-check
+```
+
+V65 is honest about evidence. If verified screenshot pixels are not available, reports must say `actualPixels: false` and use structured live-vision, screen, camera, playtest, and Output evidence instead. Do not claim real screenshot/pixel analysis happened unless the evidence source explicitly verifies it. Premium commands now integrate this: `premium critique` mirrors V65 visual critique, `premium score` includes a visual evidence summary, and `premium polish` includes V65 visual polish actions.
+
 V63 Premium Director Core is the preferred first entry point when the user asks for premium/top-dev/reference-quality Roblox output, says `make this premium`, `make it look expensive`, `fix cheap looking build`, `visual critique`, `top dev quality`, `build premium Roblox game`, or broad `upgrade everything`. It creates a production brief, style bible, asset forge plan, world grammar, build round, visual critique, performance budget, QA plan, and premium quality score before routing work through the specialist stack:
 
 ```powershell

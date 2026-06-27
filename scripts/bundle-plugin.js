@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
-const VERSION = '0.64.0';
+const VERSION = '0.65.0';
 const ROOT = path.resolve(__dirname, '..');
 const SRC_DIR = path.join(ROOT, 'plugin', 'src');
 const ENTRY = path.join(SRC_DIR, 'main.lua');
