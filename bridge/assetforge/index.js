@@ -70,6 +70,7 @@ function createIntentPlan(goal, options = {}) {
     assetKitId: parsed.assetKitId,
     assetFamilies: kitPlan.assetFamilies,
     requiredManifests: kitPlan.requiredManifests,
+    taxonomy: TAXONOMY,
     taxonomyCatalog: TAXONOMY,
     worldgenIntegration: { recommended: true, command: `tools\\bridge.cmd worldgen graph "${parsed.goal}"` },
     visualCriticIntegration: { recommended: true, command: `tools\\bridge.cmd visual critique "${parsed.goal}"` },
