@@ -1,4 +1,4 @@
-# Codex Studio Bridge V67.0
+# Codex Studio Bridge V68.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -153,6 +153,35 @@ Premium Director now includes Asset Forge Pro in asset planning and scoring:
 .\tools\bridge.cmd premium score "premium anime dungeon hub"
 .\tools\bridge.cmd do --json "make premium props for anime dungeon"
 ```
+
+## V68 Cinematic Motion Director
+
+V68 adds a synced motion/game-feel layer for moments that need animation, VFX, audio, camera, screen shake, hit-stop, UI punch, and mobile-safe readability to feel like one premium beat. Use it when the request says combat feels weak, add impact, hit stop, screen shake, cinematic intro, boss intro, sync animation/VFX/audio, or make an ability feel powerful.
+
+```powershell
+.\tools\bridge.cmd cinematic status
+.\tools\bridge.cmd cinematic styles
+.\tools\bridge.cmd cinematic plan "anime boss intro attack"
+.\tools\bridge.cmd cinematic timeline "anime boss intro attack"
+.\tools\bridge.cmd cinematic beats "anime boss intro attack"
+.\tools\bridge.cmd cinematic camera "anime boss intro attack"
+.\tools\bridge.cmd cinematic animation "heavy sword impact"
+.\tools\bridge.cmd cinematic vfx-sync "beam attack impact"
+.\tools\bridge.cmd cinematic audio-sync "boss intro attack"
+.\tools\bridge.cmd cinematic gamefeel "make attack feel powerful"
+.\tools\bridge.cmd cinematic generate "anime boss intro attack"
+.\tools\bridge.cmd cinematic preview "anime boss intro attack"
+.\tools\bridge.cmd cinematic audit "anime boss intro attack"
+.\tools\bridge.cmd cinematic polish "anime boss intro attack"
+.\tools\bridge.cmd cinematic manifest "anime boss intro attack"
+.\tools\bridge.cmd cinematic self-check
+.\tools\bridge.cmd gamefeel "make combat feel good"
+.\tools\bridge.cmd sync_moment "sync animation vfx audio for a sword slash"
+.\tools\bridge.cmd make_cinematic "opening boss cutscene"
+.\tools\bridge.cmd premium motion "anime boss intro attack"
+```
+
+Cinematic generation is Codex-owned and manifest-backed under `ReplicatedStorage.CodexCinematicMotion` and `ReplicatedStorage.CodexPremiumDirector.Cinematic`. It must not publish/upload, invent animation/audio asset IDs, touch marketplace, DataStore, economy, or monetization. Animation publish and audio asset selection remain `manualRequired` unless Roblox returns supported asset references or existing assets are supplied.
 
 For day-to-day connection and pairing help:
 

@@ -44,6 +44,9 @@ function scoreFromManifest(manifest) {
   const visualScore = manifest.visualCritiqueReport && Number.isFinite(Number(manifest.visualCritiqueReport.overallScore))
     ? Number(manifest.visualCritiqueReport.overallScore)
     : null;
+  const cinematicScore = manifest.cinematicAudit && Number.isFinite(Number(manifest.cinematicAudit.overallScore))
+    ? Number(manifest.cinematicAudit.overallScore)
+    : null;
   const hasVisualEvidence = Boolean(manifest.visualEvidencePack || manifest.visualCritiqueReport);
   const base = {
     styleCoherence: hasStyle ? 88 : 45,
@@ -54,8 +57,8 @@ function scoreFromManifest(manifest) {
     assetDensity: assetForgeScore !== null ? Math.round((78 + assetForgeScore) / 2) : (hasAssets ? 78 : 40),
     gameplayReadability: worldgenScore !== null ? Math.round((82 + worldgenScore) / 2) : (hasWorld && hasQa ? 82 : 45),
     uiReadability: hasStyle && hasQa ? 74 : 42,
-    animationVfxSync: hasBuild ? 72 : 38,
-    audioReadiness: hasQa ? 70 : 38,
+    animationVfxSync: cinematicScore !== null ? Math.round((76 + cinematicScore) / 2) : (hasBuild ? 72 : 38),
+    audioReadiness: cinematicScore !== null ? Math.round((72 + cinematicScore) / 2) : (hasQa ? 70 : 38),
     performanceSafety: worldgenScore !== null ? Math.round((84 + worldgenScore) / 2) : (hasVisualEvidence ? 84 : (hasBudget ? 86 : 40)),
     mobileSafety: worldgenScore !== null ? Math.round((80 + worldgenScore) / 2) : (hasVisualEvidence ? 80 : (hasBudget && hasWorld ? 84 : 42)),
     playability: hasQa ? 78 : 40,
@@ -103,6 +106,16 @@ function scoreFromManifest(manifest) {
       assetKitId: manifest.assetForgeAudit.assetKitId,
       visualCriticReady: Boolean(manifest.assetForgeAudit.visualCriticReadiness && manifest.assetForgeAudit.visualCriticReadiness.ready),
       nextCommand: manifest.assetForgeAudit.nextCommand,
+    } : null,
+    cinematicSummary: manifest.cinematicAudit ? {
+      overallScore: manifest.cinematicAudit.overallScore,
+      packageId: manifest.cinematicAudit.packageId,
+      markerCoverage: manifest.cinematicAudit.subScores && manifest.cinematicAudit.subScores.markerCoverage
+        ? manifest.cinematicAudit.subScores.markerCoverage.score
+        : null,
+      animationManualRequired: Boolean(manifest.cinematicPlan && manifest.cinematicPlan.publishPolicy && manifest.cinematicPlan.publishPolicy.manualRequired),
+      audioManualRequired: true,
+      nextCommand: manifest.cinematicAudit.nextCommand,
     } : null,
     nextActions: SCORE_KEYS
       .filter((key) => subScores[key].score < 82)

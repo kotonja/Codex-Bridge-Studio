@@ -38,6 +38,9 @@ function createRoute(rawQuery = '', options = {}) {
   const assetforgeSignal = has('make asset kit', 'generate asset', 'make props', 'kitbash', 'mesh plan', 'material plan', 'make this look detailed', 'create reusable assets', 'asset library', 'make premium props', 'make dungeon asset kit', 'make anime portal assets', 'make shop stand assets', 'make boss arena props', 'fix cheap assets', 'polish assets', 'audit assets', 'create material palette')
     || ((has('asset', 'assets', 'prop', 'props', 'kit', 'kitbash', 'mesh', 'material', 'materials', 'surfaceappearance', 'decal', 'signage', 'library', 'palette', 'trim', 'bevel') && has('make', 'create', 'generate', 'plan', 'polish', 'audit', 'fix', 'premium', 'detailed')));
   const vfxSignal = has('vfx', 'effect', 'aura', 'projectile', 'beam', 'slash', 'impact', 'explosion', 'wind', 'lightning', 'smoke', 'portal');
+  const cinematicSignal = has('make it feel premium', 'make combat feel good', 'add impact', 'add hit stop', 'hit stop', 'add screen shake', 'screen shake', 'make cinematic', 'sync animation vfx audio', 'camera shake', 'ability timing', 'impact frames', 'make attack feel powerful', 'make movement feel better', 'make boss intro cinematic', 'opening cutscene', 'make opening cutscene', 'polish animation timing', 'polish game feel', 'fix weak ability', 'game feel', 'gamefeel', 'sync moment')
+    || ((has('motion', 'cinematic', 'camera', 'impact', 'hit-stop', 'hitstop', 'shake', 'timing', 'anticipation', 'follow through', 'recoil') && has('plan', 'make', 'add', 'polish', 'fix', 'sync', 'generate', 'feel')));
+  const vfxOnlySignal = vfxSignal && !cinematicSignal && !has('animation', 'audio', 'camera', 'timing', 'sync', 'game feel', 'gamefeel', 'cinematic');
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
   const premiumBuildSignal = has('build premium roblox game', 'premium anime boss lobby', 'premium simulator lobby', 'premium hub', 'premium lobby', 'premium game', 'premium world', 'premium scene')
@@ -194,6 +197,25 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd assetforge plan ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd assetforge ${action} ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd assetforge audit ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (cinematicSignal && !premiumBuildSignal && !visualSignal && !worldgenSignal && !assetforgeSignal && !vfxOnlySignal) {
+    const action = has('audit', 'score') ? 'audit'
+      : has('polish', 'fix') ? 'polish'
+        : has('preview') ? 'preview'
+          : has('generate', 'make', 'add') ? 'generate'
+            : has('timeline', 'timing') ? 'timeline'
+              : 'plan';
+    setRoute({
+      category: 'cinematic',
+      title: 'V68 Cinematic Motion Director',
+      confidence: 0.94,
+      safety: action === 'generate' || action === 'polish' ? 'fullTrustCodexOwnedCinematicPackage' : 'readOnlyCinematicPlan',
+      reason: 'Motion, cinematic, game-feel, impact, camera shake, or animation/VFX/audio sync language detected.',
+      commands: [
+        `tools\\bridge.cmd cinematic plan ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd cinematic ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd cinematic audit ${quoteForCommand(intent)}`,
       ],
     });
   } else if (premiumSignal) {

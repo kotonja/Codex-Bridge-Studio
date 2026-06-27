@@ -15,6 +15,7 @@ const { createDirectorReport } = require('./director-report');
 const Visual = require('../visual');
 const Worldgen = require('../worldgen');
 const AssetForge = require('../assetforge');
+const Cinematic = require('../cinematic');
 
 function productionBrief(goal, options = {}) {
   const brief = compileGoal(safeGoal(goal || options.goal || options.intent), options);
@@ -48,6 +49,12 @@ function createPremiumManifest(goal, options = {}) {
   const visualEvidencePack = Visual.createEvidencePack(brief.goal, { source: 'premiumDirector' });
   const visualCritiqueReport = Visual.createCritiqueReport(brief.goal, { evidencePack: visualEvidencePack, source: 'premiumDirector' });
   const visualPolishPlan = Visual.createVisualPolishPlan(brief.goal, visualCritiqueReport);
+  const cinematicPlan = Cinematic.createIntentPlan(brief.goal, { source: 'premiumDirector' });
+  const cinematicTimeline = Cinematic.createTimelinePlan(brief.goal, { source: 'premiumDirector' });
+  const cinematicBeatSheet = Cinematic.createBeatSheet(brief.goal, { source: 'premiumDirector' });
+  const cinematicCameraPlan = Cinematic.createCameraPlan(brief.goal, { source: 'premiumDirector' });
+  const cinematicGameFeelPlan = Cinematic.createGameFeelPlan(brief.goal, { source: 'premiumDirector' });
+  const cinematicAudit = Cinematic.createAuditReport(brief.goal, { source: 'premiumDirector' });
   const performanceBudget = createPerformanceBudget(brief);
   const qaPlan = createQaPlan(brief, worldGrammarPlan);
   const partial = buildManifest({
@@ -68,6 +75,12 @@ function createPremiumManifest(goal, options = {}) {
     visualEvidencePack,
     visualCritiqueReport,
     visualPolishPlan,
+    cinematicPlan,
+    cinematicTimeline,
+    cinematicBeatSheet,
+    cinematicCameraPlan,
+    cinematicGameFeelPlan,
+    cinematicAudit,
     performanceBudget,
     qaPlan,
     createdPaths: [],
@@ -85,7 +98,7 @@ function getStatus(lastManifest = null) {
     at: nowIso(),
     status: 'ready',
     roots: ROOTS,
-    capabilities: ['production brief', 'style bible', 'V67 Asset Forge Pro', 'asset forge', 'world grammar', 'V66/V67 PCG layout graph', 'specialist build routing', 'V65 visual critique evidence loop', 'visual polish plan', 'performance budget', 'QA plan', 'quality score'],
+    capabilities: ['production brief', 'style bible', 'V67 Asset Forge Pro', 'asset forge', 'world grammar', 'V66/V67 PCG layout graph', 'V68 Cinematic Motion Director', 'specialist build routing', 'V65 visual critique evidence loop', 'visual polish plan', 'performance budget', 'QA plan', 'quality score'],
     nextCommand: 'tools\\bridge.cmd premium plan "premium anime boss lobby"',
     lastManifest,
   };
@@ -103,6 +116,7 @@ module.exports = {
   Visual,
   Worldgen,
   AssetForge,
+  Cinematic,
   createPerformanceBudget,
   createQaPlan,
   scoreFromManifest,

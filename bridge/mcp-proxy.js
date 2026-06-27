@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
-const VERSION = '0.67.0';
+const VERSION = '0.68.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -577,6 +577,24 @@ const toolHandlers = {
   assetforge_library: async (args) => requestBridge('GET', `/codex/assetforge/library?rootPath=${encodeURIComponent(args.rootPath || args.path || 'Workspace')}`, undefined, 2500),
   assetforge_sockets: async (args) => requestBridge('GET', `/codex/assetforge/sockets?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
   assetforge_manifest: async (args) => requestBridge('GET', `/codex/assetforge/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  cinematic_status: async () => requestBridge('GET', '/codex/cinematic/status', undefined, 2500),
+  cinematic_styles: async () => requestBridge('GET', '/codex/cinematic/styles', undefined, 2500),
+  cinematic_plan: async (args) => requestBridge('GET', `/codex/cinematic/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_timeline: async (args) => requestBridge('GET', `/codex/cinematic/timeline?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_beats: async (args) => requestBridge('GET', `/codex/cinematic/beats?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_camera: async (args) => requestBridge('GET', `/codex/cinematic/camera?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_animation: async (args) => requestBridge('GET', `/codex/cinematic/animation?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_vfx_sync: async (args) => requestBridge('GET', `/codex/cinematic/vfx-sync?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_audio_sync: async (args) => requestBridge('GET', `/codex/cinematic/audio-sync?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_gamefeel: async (args) => requestBridge('GET', `/codex/cinematic/gamefeel?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_generate: async (args) => requestBridge('GET', `/codex/cinematic/generate?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_preview: async (args) => requestBridge('GET', `/codex/cinematic/preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || args.path || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_audit: async (args) => requestBridge('GET', `/codex/cinematic/audit?goal=${encodeURIComponent(args.goal || args.intent || args.text || args.path || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_polish: async (args) => requestBridge('GET', `/codex/cinematic/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || args.path || 'anime boss intro attack')}`, undefined, 2500),
+  cinematic_manifest: async (args) => requestBridge('GET', `/codex/cinematic/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || args.path || 'anime boss intro attack')}`, undefined, 2500),
+  make_cinematic: async (args) => requestBridge('GET', `/codex/cinematic/generate?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
+  gamefeel: async (args) => requestBridge('GET', `/codex/cinematic/gamefeel?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'make combat feel good')}`, undefined, 2500),
+  sync_moment: async (args) => requestBridge('GET', `/codex/cinematic/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'sync animation vfx audio')}`, undefined, 2500),
   style_bible: async (args) => readCommand('getCreatorStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   forge_assets: async (args) => readCommand('getCreatorAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
   execute_luau: async (args) => ({
@@ -681,6 +699,24 @@ const toolDefinitions = [
   ['assetforge_library', 'Scan or report a bounded asset library root for reuse and risk classification.', { rootPath: { type: 'string' }, path: { type: 'string' } }],
   ['assetforge_sockets', 'Return V67 VFX/audio/prompt/camera/UI/animation/collision/lighting socket plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['assetforge_manifest', 'Return a V67 Asset Forge manifest shape.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_status', 'Return V68 Cinematic Motion Director readiness and integrations.', {}],
+  ['cinematic_styles', 'List V68 cinematic/game-feel style catalog entries.', {}],
+  ['cinematic_plan', 'Plan a premium motion/game-feel moment with specialist routes.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_timeline', 'Return beats, markers, VFX/audio/camera/UI events, gameplay windows, and motion budget.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_beats', 'Return the cinematic beat sheet with anticipation, impact, follow-through, recovery, and readability beats.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_camera', 'Return camera framing, FOV, shake, impact push, release, and mobile fallback plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_animation', 'Return animation marker/pose/timing plan with manualRequired upload behavior.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_vfx_sync', 'Map cinematic markers to charge/trail/flash/burst/debris/smoke/aura/cleanup VFX cues.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_audio_sync', 'Map cinematic markers to audio cue specs without fake asset IDs.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_gamefeel', 'Return anticipation, input buffer, hit-stop, UI punch, recovery, and accessibility game-feel plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_generate', 'Return or execute a V68 Codex-owned cinematic package generation plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['cinematic_preview', 'Return safe cinematic preview strategy or manualRequired fallback.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, path: { type: 'string' } }],
+  ['cinematic_audit', 'Audit cinematic timing, sync, camera, hit-stop, mobile safety, and premium game-feel.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, path: { type: 'string' } }],
+  ['cinematic_polish', 'Return the V68 twelve-stage cinematic polish plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, path: { type: 'string' } }],
+  ['cinematic_manifest', 'Return a V68 cinematic manifest shape.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, path: { type: 'string' } }],
+  ['make_cinematic', 'Direct alias for V68 cinematic generation.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['gamefeel', 'Direct alias for V68 game-feel plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['sync_moment', 'Direct alias for V68 marker sync planning.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['style_bible', 'Return a V62 style bible for a Roblox game/build intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['forge_assets', 'Return a V62 asset forge plan for meshes, textures, materials, audio, animations, and reusable kits.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['execute_luau', 'Return safe StudioBridge alternatives for arbitrary Luau execution.', { code: { type: 'string' } }],

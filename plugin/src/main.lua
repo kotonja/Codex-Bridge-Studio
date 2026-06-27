@@ -1,4 +1,4 @@
--- Codex Studio Bridge V67 modular source entrypoint.
+-- Codex Studio Bridge V68 modular source entrypoint.
 -- Final bundled output is generated into plugin/CodexStudioBridge.plugin.lua.
 -- Edit plugin/src files, then run tools\bridge.cmd plugin bundle.
 --#include "legacy/CodexStudioBridge.legacy.lua"

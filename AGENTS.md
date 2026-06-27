@@ -274,6 +274,33 @@ V67 Asset Forge Pro is the preferred specialist when the user asks for reusable 
 
 Routing priority for V67: pairing/recovery wins, explicit visual critique wins, explicit VFX wins, whole premium game/lobby requests go to Premium Director, map/layout/world requests go to Worldgen, and asset/object/prop/kit/mesh/material/library requests go to Asset Forge. Asset Forge may create Codex-owned placeholders/manifests/sockets/material plans under `Workspace.CodexAssetForge`, `ReplicatedStorage.CodexAssetForge`, and `ReplicatedStorage.CodexPremiumDirector.AssetForge`, but mesh uploads, SurfaceAppearance texture maps, marketplace/asset buying, publishing, DataStore/economy/monetization, production script overwrites, and broad deletes remain blocked or manual. Never fake mesh IDs or texture maps.
 
+V68 Cinematic Motion Director is the preferred specialist when the user says combat feels weak, add impact, add hit stop, add screen shake, make it cinematic, sync animation VFX audio, boss intro, opening cutscene, game feel, make the ability feel powerful, or polish animation timing. It plans animation, marker timing, VFX layers, audio cues, camera beats, shake, hit-stop, UI punch, ability windows, mobile motion budget, preview, audit, polish, and manifests as one synced moment:
+
+```powershell
+.\tools\bridge.cmd cinematic status
+.\tools\bridge.cmd cinematic styles
+.\tools\bridge.cmd cinematic plan "anime boss intro attack"
+.\tools\bridge.cmd cinematic timeline "anime boss intro attack"
+.\tools\bridge.cmd cinematic beats "anime boss intro attack"
+.\tools\bridge.cmd cinematic camera "anime boss intro attack"
+.\tools\bridge.cmd cinematic animation "heavy sword impact"
+.\tools\bridge.cmd cinematic vfx-sync "beam attack impact"
+.\tools\bridge.cmd cinematic audio-sync "boss intro attack"
+.\tools\bridge.cmd cinematic gamefeel "make attack feel powerful"
+.\tools\bridge.cmd cinematic generate "anime boss intro attack"
+.\tools\bridge.cmd cinematic preview "anime boss intro attack"
+.\tools\bridge.cmd cinematic audit "anime boss intro attack"
+.\tools\bridge.cmd cinematic polish "anime boss intro attack"
+.\tools\bridge.cmd cinematic manifest "anime boss intro attack"
+.\tools\bridge.cmd cinematic self-check
+.\tools\bridge.cmd gamefeel "make combat feel good"
+.\tools\bridge.cmd sync_moment "sync animation vfx audio for a sword slash"
+.\tools\bridge.cmd make_cinematic "opening boss cutscene"
+.\tools\bridge.cmd premium motion "anime boss intro attack"
+```
+
+Routing priority for V68: pairing/recovery still wins, explicit VFX-only stays VFX, explicit asset/mesh/material stays Asset Forge, explicit map/layout stays Worldgen, whole premium game/lobby stays Premium Director, and motion/game-feel/impact/cinematic/sync language goes to Cinematic. Generated cinematic work is Codex-owned under `ReplicatedStorage.CodexCinematicMotion` and mirrored under `ReplicatedStorage.CodexPremiumDirector.Cinematic`. Do not fake animation/audio asset IDs; animation publish and audio asset selection remain `manualRequired` unless a supported existing asset is supplied. No publish/upload, marketplace, DataStore, economy, monetization, production script overwrite, or broad delete is added.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

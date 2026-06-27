@@ -10,9 +10,10 @@ const Premium = require('../bridge/premium');
 const Visual = require('../bridge/visual');
 const Worldgen = require('../bridge/worldgen');
 const AssetForge = require('../bridge/assetforge');
+const Cinematic = require('../bridge/cinematic');
 
-const HELPER_VERSION = '0.67.0';
-const MCP_PROXY_VERSION = '0.67.0';
+const HELPER_VERSION = '0.68.0';
+const MCP_PROXY_VERSION = '0.68.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -108,6 +109,24 @@ const MCP_PROXY_TOOLS = [
   'assetforge_manifest',
   'generate_asset',
   'kitbash',
+  'cinematic_status',
+  'cinematic_styles',
+  'cinematic_plan',
+  'cinematic_timeline',
+  'cinematic_beats',
+  'cinematic_camera',
+  'cinematic_animation',
+  'cinematic_vfx_sync',
+  'cinematic_audio_sync',
+  'cinematic_gamefeel',
+  'cinematic_generate',
+  'cinematic_preview',
+  'cinematic_audit',
+  'cinematic_polish',
+  'cinematic_manifest',
+  'make_cinematic',
+  'gamefeel',
+  'sync_moment',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -685,6 +704,27 @@ Usage:
   node tools/bridge.js forge kit <goal>
   node tools/bridge.js generate_asset <goal>
   node tools/bridge.js kitbash <goal>
+  node tools/bridge.js cinematic status
+  node tools/bridge.js cinematic styles
+  node tools/bridge.js cinematic plan <goal>
+  node tools/bridge.js cinematic timeline <goal>
+  node tools/bridge.js cinematic beats <goal>
+  node tools/bridge.js cinematic camera <goal>
+  node tools/bridge.js cinematic animation <goal>
+  node tools/bridge.js cinematic vfx-sync <goal>
+  node tools/bridge.js cinematic audio-sync <goal>
+  node tools/bridge.js cinematic gamefeel <goal>
+  node tools/bridge.js cinematic generate <goal>
+  node tools/bridge.js cinematic preview <goal-or-manifest>
+  node tools/bridge.js cinematic audit <goal-or-manifest>
+  node tools/bridge.js cinematic polish <goal-or-manifest>
+  node tools/bridge.js cinematic manifest <goal-or-manifest>
+  node tools/bridge.js cinematic self-check
+  node tools/bridge.js motion plan <goal>
+  node tools/bridge.js motion generate <goal>
+  node tools/bridge.js gamefeel <goal>
+  node tools/bridge.js sync_moment <goal>
+  node tools/bridge.js make_cinematic <goal>
   node tools/bridge.js animation rigs|list-rigs [path]
   node tools/bridge.js animation inspect-rig <rigPath>
   node tools/bridge.js animation pose <rigPath>
@@ -6184,6 +6224,21 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
+  if (subcommand === 'motion' || subcommand === 'cinematic' || subcommand === 'gamefeel') {
+    const intent = cleanIntent();
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      goal: intent,
+      cinematicPlan: Cinematic.createIntentPlan(intent),
+      cinematicTimeline: Cinematic.createTimelinePlan(intent),
+      cinematicAudit: Cinematic.createAuditReport(intent),
+      nextCommand: `tools\\bridge.cmd cinematic generate "${intent}"`,
+      premiumNextCommand: `tools\\bridge.cmd premium score "${intent}"`,
+    });
+    return;
+  }
+
   if (subcommand === 'critique' || subcommand === 'visual-critique') {
     const manifest = localManifest();
     const evidencePack = Visual.createEvidencePack(manifest.goal, await visualEvidenceOptions({ source: 'tools.bridge.premium.critique' }));
@@ -6220,6 +6275,11 @@ async function runPremium(subcommand = 'status', args = []) {
       visualEvidenceSummary: qualityScore.visualEvidenceSummary,
       worldgenSummary: qualityScore.worldgenSummary,
       assetForgeSummary: qualityScore.assetForgeSummary,
+      cinematicSummary: {
+        overallScore: Cinematic.createAuditReport(goal).overallScore,
+        momentType: Cinematic.parseGoal(goal).momentType,
+        nextCommand: `tools\\bridge.cmd cinematic polish "${goal}"`,
+      },
       manifestPath: manifest.manifestPath || Premium.manifestPath(goal),
     });
     return;
@@ -6285,7 +6345,7 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
-  throw new Error('premium command must be status, plan, style, assets, world, build, critique, qa, polish, director, score, bake, or self-check.');
+  throw new Error('premium command must be status, plan, style, assets, world, motion, build, critique, qa, polish, director, score, bake, or self-check.');
 }
 
 async function visualEvidenceOptions(extra = {}) {
@@ -6542,6 +6602,98 @@ async function runAssetForge(subcommand = 'status', args = []) {
     return;
   }
   throw new Error('assetforge command must be status, styles, plan, kit, mesh-plan, material-plan, generate, audit, polish, budget, library, sockets, manifest, or self-check.');
+}
+
+async function cinematicStudioOptions(extra = {}) {
+  const health = await requestSafe('/health', { timeoutMs: 1200, noAutoStart: true });
+  return {
+    studioConnected: health.ok && health.value && health.value.studioConnected === true,
+    source: extra.source || 'tools.bridge.cinematic',
+    ...extra,
+  };
+}
+
+async function runCinematic(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'anime boss intro attack';
+  if (!subcommand || subcommand === 'status') {
+    print(Cinematic.createStatus());
+    return;
+  }
+  if (subcommand === 'self-check' || subcommand === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-cinematic.js'));
+    return;
+  }
+  if (subcommand === 'styles' || subcommand === 'style-catalog') {
+    const styles = Cinematic.getStyleCatalog();
+    print({ ok: true, version: HELPER_VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd cinematic plan "anime boss intro attack"' });
+    return;
+  }
+  if (subcommand === 'plan') {
+    const goal = cleanGoal();
+    print(Cinematic.createIntentPlan(goal, { source: 'tools.bridge.cinematic.plan' }));
+    return;
+  }
+  if (subcommand === 'timeline') {
+    const goal = cleanGoal();
+    print(Cinematic.createTimelinePlan(goal, { source: 'tools.bridge.cinematic.timeline' }));
+    return;
+  }
+  if (subcommand === 'beats' || subcommand === 'beat-sheet') {
+    const goal = cleanGoal();
+    print(Cinematic.createBeatSheet(goal, { source: 'tools.bridge.cinematic.beats' }));
+    return;
+  }
+  if (subcommand === 'camera') {
+    const goal = cleanGoal();
+    print(Cinematic.createCameraPlan(goal, { source: 'tools.bridge.cinematic.camera' }));
+    return;
+  }
+  if (subcommand === 'animation') {
+    const goal = cleanGoal();
+    print(Cinematic.createAnimationPlan(goal, { source: 'tools.bridge.cinematic.animation' }));
+    return;
+  }
+  if (subcommand === 'vfx-sync' || subcommand === 'vfx') {
+    const goal = cleanGoal();
+    print(Cinematic.createVfxSyncPlan(goal, { source: 'tools.bridge.cinematic.vfx' }));
+    return;
+  }
+  if (subcommand === 'audio-sync' || subcommand === 'audio') {
+    const goal = cleanGoal();
+    print(Cinematic.createAudioSyncPlan(goal, { source: 'tools.bridge.cinematic.audio' }));
+    return;
+  }
+  if (subcommand === 'gamefeel' || subcommand === 'game-feel') {
+    const goal = cleanGoal();
+    print(Cinematic.createGameFeelPlan(goal, { source: 'tools.bridge.cinematic.gamefeel' }));
+    return;
+  }
+  if (subcommand === 'generate' || subcommand === 'create') {
+    const goal = cleanGoal();
+    print(Cinematic.createGenerationReport(goal, await cinematicStudioOptions({ source: 'tools.bridge.cinematic.generate' })));
+    return;
+  }
+  if (subcommand === 'preview') {
+    const goal = cleanGoal();
+    print(Cinematic.createPreviewPlan(goal, { source: 'tools.bridge.cinematic.preview' }));
+    return;
+  }
+  if (subcommand === 'audit') {
+    const goal = cleanGoal();
+    print(Cinematic.createAuditReport(goal, { source: 'tools.bridge.cinematic.audit' }));
+    return;
+  }
+  if (subcommand === 'polish') {
+    const goal = cleanGoal();
+    print(Cinematic.createPolishPlan(goal, { source: 'tools.bridge.cinematic.polish' }));
+    return;
+  }
+  if (subcommand === 'manifest') {
+    const goal = cleanGoal();
+    print(Cinematic.createManifest(goal, { source: 'tools.bridge.cinematic.manifest' }));
+    return;
+  }
+  throw new Error('cinematic command must be status, styles, plan, timeline, beats, camera, animation, vfx-sync, audio-sync, gamefeel, generate, preview, audit, polish, manifest, or self-check.');
 }
 
 async function runVision(subcommand, args) {
@@ -11388,6 +11540,16 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'cinematic') {
+    await runCinematic(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'motion') {
+    await runCinematic(args[0] || 'plan', args.slice(1));
+    return;
+  }
+
   if (command === 'forge') {
     const forgeKind = args[0] || 'asset';
     const forgeArgs = args.slice(1);
@@ -11463,6 +11625,31 @@ async function main(argv) {
   };
   if (directAssetForgeCommands[command]) {
     await runAssetForge(directAssetForgeCommands[command], args);
+    return;
+  }
+
+  const directCinematicCommands = {
+    cinematic_status: 'status',
+    cinematic_styles: 'styles',
+    cinematic_plan: 'plan',
+    cinematic_timeline: 'timeline',
+    cinematic_beats: 'beats',
+    cinematic_camera: 'camera',
+    cinematic_animation: 'animation',
+    cinematic_vfx_sync: 'vfx-sync',
+    cinematic_audio_sync: 'audio-sync',
+    cinematic_gamefeel: 'gamefeel',
+    cinematic_generate: 'generate',
+    cinematic_preview: 'preview',
+    cinematic_audit: 'audit',
+    cinematic_polish: 'polish',
+    cinematic_manifest: 'manifest',
+    make_cinematic: 'generate',
+    gamefeel: 'gamefeel',
+    sync_moment: 'plan',
+  };
+  if (directCinematicCommands[command]) {
+    await runCinematic(directCinematicCommands[command], args);
     return;
   }
 

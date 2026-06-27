@@ -10,8 +10,9 @@ const Premium = require('./premium');
 const Visual = require('./visual');
 const Worldgen = require('./worldgen');
 const AssetForge = require('./assetforge');
+const Cinematic = require('./cinematic');
 
-const VERSION = '0.67.0';
+const VERSION = '0.68.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -397,6 +398,42 @@ const supportedCommands = new Set([
   'assetforge_manifest',
   'generate_asset',
   'kitbash',
+  'getCinematicDirectorStatus',
+  'getCinematicStyleCatalog',
+  'getCinematicIntentPlan',
+  'getCinematicTimelinePlan',
+  'getCinematicBeatSheet',
+  'getCinematicCameraPlan',
+  'getCinematicAnimationPlan',
+  'getCinematicVfxSyncPlan',
+  'getCinematicAudioSyncPlan',
+  'getCinematicGameFeelPlan',
+  'getCinematicPreviewPlan',
+  'getCinematicAuditReport',
+  'getCinematicPolishPlan',
+  'getCinematicManifest',
+  'generateCinematicMotionPackage',
+  'previewCinematicMotionPackage',
+  'polishCinematicMotionPackage',
+  'bakeCinematicManifest',
+  'cinematic_status',
+  'cinematic_styles',
+  'cinematic_plan',
+  'cinematic_timeline',
+  'cinematic_beats',
+  'cinematic_camera',
+  'cinematic_animation',
+  'cinematic_vfx_sync',
+  'cinematic_audio_sync',
+  'cinematic_gamefeel',
+  'cinematic_generate',
+  'cinematic_preview',
+  'cinematic_audit',
+  'cinematic_polish',
+  'cinematic_manifest',
+  'make_cinematic',
+  'gamefeel',
+  'sync_moment',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
   'bakePremiumDirectorManifest',
@@ -1092,6 +1129,14 @@ const mutatingCommands = new Set([
   'assetforge_polish',
   'generate_asset',
   'kitbash',
+  'generateCinematicMotionPackage',
+  'previewCinematicMotionPackage',
+  'polishCinematicMotionPackage',
+  'bakeCinematicManifest',
+  'cinematic_generate',
+  'cinematic_preview',
+  'cinematic_polish',
+  'make_cinematic',
   'premium_build_round',
   'premium_polish',
 ]);
@@ -3941,6 +3986,28 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'cinematic',
+    title: 'V68 Cinematic Motion Director',
+    safety: 'readOnlyPlanOrFullTrustCodexOwnedCinematicPackage',
+    readiness: ['bridge', 'plugin', 'codexReady', 'animation', 'vfx', 'audio', 'cameraScreen', 'testPilot'],
+    commands: [
+      { command: 'tools\\bridge.cmd cinematic status', example: 'tools\\bridge.cmd cinematic status', bestFor: 'Check Cinematic Motion Director readiness and integrations.' },
+      { command: 'tools\\bridge.cmd cinematic styles', example: 'tools\\bridge.cmd cinematic styles', bestFor: 'List cinematic motion/game-feel styles and forbidden cheap patterns.' },
+      { command: 'tools\\bridge.cmd cinematic plan <goal>', example: 'tools\\bridge.cmd cinematic plan "anime boss intro attack"', bestFor: 'Plan style, moment type, duration, readability goal, and specialist routes.' },
+      { command: 'tools\\bridge.cmd cinematic timeline <goal>', example: 'tools\\bridge.cmd cinematic timeline "anime boss intro attack"', bestFor: 'Create beat timeline, markers, VFX/audio/camera/UI events, gameplay windows, and motion budget.' },
+      { command: 'tools\\bridge.cmd cinematic beats <goal>', example: 'tools\\bridge.cmd cinematic beats "make combat feel good"', bestFor: 'Return anticipation, windup, contact, impact, hold, release, follow-through, recovery, and readability beats.' },
+      { command: 'tools\\bridge.cmd cinematic animation <goal>', example: 'tools\\bridge.cmd cinematic animation "heavy sword impact"', bestFor: 'Plan animation phases, markers, local KeyframeSequence fallback, and publish manualRequired behavior.' },
+      { command: 'tools\\bridge.cmd cinematic vfx-sync <goal>', example: 'tools\\bridge.cmd cinematic vfx-sync "beam attack impact"', bestFor: 'Map animation markers to charge/trail/flash/burst/debris/smoke/aura/cleanup VFX cues.' },
+      { command: 'tools\\bridge.cmd cinematic audio-sync <goal>', example: 'tools\\bridge.cmd cinematic audio-sync "boss intro attack"', bestFor: 'Map markers to sound cue specs without fake asset IDs.' },
+      { command: 'tools\\bridge.cmd cinematic camera <goal>', example: 'tools\\bridge.cmd cinematic camera "boss intro attack"', bestFor: 'Plan framing, FOV punch, shake envelope, impact push, release, and mobile fallback.' },
+      { command: 'tools\\bridge.cmd cinematic gamefeel <goal>', example: 'tools\\bridge.cmd cinematic gamefeel "make attack feel powerful"', bestFor: 'Plan input buffer, hit-stop manifest, UI punch, recovery/readiness, and accessibility fallback.' },
+      { command: 'tools\\bridge.cmd cinematic generate <goal>', example: 'tools\\bridge.cmd cinematic generate "anime boss intro attack"', bestFor: 'Create or plan Codex-owned cinematic package roots/manifests.' },
+      { command: 'tools\\bridge.cmd cinematic audit <goal>', example: 'tools\\bridge.cmd cinematic audit "anime boss intro attack"', bestFor: 'Score timing, anticipation, impact, sync, camera, hit-stop discipline, UI, mobile, and premium game-feel.' },
+      { command: 'tools\\bridge.cmd gamefeel <goal>', example: 'tools\\bridge.cmd gamefeel "make combat feel good"', bestFor: 'Direct alias for V68 game-feel planning.' },
+      { command: 'tools\\bridge.cmd make_cinematic <goal>', example: 'tools\\bridge.cmd make_cinematic "opening boss cutscene"', bestFor: 'Direct alias for V68 cinematic generation.' },
+    ],
+  },
+  {
     id: 'robloxBrain',
     title: 'Roblox Brain Core / Unified Game Creator OS',
     safety: 'fullTrustOrchestratedLocalActions',
@@ -4083,6 +4150,24 @@ const V46_DIRECT_ALIASES = [
   'audit_motion_vfx',
   'polish_motion_vfx',
   'sync_motion_vfx',
+  'cinematic_status',
+  'cinematic_styles',
+  'cinematic_plan',
+  'cinematic_timeline',
+  'cinematic_beats',
+  'cinematic_camera',
+  'cinematic_animation',
+  'cinematic_vfx_sync',
+  'cinematic_audio_sync',
+  'cinematic_gamefeel',
+  'cinematic_generate',
+  'cinematic_preview',
+  'cinematic_audit',
+  'cinematic_polish',
+  'cinematic_manifest',
+  'make_cinematic',
+  'gamefeel',
+  'sync_moment',
   'list_rigs',
   'inspect_rig',
   'get_rig_pose',
@@ -6148,6 +6233,99 @@ async function route(req, res) {
   if (req.method === 'GET' && path === '/codex/assetforge/manifest') {
     const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
     sendJson(res, 200, AssetForge.createManifest(goal, { source: 'bridge.http.assetforge.manifest' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/status') {
+    sendJson(res, 200, Cinematic.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/styles') {
+    const styles = Cinematic.getStyleCatalog();
+    sendJson(res, 200, { ok: true, version: VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd cinematic plan "anime boss intro attack"' });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/plan') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createIntentPlan(goal, { source: 'bridge.http.cinematic.plan' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/timeline') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createTimelinePlan(goal, { source: 'bridge.http.cinematic.timeline' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/beats') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createBeatSheet(goal, { source: 'bridge.http.cinematic.beats' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/camera') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createCameraPlan(goal, { source: 'bridge.http.cinematic.camera' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/animation') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createAnimationPlan(goal, { source: 'bridge.http.cinematic.animation' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/vfx-sync') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createVfxSyncPlan(goal, { source: 'bridge.http.cinematic.vfx' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/audio-sync') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createAudioSyncPlan(goal, { source: 'bridge.http.cinematic.audio' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/gamefeel') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createGameFeelPlan(goal, { source: 'bridge.http.cinematic.gamefeel' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/generate') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    const active = getActiveStudioEntry();
+    sendJson(res, 200, Cinematic.createGenerationReport(goal, {
+      source: 'bridge.http.cinematic.generate',
+      studioConnected: Boolean(active && isPlaceFresh(active)),
+    }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/preview') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createPreviewPlan(goal, { source: 'bridge.http.cinematic.preview' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/audit') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createAuditReport(goal, { source: 'bridge.http.cinematic.audit' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/polish') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createPolishPlan(goal, { source: 'bridge.http.cinematic.polish' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/cinematic/manifest') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
+    sendJson(res, 200, Cinematic.createManifest(goal, { source: 'bridge.http.cinematic.manifest' }));
     return;
   }
 
