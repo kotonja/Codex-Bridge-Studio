@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
-const VERSION = '0.66.0';
+const VERSION = '0.67.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -541,7 +541,7 @@ const toolHandlers = {
   premium_director: async (args) => readCommand('getPremiumDirectorStatus', { ...basePayload(args), goal: args.goal || args.intent || args.text || '' }),
   premium_plan: async (args) => readCommand('getPremiumProductionBrief', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   premium_style: async (args) => readCommand('getPremiumStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
-  premium_assets: async (args) => readCommand('getPremiumAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
+  premium_assets: async (args) => requestBridge('GET', `/codex/assetforge/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
   premium_world: async (args) => requestBridge('GET', `/codex/worldgen/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
   premium_build: async (args) => mutationCommand('executePremiumBuildRound', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', manifest: args.manifest }),
   premium_critique: async (args) => readCommand('getPremiumVisualCritiquePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
@@ -564,6 +564,19 @@ const toolHandlers = {
   worldgen_route: async (args) => requestBridge('GET', `/codex/worldgen/route?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
   worldgen_budget: async (args) => requestBridge('GET', `/codex/worldgen/budget?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
   worldgen_manifest: async (args) => requestBridge('GET', `/codex/worldgen/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world')}`, undefined, 2500),
+  assetforge_status: async () => requestBridge('GET', '/codex/assetforge/status', undefined, 2500),
+  assetforge_styles: async () => requestBridge('GET', '/codex/assetforge/styles', undefined, 2500),
+  assetforge_plan: async (args) => requestBridge('GET', `/codex/assetforge/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  assetforge_kit: async (args) => requestBridge('GET', `/codex/assetforge/kit?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  assetforge_mesh_plan: async (args) => requestBridge('GET', `/codex/assetforge/mesh-plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  assetforge_material_plan: async (args) => requestBridge('GET', `/codex/assetforge/material-plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  assetforge_generate: async (args) => requestBridge('GET', `/codex/assetforge/generate?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  assetforge_audit: async (args) => requestBridge('GET', `/codex/assetforge/audit?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  assetforge_polish: async (args) => requestBridge('GET', `/codex/assetforge/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  assetforge_budget: async (args) => requestBridge('GET', `/codex/assetforge/budget?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  assetforge_library: async (args) => requestBridge('GET', `/codex/assetforge/library?rootPath=${encodeURIComponent(args.rootPath || args.path || 'Workspace')}`, undefined, 2500),
+  assetforge_sockets: async (args) => requestBridge('GET', `/codex/assetforge/sockets?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  assetforge_manifest: async (args) => requestBridge('GET', `/codex/assetforge/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
   style_bible: async (args) => readCommand('getCreatorStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   forge_assets: async (args) => readCommand('getCreatorAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
   execute_luau: async (args) => ({
@@ -632,7 +645,7 @@ const toolDefinitions = [
   ['premium_director', 'Return V63 Premium Director status, workflow, and quality rubric.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['premium_plan', 'Create a V63 premium production brief and full director manifest plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['premium_style', 'Return a V63 premium style bible for a Roblox build/game intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
-  ['premium_assets', 'Return a V63 asset forge plan for premium meshes, textures, kitbash, VFX, UI, animation, and audio roles.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
+  ['premium_assets', 'Return the V67 Asset Forge Pro plan used by Premium Director for reusable premium asset kits.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['premium_world', 'Return the V66 Premium PCG Worldgen plan used by Premium Director for map, lobby, arena, dungeon, and hub goals.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['premium_build', 'Execute a V63 Codex-owned premium build round and bake a director manifest.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, manifest: { type: 'object' } }],
   ['premium_critique', 'Return a V63 visual critique plan for premium feel, silhouette, lighting, materials, VFX, and mobile readability.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
@@ -655,6 +668,19 @@ const toolDefinitions = [
   ['worldgen_route', 'Return V66 traversal QA routes for map flow testing.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['worldgen_budget', 'Return V66 mobile/performance budgets for the worldgen graph.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['worldgen_manifest', 'Return a V66 worldgen manifest shape.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_status', 'Return V67 Asset Forge Pro readiness and integrations.', {}],
+  ['assetforge_styles', 'List V67 premium asset style catalog entries.', {}],
+  ['assetforge_plan', 'Plan premium reusable asset families, taxonomy, manifests, and specialist integration.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_kit', 'Return a V67 reusable asset kit plan with all required sections and reuse rules.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_mesh_plan', 'Return honest manualRequired mesh specs plus primitive fallback plans without fake asset IDs.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_material_plan', 'Return MaterialVariant, SurfaceAppearance, decal, and fallback material specs.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_generate', 'Return or execute a V67 Codex-owned asset kit generation plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_audit', 'Audit V67 asset kit quality, sockets, LOD, material readiness, and premium feel.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_polish', 'Return the V67 eleven-stage asset kit polish plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_budget', 'Return V67 LOD, collision, mobile fallback, and performance budgets.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_library', 'Scan or report a bounded asset library root for reuse and risk classification.', { rootPath: { type: 'string' }, path: { type: 'string' } }],
+  ['assetforge_sockets', 'Return V67 VFX/audio/prompt/camera/UI/animation/collision/lighting socket plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['assetforge_manifest', 'Return a V67 Asset Forge manifest shape.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['style_bible', 'Return a V62 style bible for a Roblox game/build intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['forge_assets', 'Return a V62 asset forge plan for meshes, textures, materials, audio, animations, and reusable kits.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['execute_luau', 'Return safe StudioBridge alternatives for arbitrary Luau execution.', { code: { type: 'string' } }],

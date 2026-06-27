@@ -14,6 +14,7 @@ const { buildManifest, manifestPath } = require('./manifest-store');
 const { createDirectorReport } = require('./director-report');
 const Visual = require('../visual');
 const Worldgen = require('../worldgen');
+const AssetForge = require('../assetforge');
 
 function productionBrief(goal, options = {}) {
   const brief = compileGoal(safeGoal(goal || options.goal || options.intent), options);
@@ -34,6 +35,9 @@ function createPremiumManifest(goal, options = {}) {
   const brief = productionBrief(goal, options);
   const styleBible = createStyleBible(brief);
   const assetForgePlan = createAssetForgePlan(brief, styleBible, options);
+  const assetForgeProPlan = AssetForge.createIntentPlan(brief.goal, { source: 'premiumDirector' });
+  const assetForgeKitPlan = AssetForge.createKitPlan(brief.goal, { source: 'premiumDirector' });
+  const assetForgeAudit = AssetForge.createAuditReport(brief.goal, { source: 'premiumDirector' });
   const worldGrammarPlan = createWorldGrammarPlan(brief, styleBible);
   const worldgenPlan = Worldgen.createIntentPlan(brief.goal, { source: 'premiumDirector' });
   const worldgenLayoutGraph = Worldgen.createLayoutGraph(brief.goal, { source: 'premiumDirector' });
@@ -51,6 +55,9 @@ function createPremiumManifest(goal, options = {}) {
     productionBrief: brief,
     styleBible,
     assetForgePlan,
+    assetForgeProPlan,
+    assetForgeKitPlan,
+    assetForgeAudit,
     worldGrammarPlan,
     worldgenPlan,
     worldgenLayoutGraph,
@@ -78,7 +85,7 @@ function getStatus(lastManifest = null) {
     at: nowIso(),
     status: 'ready',
     roots: ROOTS,
-    capabilities: ['production brief', 'style bible', 'asset forge', 'world grammar', 'V66 PCG layout graph', 'specialist build routing', 'V65 visual critique evidence loop', 'visual polish plan', 'performance budget', 'QA plan', 'quality score'],
+    capabilities: ['production brief', 'style bible', 'V67 Asset Forge Pro', 'asset forge', 'world grammar', 'V66/V67 PCG layout graph', 'specialist build routing', 'V65 visual critique evidence loop', 'visual polish plan', 'performance budget', 'QA plan', 'quality score'],
     nextCommand: 'tools\\bridge.cmd premium plan "premium anime boss lobby"',
     lastManifest,
   };
@@ -95,6 +102,7 @@ module.exports = {
   createVisualCritiquePlan,
   Visual,
   Worldgen,
+  AssetForge,
   createPerformanceBudget,
   createQaPlan,
   scoreFromManifest,

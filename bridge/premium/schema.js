@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.66.0';
+const VERSION = '0.67.0';
 
 const ROOTS = {
   base: 'ReplicatedStorage.CodexPremiumDirector',
@@ -15,6 +15,7 @@ const ROOTS = {
   visualEvidence: 'ReplicatedStorage.CodexPremiumDirector.VisualEvidence',
   visualPolishPlans: 'ReplicatedStorage.CodexPremiumDirector.VisualPolishPlans',
   worldgen: 'ReplicatedStorage.CodexPremiumDirector.Worldgen',
+  assetForgePro: 'ReplicatedStorage.CodexPremiumDirector.AssetForge',
 };
 
 const BUILD_PHASES = [

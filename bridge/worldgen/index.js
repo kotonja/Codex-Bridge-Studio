@@ -51,6 +51,11 @@ function createIntentPlan(goal, options = {}) {
     requiredSockets: [...graph.vfxSockets, ...graph.audioSockets, ...graph.cameraBeats].map((item) => item.id),
     omittedZoneRoles: graph.omissions,
     budget: createPerformanceBudget(graph),
+    assetForgeRecommendation: {
+      recommended: true,
+      reason: 'Premium world layouts need a coherent reusable asset kit before final visual critique.',
+      nextCommand: `tools\\bridge.cmd assetforge kit "${parsed.goal}"`,
+    },
     warnings: [],
     blockers: [],
     nextCommand: `tools\\bridge.cmd worldgen graph "${parsed.goal}"`,
@@ -84,7 +89,12 @@ function createGenerationReport(goal, options = {}) {
     createdPaths,
     warnings: manifest.warnings,
     blockers: manifest.blockers,
-    nextCommand: `tools\\bridge.cmd visual critique "${manifest.goal}"`,
+    assetForgeRecommendation: {
+      recommended: true,
+      reason: 'Generate or verify the reusable prop/material/socket kit before visual critique.',
+      nextCommand: `tools\\bridge.cmd assetforge kit "${manifest.goal}"`,
+    },
+    nextCommand: `tools\\bridge.cmd assetforge kit "${manifest.goal}"`,
   };
 }
 

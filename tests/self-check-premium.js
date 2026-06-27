@@ -13,7 +13,7 @@ function assertNoExternalRisk(value, label) {
 function run() {
   const goal = 'premium anime boss lobby';
   const manifest = Premium.createPremiumManifest(goal);
-  assert.strictEqual(manifest.version, '0.66.0');
+  assert.strictEqual(manifest.version, '0.67.0');
   assert.strictEqual(manifest.goal, goal);
   assert.ok(manifest.nextCommand);
   assert.ok(manifest.productionBrief);
@@ -31,6 +31,10 @@ function run() {
   assert.ok(manifest.worldgenBuildPlan);
   assert.ok(manifest.worldgenAudit);
   assert.ok(manifest.qualityScore.worldgenSummary);
+  assert.ok(manifest.assetForgeProPlan);
+  assert.ok(manifest.assetForgeKitPlan);
+  assert.ok(manifest.assetForgeAudit);
+  assert.ok(manifest.qualityScore.assetForgeSummary);
 
   assert.strictEqual(manifest.buildRoundPlan.phases.length, BUILD_PHASES.length);
   for (const phase of BUILD_PHASES) {
@@ -65,6 +69,7 @@ function run() {
     scoreKeys: SCORE_KEYS.length,
     visualScore: manifest.visualCritiqueReport.overallScore,
     worldgenScore: manifest.worldgenAudit.overallScore,
+    assetForgeScore: manifest.assetForgeAudit.overallScore,
   };
 }
 

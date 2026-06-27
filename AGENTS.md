@@ -251,6 +251,29 @@ Recommended V66 premium map loop:
 .\tools\bridge.cmd premium polish "premium anime dungeon hub"
 ```
 
+V67 Asset Forge Pro is the preferred specialist when the user asks for reusable assets, props, object kits, kitbash, mesh plans, material plans, SurfaceAppearance/PBR specs, decals/signage, trim/bevel detail, asset libraries, cheap asset fixes, or premium prop polish. It plans before random parts and integrates with Premium Director, Worldgen, Visual Critic, Build Director, VFX, Audio, and Animation:
+
+```powershell
+.\tools\bridge.cmd assetforge status
+.\tools\bridge.cmd assetforge styles
+.\tools\bridge.cmd assetforge plan "premium anime dungeon hub asset kit"
+.\tools\bridge.cmd assetforge kit "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge mesh-plan "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge material-plan "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge generate "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge audit "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge polish "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge budget "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge library Workspace
+.\tools\bridge.cmd assetforge sockets "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge manifest "premium anime dungeon hub"
+.\tools\bridge.cmd generate_asset "anime portal arch kit"
+.\tools\bridge.cmd kitbash "anime dungeon shop stand"
+.\tools\bridge.cmd premium assets "premium anime dungeon hub"
+```
+
+Routing priority for V67: pairing/recovery wins, explicit visual critique wins, explicit VFX wins, whole premium game/lobby requests go to Premium Director, map/layout/world requests go to Worldgen, and asset/object/prop/kit/mesh/material/library requests go to Asset Forge. Asset Forge may create Codex-owned placeholders/manifests/sockets/material plans under `Workspace.CodexAssetForge`, `ReplicatedStorage.CodexAssetForge`, and `ReplicatedStorage.CodexPremiumDirector.AssetForge`, but mesh uploads, SurfaceAppearance texture maps, marketplace/asset buying, publishing, DataStore/economy/monetization, production script overwrites, and broad deletes remain blocked or manual. Never fake mesh IDs or texture maps.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

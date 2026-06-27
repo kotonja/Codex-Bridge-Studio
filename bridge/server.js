@@ -9,8 +9,9 @@ const CommandRouter = require('./command-router');
 const Premium = require('./premium');
 const Visual = require('./visual');
 const Worldgen = require('./worldgen');
+const AssetForge = require('./assetforge');
 
-const VERSION = '0.66.0';
+const VERSION = '0.67.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -366,6 +367,36 @@ const supportedCommands = new Set([
   'worldgen_budget',
   'worldgen_manifest',
   'generate_world',
+  'getAssetForgeStatus',
+  'getAssetForgeStyleCatalog',
+  'getAssetForgeIntentPlan',
+  'getAssetForgeKitPlan',
+  'getAssetForgeMeshPlan',
+  'getAssetForgeMaterialPlan',
+  'getAssetForgeBudgetReport',
+  'getAssetForgeLibraryReport',
+  'getAssetForgeSocketPlan',
+  'getAssetForgeAuditReport',
+  'getAssetForgePolishPlan',
+  'getAssetForgeManifest',
+  'generateAssetForgeKit',
+  'polishAssetForgeKit',
+  'bakeAssetForgeManifest',
+  'assetforge_status',
+  'assetforge_styles',
+  'assetforge_plan',
+  'assetforge_kit',
+  'assetforge_mesh_plan',
+  'assetforge_material_plan',
+  'assetforge_generate',
+  'assetforge_audit',
+  'assetforge_polish',
+  'assetforge_budget',
+  'assetforge_library',
+  'assetforge_sockets',
+  'assetforge_manifest',
+  'generate_asset',
+  'kitbash',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
   'bakePremiumDirectorManifest',
@@ -1054,6 +1085,13 @@ const mutatingCommands = new Set([
   'polishWorldgenLayout',
   'bakeWorldgenManifest',
   'generate_world',
+  'generateAssetForgeKit',
+  'polishAssetForgeKit',
+  'bakeAssetForgeManifest',
+  'assetforge_generate',
+  'assetforge_polish',
+  'generate_asset',
+  'kitbash',
   'premium_build_round',
   'premium_polish',
 ]);
@@ -3885,6 +3923,24 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'assetforge',
+    title: 'V67 Asset Forge Pro',
+    safety: 'readOnlyAssetPlanOrFullTrustCodexOwnedAssetForge',
+    readiness: ['bridge', 'plugin', 'codexReady', 'worldgen', 'visualCritic', 'buildDirector'],
+    commands: [
+      { command: 'tools\\bridge.cmd assetforge status', example: 'tools\\bridge.cmd assetforge status', bestFor: 'Check Asset Forge Pro readiness, roots, and integrations.' },
+      { command: 'tools\\bridge.cmd assetforge styles', example: 'tools\\bridge.cmd assetforge styles', bestFor: 'List premium asset style languages and cheap-pattern blockers.' },
+      { command: 'tools\\bridge.cmd assetforge plan <goal>', example: 'tools\\bridge.cmd assetforge plan "premium anime dungeon hub asset kit"', bestFor: 'Classify asset families, taxonomy, manifests, Worldgen fit, and Visual Critic flow.' },
+      { command: 'tools\\bridge.cmd assetforge kit <goal>', example: 'tools\\bridge.cmd assetforge kit "premium anime dungeon hub"', bestFor: 'Create the reusable kit plan across landmarks, trims, modules, sockets, collision, and mobile fallbacks.' },
+      { command: 'tools\\bridge.cmd assetforge mesh-plan <goal>', example: 'tools\\bridge.cmd assetforge mesh-plan "premium anime dungeon hub"', bestFor: 'Return honest manualRequired mesh specs plus primitive fallback plans.' },
+      { command: 'tools\\bridge.cmd assetforge material-plan <goal>', example: 'tools\\bridge.cmd assetforge material-plan "premium anime dungeon hub"', bestFor: 'Plan MaterialVariants, SurfaceAppearance specs, fallback materials, decals, and mobile materials.' },
+      { command: 'tools\\bridge.cmd assetforge generate <goal>', example: 'tools\\bridge.cmd assetforge generate "premium anime dungeon hub"', bestFor: 'Create or plan Codex-owned asset kit roots/manifests without deleting user content.' },
+      { command: 'tools\\bridge.cmd assetforge audit <goal>', example: 'tools\\bridge.cmd assetforge audit "premium anime dungeon hub"', bestFor: 'Score style, silhouette, materials, sockets, LOD, Worldgen fit, and premium asset feel.' },
+      { command: 'tools\\bridge.cmd assetforge polish <goal>', example: 'tools\\bridge.cmd assetforge polish "premium anime dungeon hub"', bestFor: 'Return the 11-stage asset polish plan.' },
+      { command: 'tools\\bridge.cmd generate_asset <goal>', example: 'tools\\bridge.cmd generate_asset "anime portal arch kit"', bestFor: 'Direct alias for V67 asset kit generation.' },
+    ],
+  },
+  {
     id: 'robloxBrain',
     title: 'Roblox Brain Core / Unified Game Creator OS',
     safety: 'fullTrustOrchestratedLocalActions',
@@ -6007,6 +6063,91 @@ async function route(req, res) {
   if (req.method === 'GET' && path === '/codex/worldgen/manifest') {
     const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
     sendJson(res, 200, Worldgen.createManifest(goal, { source: 'bridge.http.worldgen.manifest' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/status') {
+    sendJson(res, 200, AssetForge.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/styles') {
+    const styles = AssetForge.getStyleCatalog();
+    sendJson(res, 200, { ok: true, version: VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd assetforge plan "premium anime dungeon hub asset kit"' });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/plan') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    sendJson(res, 200, AssetForge.createIntentPlan(goal, { source: 'bridge.http.assetforge.plan' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/kit') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    sendJson(res, 200, AssetForge.createKitPlan(goal, { source: 'bridge.http.assetforge.kit' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/mesh-plan') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    sendJson(res, 200, AssetForge.createMeshPlan(goal, { source: 'bridge.http.assetforge.mesh' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/material-plan') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    sendJson(res, 200, AssetForge.createMaterialPlan(goal, { source: 'bridge.http.assetforge.material' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/generate') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    const active = getActiveStudioEntry();
+    sendJson(res, 200, AssetForge.createGenerationReport(goal, {
+      source: 'bridge.http.assetforge.generate',
+      studioConnected: Boolean(active && isPlaceFresh(active)),
+    }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/audit') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    sendJson(res, 200, AssetForge.createAuditReport(goal, { source: 'bridge.http.assetforge.audit' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/polish') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    sendJson(res, 200, AssetForge.createPolishPlan(goal, { source: 'bridge.http.assetforge.polish' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/budget') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    sendJson(res, 200, AssetForge.createBudgetReport(goal, { source: 'bridge.http.assetforge.budget' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/library') {
+    const rootPath = requestUrl.searchParams.get('rootPath') || requestUrl.searchParams.get('path') || 'Workspace';
+    const active = getActiveStudioEntry();
+    sendJson(res, 200, AssetForge.createLibraryReport(rootPath, {
+      source: 'bridge.http.assetforge.library',
+      studioConnected: Boolean(active && isPlaceFresh(active)),
+    }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/sockets') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    sendJson(res, 200, AssetForge.createSocketPlan(goal, { source: 'bridge.http.assetforge.sockets' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/assetforge/manifest') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox asset kit';
+    sendJson(res, 200, AssetForge.createManifest(goal, { source: 'bridge.http.assetforge.manifest' }));
     return;
   }
 

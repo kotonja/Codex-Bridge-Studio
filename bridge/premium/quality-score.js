@@ -38,6 +38,9 @@ function scoreFromManifest(manifest) {
   const worldgenScore = manifest.worldgenAudit && Number.isFinite(Number(manifest.worldgenAudit.overallScore))
     ? Number(manifest.worldgenAudit.overallScore)
     : null;
+  const assetForgeScore = manifest.assetForgeAudit && Number.isFinite(Number(manifest.assetForgeAudit.overallScore))
+    ? Number(manifest.assetForgeAudit.overallScore)
+    : null;
   const visualScore = manifest.visualCritiqueReport && Number.isFinite(Number(manifest.visualCritiqueReport.overallScore))
     ? Number(manifest.visualCritiqueReport.overallScore)
     : null;
@@ -47,8 +50,8 @@ function scoreFromManifest(manifest) {
     focalHierarchy: visualScore !== null ? Math.round((84 + visualScore) / 2) : (hasWorld ? 84 : 45),
     silhouetteStrength: visualScore !== null ? Math.round((78 + visualScore) / 2) : (hasBuild ? 78 : 44),
     lightingDepth: visualScore !== null ? Math.round((76 + visualScore) / 2) : (hasStyle && hasWorld ? 76 : 42),
-    materialDiscipline: visualScore !== null ? Math.round((82 + visualScore) / 2) : (hasStyle ? 82 : 45),
-    assetDensity: hasAssets ? 78 : 40,
+    materialDiscipline: assetForgeScore !== null ? Math.round((82 + assetForgeScore) / 2) : (visualScore !== null ? Math.round((82 + visualScore) / 2) : (hasStyle ? 82 : 45)),
+    assetDensity: assetForgeScore !== null ? Math.round((78 + assetForgeScore) / 2) : (hasAssets ? 78 : 40),
     gameplayReadability: worldgenScore !== null ? Math.round((82 + worldgenScore) / 2) : (hasWorld && hasQa ? 82 : 45),
     uiReadability: hasStyle && hasQa ? 74 : 42,
     animationVfxSync: hasBuild ? 72 : 38,
@@ -56,8 +59,8 @@ function scoreFromManifest(manifest) {
     performanceSafety: worldgenScore !== null ? Math.round((84 + worldgenScore) / 2) : (hasVisualEvidence ? 84 : (hasBudget ? 86 : 40)),
     mobileSafety: worldgenScore !== null ? Math.round((80 + worldgenScore) / 2) : (hasVisualEvidence ? 80 : (hasBudget && hasWorld ? 84 : 42)),
     playability: hasQa ? 78 : 40,
-    maintainability: manifest.version && manifest.nextCommand ? 90 : 55,
-    premiumFeel: visualScore !== null ? Math.round((82 + visualScore) / 2) : (hasStyle && hasWorld && hasBuild ? 82 : 45),
+    maintainability: assetForgeScore !== null ? Math.round((90 + assetForgeScore) / 2) : (manifest.version && manifest.nextCommand ? 90 : 55),
+    premiumFeel: assetForgeScore !== null && visualScore !== null ? Math.round((82 + visualScore + assetForgeScore) / 3) : (visualScore !== null ? Math.round((82 + visualScore) / 2) : (hasStyle && hasWorld && hasBuild ? 82 : 45)),
   };
   const subScores = {};
   let weightedTotal = 0;
@@ -94,6 +97,12 @@ function scoreFromManifest(manifest) {
       graphId: manifest.worldgenAudit.graphId,
       visualCritiqueReady: Boolean(manifest.worldgenAudit.visualCritiqueReadiness && manifest.worldgenAudit.visualCritiqueReadiness.ready),
       nextCommand: manifest.worldgenAudit.nextCommand,
+    } : null,
+    assetForgeSummary: manifest.assetForgeAudit ? {
+      overallScore: manifest.assetForgeAudit.overallScore,
+      assetKitId: manifest.assetForgeAudit.assetKitId,
+      visualCriticReady: Boolean(manifest.assetForgeAudit.visualCriticReadiness && manifest.assetForgeAudit.visualCriticReadiness.ready),
+      nextCommand: manifest.assetForgeAudit.nextCommand,
     } : null,
     nextActions: SCORE_KEYS
       .filter((key) => subScores[key].score < 82)

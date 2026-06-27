@@ -83,9 +83,14 @@ function createAuditReport(goal, options = {}) {
       command: `tools\\bridge.cmd visual critique "${cleanGoal}"`,
       reason: 'Layout graph has shot-ready spawn, focal, route, mobile, clutter, lighting, and UI overlay targets.',
     },
+    assetForgeReadiness: {
+      ready: true,
+      command: `tools\\bridge.cmd assetforge kit "${cleanGoal}"`,
+      reason: 'Worldgen graph has zones and sockets that can receive a coherent reusable asset kit.',
+    },
     warnings: [],
     blockers: [],
-    nextCommand: `tools\\bridge.cmd worldgen polish "${cleanGoal}"`,
+    nextCommand: `tools\\bridge.cmd assetforge kit "${cleanGoal}"`,
   };
 }
 

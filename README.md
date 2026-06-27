@@ -1,4 +1,4 @@
-# Codex Studio Bridge V66.0
+# Codex Studio Bridge V67.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -119,6 +119,39 @@ Recommended V66 premium map loop:
 .\tools\bridge.cmd visual critique "premium anime dungeon hub"
 .\tools\bridge.cmd worldgen audit "premium anime dungeon hub"
 .\tools\bridge.cmd premium polish "premium anime dungeon hub"
+```
+
+## V67 Asset Forge Pro
+
+V67 adds the premium asset-kit layer for reusable props, trims, mesh plans, material plans, decals/signage, sockets, collision proxies, LODs, mobile fallbacks, library reuse, and polish/audit loops. Use it when the request is about assets, props, object kits, mesh/material planning, making details look less cheap, or building reusable asset libraries. World/map/layout goals still route to V66 Worldgen, explicit VFX goals still route to VFX, and whole premium game goals still route to Premium Director.
+
+```powershell
+.\tools\bridge.cmd assetforge status
+.\tools\bridge.cmd assetforge styles
+.\tools\bridge.cmd assetforge plan "premium anime dungeon hub asset kit"
+.\tools\bridge.cmd assetforge kit "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge mesh-plan "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge material-plan "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge generate "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge audit "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge polish "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge budget "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge library Workspace
+.\tools\bridge.cmd assetforge sockets "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge manifest "premium anime dungeon hub"
+.\tools\bridge.cmd assetforge self-check
+.\tools\bridge.cmd generate_asset "anime portal arch kit"
+.\tools\bridge.cmd kitbash "anime dungeon shop stand"
+```
+
+Asset Forge is honest about external content. Mesh and SurfaceAppearance/PBR texture creation returns `manualRequired` unless the asset already exists or Roblox returns a supported asset id. Full Trust may create Codex-owned local placeholders, folders, manifests, sockets, collision proxies, and material plans under `Workspace.CodexAssetForge`, `ReplicatedStorage.CodexAssetForge`, and `ReplicatedStorage.CodexPremiumDirector.AssetForge`; it must not publish/upload, buy marketplace assets, touch DataStore/economy/monetization, overwrite production scripts, or delete user content.
+
+Premium Director now includes Asset Forge Pro in asset planning and scoring:
+
+```powershell
+.\tools\bridge.cmd premium assets "premium anime dungeon hub"
+.\tools\bridge.cmd premium score "premium anime dungeon hub"
+.\tools\bridge.cmd do --json "make premium props for anime dungeon"
 ```
 
 For day-to-day connection and pairing help:

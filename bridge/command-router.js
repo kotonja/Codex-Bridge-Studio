@@ -35,6 +35,9 @@ function createRoute(rawQuery = '', options = {}) {
     || ((has('visual', 'screenshot', 'lighting', 'focal point', 'composition', 'cheap looking', 'looks cheap') && has('critique', 'polish', 'fix', 'improve', 'compare', 'score', 'look')));
   const worldgenSignal = has('generate world', 'build map', 'make a map', 'pcg world', 'layout graph', 'make the lobby layout', 'make a dungeon map', 'make arena layout', 'generate biome', 'make portal hub layout', 'world layout', 'map polish', 'audit map', 'fix map flow')
     || ((has('map', 'world', 'layout', 'zone', 'biome', 'dungeon', 'arena', 'hub', 'lobby') && has('generate', 'build', 'make', 'pcg', 'graph', 'layout', 'polish', 'audit', 'flow')));
+  const assetforgeSignal = has('make asset kit', 'generate asset', 'make props', 'kitbash', 'mesh plan', 'material plan', 'make this look detailed', 'create reusable assets', 'asset library', 'make premium props', 'make dungeon asset kit', 'make anime portal assets', 'make shop stand assets', 'make boss arena props', 'fix cheap assets', 'polish assets', 'audit assets', 'create material palette')
+    || ((has('asset', 'assets', 'prop', 'props', 'kit', 'kitbash', 'mesh', 'material', 'materials', 'surfaceappearance', 'decal', 'signage', 'library', 'palette', 'trim', 'bevel') && has('make', 'create', 'generate', 'plan', 'polish', 'audit', 'fix', 'premium', 'detailed')));
+  const vfxSignal = has('vfx', 'effect', 'aura', 'projectile', 'beam', 'slash', 'impact', 'explosion', 'wind', 'lightning', 'smoke', 'portal');
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
   const premiumBuildSignal = has('build premium roblox game', 'premium anime boss lobby', 'premium simulator lobby', 'premium hub', 'premium lobby', 'premium game', 'premium world', 'premium scene')
@@ -153,7 +156,7 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd visual score ${quoteForCommand(intent)}`,
       ],
     });
-  } else if (worldgenSignal && !premiumBuildSignal) {
+  } else if (worldgenSignal && !premiumBuildSignal && !assetforgeSignal) {
     const action = has('audit', 'score') ? 'audit'
       : has('polish', 'fix map flow', 'map polish') ? 'polish'
         : has('graph', 'layout graph', 'layout') ? 'graph'
@@ -171,6 +174,26 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd worldgen plan ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd worldgen ${action} ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd worldgen audit ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (assetforgeSignal && !premiumBuildSignal && !visualSignal && !vfxSignal) {
+    const action = has('audit', 'score') ? 'audit'
+      : has('polish', 'fix cheap assets') ? 'polish'
+        : has('mesh') ? 'mesh-plan'
+          : has('material', 'palette') ? 'material-plan'
+            : has('library') ? 'library'
+              : has('generate', 'make', 'create') ? 'generate'
+                : 'plan';
+    setRoute({
+      category: 'assetforge',
+      title: 'V67 Asset Forge Pro',
+      confidence: 0.93,
+      safety: action === 'generate' || action === 'polish' ? 'fullTrustCodexOwnedAssetForge' : 'readOnlyAssetForgePlan',
+      reason: 'Asset/object/prop/kit/mesh/material/library language detected. Use V67 Asset Forge Pro before random part placement.',
+      commands: [
+        `tools\\bridge.cmd assetforge plan ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd assetforge ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd assetforge audit ${quoteForCommand(intent)}`,
       ],
     });
   } else if (premiumSignal) {
@@ -260,7 +283,7 @@ function createRoute(rawQuery = '', options = {}) {
       reason: 'Ability/skill package request detected.',
       commands: [`tools\\bridge.cmd ability plan ${quoteForCommand(intent)}`, `tools\\bridge.cmd generate_ability ${quoteForCommand(intent)}`],
     });
-  } else if (has('vfx', 'effect', 'aura', 'projectile', 'beam', 'slash', 'impact', 'explosion', 'wind', 'lightning', 'smoke', 'portal')) {
+  } else if (vfxSignal) {
     const planCommand = has('kit', 'texture', 'asset') ? `tools\\bridge.cmd vfx kit-recommend ${quoteForCommand(intent)}` : `tools\\bridge.cmd vfx pro-plan ${quoteForCommand(intent)}`;
     const generateCommand = `tools\\bridge.cmd generate_pro_vfx ${quoteForCommand(intent)}`;
     setRoute({
@@ -363,6 +386,8 @@ function catalog(version = null) {
     ['make a dungeon map', 'tools\\bridge.cmd worldgen plan "make a dungeon map"'],
     ['generate world layout', 'tools\\bridge.cmd worldgen graph "<goal>"'],
     ['pcg world', 'tools\\bridge.cmd pcg plan "<goal>"'],
+    ['make premium props for anime dungeon', 'tools\\bridge.cmd assetforge kit "premium anime dungeon props"'],
+    ['create material palette', 'tools\\bridge.cmd assetforge material-plan "<goal>"'],
     ['make it look premium', 'tools\\bridge.cmd visual polish "<goal>"'],
     ['compare before after', 'tools\\bridge.cmd visual compare <before-report.json> <after-report.json>'],
     ['top dev quality hub', 'tools\\bridge.cmd premium build "<goal>"'],

@@ -9,9 +9,10 @@ const CommandRouter = require('../bridge/command-router');
 const Premium = require('../bridge/premium');
 const Visual = require('../bridge/visual');
 const Worldgen = require('../bridge/worldgen');
+const AssetForge = require('../bridge/assetforge');
 
-const HELPER_VERSION = '0.66.0';
-const MCP_PROXY_VERSION = '0.66.0';
+const HELPER_VERSION = '0.67.0';
+const MCP_PROXY_VERSION = '0.67.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -92,6 +93,21 @@ const MCP_PROXY_TOOLS = [
   'worldgen_route',
   'worldgen_budget',
   'worldgen_manifest',
+  'assetforge_status',
+  'assetforge_styles',
+  'assetforge_plan',
+  'assetforge_kit',
+  'assetforge_mesh_plan',
+  'assetforge_material_plan',
+  'assetforge_generate',
+  'assetforge_audit',
+  'assetforge_polish',
+  'assetforge_budget',
+  'assetforge_library',
+  'assetforge_sockets',
+  'assetforge_manifest',
+  'generate_asset',
+  'kitbash',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -651,6 +667,24 @@ Usage:
   node tools/bridge.js pcg plan <goal>
   node tools/bridge.js pcg generate <goal>
   node tools/bridge.js generate_world <goal>
+  node tools/bridge.js assetforge status
+  node tools/bridge.js assetforge styles
+  node tools/bridge.js assetforge plan <goal>
+  node tools/bridge.js assetforge kit <goal>
+  node tools/bridge.js assetforge mesh-plan <goal>
+  node tools/bridge.js assetforge material-plan <goal>
+  node tools/bridge.js assetforge generate <goal>
+  node tools/bridge.js assetforge audit <asset-or-goal>
+  node tools/bridge.js assetforge polish <asset-or-goal>
+  node tools/bridge.js assetforge budget <asset-or-goal>
+  node tools/bridge.js assetforge library [rootPath]
+  node tools/bridge.js assetforge sockets <asset-or-goal>
+  node tools/bridge.js assetforge manifest <asset-or-goal>
+  node tools/bridge.js assetforge self-check
+  node tools/bridge.js forge asset <goal>
+  node tools/bridge.js forge kit <goal>
+  node tools/bridge.js generate_asset <goal>
+  node tools/bridge.js kitbash <goal>
   node tools/bridge.js animation rigs|list-rigs [path]
   node tools/bridge.js animation inspect-rig <rigPath>
   node tools/bridge.js animation pose <rigPath>
@@ -3839,7 +3873,7 @@ function localSourceAudit(installStatus) {
   const pluginDispatch = new Set([...plugin.matchAll(/commandType\s*==\s*"([^"]+)"/g)].map((m) => m[1]));
   const pluginAliases = new Set();
   for (const match of plugin.matchAll(/([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"([^"]+)"/g)) {
-    if (match[1].includes('_') && pluginDispatch.has(match[2])) pluginAliases.add(match[1]);
+    if (supported.has(match[1]) && pluginDispatch.has(match[2])) pluginAliases.add(match[1]);
   }
   const pluginHandles = new Set([...pluginDispatch, ...pluginAliases]);
   const pluginMutating = extractLuaTableKeys(plugin, 'mutatingTypes');
@@ -6120,7 +6154,17 @@ async function runPremium(subcommand = 'status', args = []) {
 
   if (subcommand === 'assets' || subcommand === 'asset-forge') {
     const manifest = localManifest();
-    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, assetForgePlan: manifest.assetForgePlan, nextCommand: `tools\\bridge.cmd premium world "${manifest.goal}"` });
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      goal: manifest.goal,
+      assetForgePlan: manifest.assetForgePlan,
+      assetForgeProPlan: manifest.assetForgeProPlan,
+      assetForgeKitPlan: manifest.assetForgeKitPlan,
+      assetForgeAudit: manifest.assetForgeAudit,
+      nextCommand: `tools\\bridge.cmd assetforge kit "${manifest.goal}"`,
+      premiumNextCommand: `tools\\bridge.cmd premium world "${manifest.goal}"`,
+    });
     return;
   }
 
@@ -6175,6 +6219,7 @@ async function runPremium(subcommand = 'status', args = []) {
       qualityScore,
       visualEvidenceSummary: qualityScore.visualEvidenceSummary,
       worldgenSummary: qualityScore.worldgenSummary,
+      assetForgeSummary: qualityScore.assetForgeSummary,
       manifestPath: manifest.manifestPath || Premium.manifestPath(goal),
     });
     return;
@@ -6219,6 +6264,7 @@ async function runPremium(subcommand = 'status', args = []) {
       ...result,
       visualPolishPlan: visualCritiqueReport.polishPlan,
       worldgenPolishPlan: Worldgen.createPolishPlan(intent, manifest.worldgenAudit),
+      assetForgePolishPlan: AssetForge.createPolishPlan(intent),
       nextCommand: `tools\\bridge.cmd visual critique "${intent}"`,
       premiumNextCommand: `tools\\bridge.cmd premium qa "${intent}"`,
     });
@@ -6414,6 +6460,88 @@ async function runWorldgen(subcommand = 'status', args = []) {
     return;
   }
   throw new Error('worldgen command must be status, styles, plan, graph, generate, audit, polish, route, budget, manifest, or self-check.');
+}
+
+async function assetforgeStudioOptions(extra = {}) {
+  const health = await requestSafe('/health', { timeoutMs: 1200, noAutoStart: true });
+  return {
+    studioConnected: health.ok && health.value && health.value.studioConnected === true,
+    source: extra.source || 'tools.bridge.assetforge',
+    ...extra,
+  };
+}
+
+async function runAssetForge(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'premium Roblox asset kit';
+  if (!subcommand || subcommand === 'status') {
+    print(AssetForge.createStatus());
+    return;
+  }
+  if (subcommand === 'self-check' || subcommand === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-assetforge.js'));
+    return;
+  }
+  if (subcommand === 'styles' || subcommand === 'style-catalog') {
+    const styles = AssetForge.getStyleCatalog();
+    print({ ok: true, version: HELPER_VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd assetforge plan "premium anime dungeon hub asset kit"' });
+    return;
+  }
+  if (subcommand === 'plan') {
+    const goal = cleanGoal();
+    print(AssetForge.createIntentPlan(goal, { source: 'tools.bridge.assetforge.plan' }));
+    return;
+  }
+  if (subcommand === 'kit') {
+    const goal = cleanGoal();
+    print(AssetForge.createKitPlan(goal, { source: 'tools.bridge.assetforge.kit' }));
+    return;
+  }
+  if (subcommand === 'mesh-plan' || subcommand === 'mesh') {
+    const goal = cleanGoal();
+    print(AssetForge.createMeshPlan(goal, { source: 'tools.bridge.assetforge.mesh' }));
+    return;
+  }
+  if (subcommand === 'material-plan' || subcommand === 'materials') {
+    const goal = cleanGoal();
+    print(AssetForge.createMaterialPlan(goal, { source: 'tools.bridge.assetforge.materials' }));
+    return;
+  }
+  if (subcommand === 'generate' || subcommand === 'create') {
+    const goal = cleanGoal();
+    print(AssetForge.createGenerationReport(goal, await assetforgeStudioOptions({ source: 'tools.bridge.assetforge.generate' })));
+    return;
+  }
+  if (subcommand === 'audit') {
+    const goal = cleanGoal();
+    print(AssetForge.createAuditReport(goal, { source: 'tools.bridge.assetforge.audit' }));
+    return;
+  }
+  if (subcommand === 'polish') {
+    const goal = cleanGoal();
+    print(AssetForge.createPolishPlan(goal, { source: 'tools.bridge.assetforge.polish' }));
+    return;
+  }
+  if (subcommand === 'budget') {
+    const goal = cleanGoal();
+    print(AssetForge.createBudgetReport(goal, { source: 'tools.bridge.assetforge.budget' }));
+    return;
+  }
+  if (subcommand === 'library') {
+    const rootPath = args.join(' ').trim() || 'Workspace';
+    print(AssetForge.createLibraryReport(rootPath, await assetforgeStudioOptions({ source: 'tools.bridge.assetforge.library' })));
+    return;
+  }
+  if (subcommand === 'sockets' || subcommand === 'socket-plan') {
+    const goal = cleanGoal();
+    print(AssetForge.createSocketPlan(goal, { source: 'tools.bridge.assetforge.sockets' }));
+    return;
+  }
+  if (subcommand === 'manifest') {
+    const goal = cleanGoal();
+    print(AssetForge.createManifest(goal, { source: 'tools.bridge.assetforge.manifest' }));
+    return;
+  }
+  throw new Error('assetforge command must be status, styles, plan, kit, mesh-plan, material-plan, generate, audit, polish, budget, library, sockets, manifest, or self-check.');
 }
 
 async function runVision(subcommand, args) {
@@ -11255,6 +11383,18 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'assetforge') {
+    await runAssetForge(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'forge') {
+    const forgeKind = args[0] || 'asset';
+    const forgeArgs = args.slice(1);
+    await runAssetForge(forgeKind === 'kit' ? 'kit' : 'plan', forgeArgs);
+    return;
+  }
+
   const directPremiumCommands = {
     premium_director: 'director',
     premium_plan: 'plan',
@@ -11301,6 +11441,28 @@ async function main(argv) {
   };
   if (directWorldgenCommands[command]) {
     await runWorldgen(directWorldgenCommands[command], args);
+    return;
+  }
+
+  const directAssetForgeCommands = {
+    assetforge_status: 'status',
+    assetforge_styles: 'styles',
+    assetforge_plan: 'plan',
+    assetforge_kit: 'kit',
+    assetforge_mesh_plan: 'mesh-plan',
+    assetforge_material_plan: 'material-plan',
+    assetforge_generate: 'generate',
+    assetforge_audit: 'audit',
+    assetforge_polish: 'polish',
+    assetforge_budget: 'budget',
+    assetforge_library: 'library',
+    assetforge_sockets: 'sockets',
+    assetforge_manifest: 'manifest',
+    generate_asset: 'generate',
+    kitbash: 'kit',
+  };
+  if (directAssetForgeCommands[command]) {
+    await runAssetForge(directAssetForgeCommands[command], args);
     return;
   }
 
