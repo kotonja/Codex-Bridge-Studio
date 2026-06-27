@@ -8,7 +8,7 @@ const { URL } = require('node:url');
 const CommandRouter = require('./command-router');
 const Premium = require('./premium');
 
-const VERSION = '0.63.0';
+const VERSION = '0.64.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';

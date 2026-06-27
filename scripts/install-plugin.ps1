@@ -16,6 +16,30 @@ if ([string]::IsNullOrWhiteSpace($DestinationDir)) {
     $DestinationDir = Join-Path $env:LOCALAPPDATA "Roblox\Plugins"
 }
 
+$repoRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
+$checkScript = Join-Path $repoRoot "scripts\check-plugin-bundle.js"
+$bundleScript = Join-Path $repoRoot "scripts\bundle-plugin.js"
+if (Test-Path -LiteralPath $checkScript) {
+    $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+    if (-not $nodeCommand) {
+        throw "Node.js is required to verify/build the plugin bundle, but 'node' was not found on PATH."
+    }
+
+    Push-Location $repoRoot
+    try {
+        & $nodeCommand.Source $checkScript
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Plugin bundle is stale; rebuilding before install."
+            & $nodeCommand.Source $bundleScript
+            if ($LASTEXITCODE -ne 0) {
+                throw "Plugin bundle rebuild failed. Run: node scripts\bundle-plugin.js"
+            }
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
 $resolvedSource = Resolve-Path -LiteralPath $PluginSource
 New-Item -ItemType Directory -Force -Path $DestinationDir | Out-Null
 

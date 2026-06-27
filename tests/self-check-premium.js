@@ -13,7 +13,7 @@ function assertNoExternalRisk(value, label) {
 function run() {
   const goal = 'premium anime boss lobby';
   const manifest = Premium.createPremiumManifest(goal);
-  assert.strictEqual(manifest.version, '0.63.0');
+  assert.strictEqual(manifest.version, '0.64.0');
   assert.strictEqual(manifest.goal, goal);
   assert.ok(manifest.nextCommand);
   assert.ok(manifest.productionBrief);

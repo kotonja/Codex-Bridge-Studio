@@ -8,8 +8,8 @@ const os = require('node:os');
 const CommandRouter = require('../bridge/command-router');
 const Premium = require('../bridge/premium');
 
-const HELPER_VERSION = '0.63.0';
-const MCP_PROXY_VERSION = '0.63.0';
+const HELPER_VERSION = '0.64.0';
+const MCP_PROXY_VERSION = '0.64.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -313,6 +313,9 @@ Usage:
   node tools/bridge.js premium director
   node tools/bridge.js premium score <manifestPath-or-goal>
   node tools/bridge.js premium self-check
+  node tools/bridge.js plugin bundle
+  node tools/bridge.js plugin check
+  node tools/bridge.js plugin self-check
   node tools/bridge.js do-tools
   node tools/bridge.js do-search <query>
   node tools/bridge.js codex-context
@@ -3914,6 +3917,46 @@ function localSourceAudit(installStatus) {
     heartbeatSafety,
     headerSafety,
   };
+}
+
+function runNodeJsonScript(scriptRelativePath, args = []) {
+  const script = path.join(process.cwd(), scriptRelativePath);
+  const result = childProcess.spawnSync(process.execPath, [script, ...args], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    timeout: 60000,
+  });
+  let parsed = null;
+  try {
+    parsed = result.stdout ? JSON.parse(result.stdout) : null;
+  } catch (_) {
+    parsed = null;
+  }
+  return {
+    ok: result.status === 0,
+    version: HELPER_VERSION,
+    command: `node ${scriptRelativePath}${args.length ? ` ${args.join(' ')}` : ''}`,
+    result: parsed,
+    stdout: parsed ? undefined : (result.stdout || '').trim(),
+    stderr: (result.stderr || '').trim() || undefined,
+    exitCode: result.status,
+  };
+}
+
+async function runPlugin(subcommand = 'check') {
+  if (subcommand === 'bundle' || subcommand === 'build') {
+    print(runNodeJsonScript('scripts/bundle-plugin.js'));
+    return;
+  }
+  if (subcommand === 'check' || subcommand === 'verify') {
+    print(runNodeJsonScript('scripts/check-plugin-bundle.js'));
+    return;
+  }
+  if (subcommand === 'self-check' || subcommand === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-plugin-bundle.js'));
+    return;
+  }
+  throw new Error('plugin command must be bundle, check, or self-check.');
 }
 
 function localDoctorChecks(health, installStatus, jsonStatus, sourceAudit) {
@@ -10532,6 +10575,11 @@ async function main(argv) {
 
   if (command === 'safety') {
     await runSafety();
+    return;
+  }
+
+  if (command === 'plugin') {
+    await runPlugin(args[0] || 'check');
     return;
   }
 

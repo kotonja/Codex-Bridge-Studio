@@ -1,4 +1,4 @@
-# Codex Studio Bridge V63.0
+# Codex Studio Bridge V64.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -37,6 +37,22 @@ powershell -ExecutionPolicy Bypass -File scripts\install-plugin.ps1
 ```
 
 Then open Roblox Studio, enable/open **Codex Studio Bridge**, and enter the pairing code.
+
+## V64 Modular Plugin Source
+
+V64 adds a safe, lossless modular plugin source pipeline. The installed Roblox plugin is still the one-file bundle at `plugin/CodexStudioBridge.plugin.lua`, but it is now generated from `plugin/src/main.lua`. For this first pass, `main.lua` includes the preserved legacy plugin body at `plugin/src/legacy/CodexStudioBridge.legacy.lua`; the `plugin/src/core`, `plugin/src/bridge`, and `plugin/src/premium` files are reserved stubs for future incremental extraction.
+
+Do not edit `plugin/CodexStudioBridge.plugin.lua` directly except for emergency patching. Future plugin source edits should happen under `plugin/src`, followed by:
+
+```powershell
+.\tools\bridge.cmd plugin bundle
+.\tools\bridge.cmd plugin check
+.\tools\bridge.cmd plugin self-check
+```
+
+`scripts\install-plugin.ps1` runs the bundle checker before copying the plugin. If the bundle is stale, it prints `Plugin bundle is stale; rebuilding before install.`, rebuilds with `node scripts\bundle-plugin.js`, then continues the existing backup-and-copy install flow.
+
+V64 is intentionally a modularization foundation, not a full logic split. The next phase should extract real modules from the legacy source in tiny verified slices.
 
 For day-to-day connection and pairing help:
 

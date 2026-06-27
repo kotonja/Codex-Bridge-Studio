@@ -171,6 +171,18 @@ Visible Roblox screen control is also available after Codex Ready setup:
 .\tools\bridge.cmd screen clear
 ```
 
+V64 modular plugin source is now the safe editing path for plugin work. The installed plugin remains `plugin/CodexStudioBridge.plugin.lua`, but that file is generated from `plugin/src/main.lua`, which currently includes the preserved legacy source at `plugin/src/legacy/CodexStudioBridge.legacy.lua`. The first V64 pass is intentionally lossless; reserved stubs under `plugin/src/core`, `plugin/src/bridge`, and `plugin/src/premium` exist for future incremental extraction only.
+
+Do not edit `plugin/CodexStudioBridge.plugin.lua` directly unless it is an emergency patch. Edit `plugin/src` instead, then rebuild and verify:
+
+```powershell
+.\tools\bridge.cmd plugin bundle
+.\tools\bridge.cmd plugin check
+.\tools\bridge.cmd plugin self-check
+```
+
+`scripts\install-plugin.ps1` checks the bundle before copying. If the bundle is stale, it rebuilds first, then keeps the existing backup behavior. Treat V64 as the foundation for safer future module extraction; do not attempt a giant manual plugin rewrite.
+
 V63 Premium Director Core is the preferred first entry point when the user asks for premium/top-dev/reference-quality Roblox output, says `make this premium`, `make it look expensive`, `fix cheap looking build`, `visual critique`, `top dev quality`, `build premium Roblox game`, or broad `upgrade everything`. It creates a production brief, style bible, asset forge plan, world grammar, build round, visual critique, performance budget, QA plan, and premium quality score before routing work through the specialist stack:
 
 ```powershell
