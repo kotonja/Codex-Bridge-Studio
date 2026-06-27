@@ -1,0 +1,2 @@
+-- V69 reserved QA Swarm manifest extraction stub.
+-- Behavior currently lives in plugin/src/legacy/CodexStudioBridge.legacy.lua.

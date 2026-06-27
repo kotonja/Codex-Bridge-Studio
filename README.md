@@ -1,4 +1,4 @@
-# Codex Studio Bridge V68.0
+# Codex Studio Bridge V69.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -182,6 +182,34 @@ V68 adds a synced motion/game-feel layer for moments that need animation, VFX, a
 ```
 
 Cinematic generation is Codex-owned and manifest-backed under `ReplicatedStorage.CodexCinematicMotion` and `ReplicatedStorage.CodexPremiumDirector.Cinematic`. It must not publish/upload, invent animation/audio asset IDs, touch marketplace, DataStore, economy, or monetization. Animation publish and audio asset selection remain `manualRequired` unless Roblox returns supported asset references or existing assets are supplied.
+
+## V69 Autonomous QA Swarm
+
+V69 adds the QA command center for whole-game testing. Use it when the goal is `test everything`, `full launch QA`, `is this ready to publish`, or any request that needs multiple QA personas checking routes, UI, combat, economy risk, multiplayer readiness, performance, regressions, accessibility, and launch blockers. It plans evidence instead of faking live play results, then uses existing Test Pilot, Watch, Output v2, Visual Critic, Premium, Worldgen, Asset Forge, and Cinematic surfaces when Studio evidence is available.
+
+```powershell
+.\tools\bridge.cmd qa status
+.\tools\bridge.cmd qa personas
+.\tools\bridge.cmd qa plan "full launch QA"
+.\tools\bridge.cmd qa swarm "test everything"
+.\tools\bridge.cmd qa run "test everything"
+.\tools\bridge.cmd qa route "first 5 minutes onboarding"
+.\tools\bridge.cmd qa ui "mobile HUD and shop"
+.\tools\bridge.cmd qa combat "anime boss fight"
+.\tools\bridge.cmd qa economy "shop and rewards"
+.\tools\bridge.cmd qa multiplayer "party lobby and match start"
+.\tools\bridge.cmd qa performance "premium anime dungeon hub"
+.\tools\bridge.cmd qa regression "last build changes"
+.\tools\bridge.cmd qa accessibility "mobile readability"
+.\tools\bridge.cmd qa launch "is this ready to publish"
+.\tools\bridge.cmd qa report "full launch QA"
+.\tools\bridge.cmd qa fix-plan "launch blockers"
+.\tools\bridge.cmd qa manifest "full launch QA"
+.\tools\bridge.cmd test_swarm "test everything"
+.\tools\bridge.cmd launch_ready "premium anime dungeon hub"
+```
+
+QA Swarm generation is Codex-owned and manifest-backed under `ReplicatedStorage.CodexQaSwarm` and `Workspace.CodexQaSwarm`. Economy/save/monetization-looking actions remain `manualRequired`; multiplayer and performance reports are structured probe plans unless live evidence is present. Premium Director now includes QA summaries through `premium qa`, `premium launch`, and `premium score`.
 
 For day-to-day connection and pairing help:
 

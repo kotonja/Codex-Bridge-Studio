@@ -40,6 +40,9 @@ function createRoute(rawQuery = '', options = {}) {
   const vfxSignal = has('vfx', 'effect', 'aura', 'projectile', 'beam', 'slash', 'impact', 'explosion', 'wind', 'lightning', 'smoke', 'portal');
   const cinematicSignal = has('make it feel premium', 'make combat feel good', 'add impact', 'add hit stop', 'hit stop', 'add screen shake', 'screen shake', 'make cinematic', 'sync animation vfx audio', 'camera shake', 'ability timing', 'impact frames', 'make attack feel powerful', 'make movement feel better', 'make boss intro cinematic', 'opening cutscene', 'make opening cutscene', 'polish animation timing', 'polish game feel', 'fix weak ability', 'game feel', 'gamefeel', 'sync moment')
     || ((has('motion', 'cinematic', 'camera', 'impact', 'hit-stop', 'hitstop', 'shake', 'timing', 'anticipation', 'follow through', 'recoil') && has('plan', 'make', 'add', 'polish', 'fix', 'sync', 'generate', 'feel')));
+  const qaSignal = has('test everything', 'full qa', 'launch qa', 'full launch qa', 'is this ready to publish', 'ready to publish', 'find bugs', 'test onboarding', 'test mobile', 'test performance', 'test combat', 'test ui', 'test economy', 'test multiplayer', 'run playtest swarm', 'playtest swarm', 'check regression', 'make sure nothing broke', 'game launch readiness', 'launch readiness', 'premium launch check', 'can a new player understand this', 'does the first 5 minutes work')
+    || ((has('qa', 'quality assurance', 'launch ready', 'launch-readiness', 'regression', 'playtest', 'bugs') && has('test', 'check', 'run', 'full', 'premium', 'launch', 'ready', 'find', 'audit')))
+    || ((has('test') && has('onboarding', 'mobile', 'performance', 'combat', 'ui', 'economy', 'multiplayer', 'everything', 'first 5 minutes', 'first ten minutes')));
   const vfxOnlySignal = vfxSignal && !cinematicSignal && !has('animation', 'audio', 'camera', 'timing', 'sync', 'game feel', 'gamefeel', 'cinematic');
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
@@ -216,6 +219,29 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd cinematic plan ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd cinematic ${action} ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd cinematic audit ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (qaSignal && !visualSignal && !worldgenSignal && !assetforgeSignal && !vfxOnlySignal && !cinematicSignal && !premiumBuildSignal) {
+    const action = has('launch', 'ready to publish', 'publish', 'premium launch') ? 'launch'
+      : has('regression', 'nothing broke') ? 'regression'
+        : has('performance') ? 'performance'
+          : has('mobile', 'accessibility') ? 'accessibility'
+            : has('combat') ? 'combat'
+              : has('ui') ? 'ui'
+                : has('economy') ? 'economy'
+                  : has('multiplayer') ? 'multiplayer'
+                    : has('run', 'swarm', 'test everything', 'full qa', 'full launch qa') ? 'swarm'
+                      : 'plan';
+    setRoute({
+      category: 'qa',
+      title: 'V69 Autonomous QA Swarm',
+      confidence: 0.95,
+      safety: action === 'swarm' || action === 'run' ? 'fullTrustCodexOwnedQaMarkersAndReports' : 'readOnlyQaPlan',
+      reason: 'QA, testing, launch-readiness, playtest swarm, or regression language detected.',
+      commands: [
+        `tools\\bridge.cmd qa plan ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd qa ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd qa launch ${quoteForCommand(intent)}`,
       ],
     });
   } else if (premiumSignal) {
@@ -411,6 +437,10 @@ function catalog(version = null) {
     ['make premium props for anime dungeon', 'tools\\bridge.cmd assetforge kit "premium anime dungeon props"'],
     ['create material palette', 'tools\\bridge.cmd assetforge material-plan "<goal>"'],
     ['make it look premium', 'tools\\bridge.cmd visual polish "<goal>"'],
+    ['test everything', 'tools\\bridge.cmd qa plan "test everything"'],
+    ['full launch QA', 'tools\\bridge.cmd qa launch "<goal>"'],
+    ['is this ready to publish', 'tools\\bridge.cmd qa launch "<goal>"'],
+    ['run playtest swarm', 'tools\\bridge.cmd qa swarm "<goal>"'],
     ['compare before after', 'tools\\bridge.cmd visual compare <before-report.json> <after-report.json>'],
     ['top dev quality hub', 'tools\\bridge.cmd premium build "<goal>"'],
     ['visual critique premium lobby', 'tools\\bridge.cmd premium critique "<goal>"'],

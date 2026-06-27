@@ -11,9 +11,10 @@ const Visual = require('../bridge/visual');
 const Worldgen = require('../bridge/worldgen');
 const AssetForge = require('../bridge/assetforge');
 const Cinematic = require('../bridge/cinematic');
+const QaSwarm = require('../bridge/qa-swarm');
 
-const HELPER_VERSION = '0.68.0';
-const MCP_PROXY_VERSION = '0.68.0';
+const HELPER_VERSION = '0.69.0';
+const MCP_PROXY_VERSION = '0.69.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -127,6 +128,23 @@ const MCP_PROXY_TOOLS = [
   'make_cinematic',
   'gamefeel',
   'sync_moment',
+  'qa_status',
+  'qa_personas',
+  'qa_plan',
+  'qa_swarm',
+  'qa_run',
+  'qa_route',
+  'qa_ui',
+  'qa_combat',
+  'qa_economy',
+  'qa_multiplayer',
+  'qa_performance',
+  'qa_regression',
+  'qa_accessibility',
+  'qa_launch',
+  'qa_report',
+  'qa_fix_plan',
+  'qa_manifest',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -725,6 +743,27 @@ Usage:
   node tools/bridge.js gamefeel <goal>
   node tools/bridge.js sync_moment <goal>
   node tools/bridge.js make_cinematic <goal>
+  node tools/bridge.js qa status
+  node tools/bridge.js qa personas
+  node tools/bridge.js qa plan <goal>
+  node tools/bridge.js qa swarm <goal>
+  node tools/bridge.js qa run <goal>
+  node tools/bridge.js qa route <goal-or-manifest>
+  node tools/bridge.js qa ui <goal-or-manifest>
+  node tools/bridge.js qa combat <goal-or-manifest>
+  node tools/bridge.js qa economy <goal-or-manifest>
+  node tools/bridge.js qa multiplayer <goal-or-manifest>
+  node tools/bridge.js qa performance <goal-or-manifest>
+  node tools/bridge.js qa regression <goal-or-manifest>
+  node tools/bridge.js qa accessibility <goal-or-manifest>
+  node tools/bridge.js qa launch <goal-or-manifest>
+  node tools/bridge.js qa report <goal-or-manifest>
+  node tools/bridge.js qa fix-plan <goal-or-manifest>
+  node tools/bridge.js qa manifest <goal-or-manifest>
+  node tools/bridge.js qa self-check
+  node tools/bridge.js swarm qa <goal>
+  node tools/bridge.js test_swarm <goal>
+  node tools/bridge.js launch_ready <goal>
   node tools/bridge.js animation rigs|list-rigs [path]
   node tools/bridge.js animation inspect-rig <rigPath>
   node tools/bridge.js animation pose <rigPath>
@@ -6248,8 +6287,32 @@ async function runPremium(subcommand = 'status', args = []) {
   }
 
   if (subcommand === 'qa' || subcommand === 'test') {
-    const manifest = localManifest();
-    print({ ok: true, version: HELPER_VERSION, goal: manifest.goal, qaPlan: manifest.qaPlan, performanceBudget: manifest.performanceBudget, nextCommand: `tools\\bridge.cmd premium score "${manifest.goal}"` });
+    const intent = cleanIntent();
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      goal: intent,
+      qaPlan: QaSwarm.createQaPlan(intent),
+      swarmPlan: QaSwarm.createSwarmPlan(intent),
+      launchReadiness: QaSwarm.createLaunchReadinessReport(intent),
+      nextCommand: `tools\\bridge.cmd qa swarm "${intent}"`,
+      premiumNextCommand: `tools\\bridge.cmd premium launch "${intent}"`,
+    });
+    return;
+  }
+
+  if (subcommand === 'launch' || subcommand === 'launch-readiness') {
+    const intent = cleanIntent();
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      goal: intent,
+      launchReadiness: QaSwarm.createLaunchReadinessReport(intent),
+      issueReport: QaSwarm.createIssueReport(intent),
+      fixPlan: QaSwarm.createFixPlan(intent),
+      nextCommand: `tools\\bridge.cmd qa fix-plan "${intent}"`,
+      premiumNextCommand: `tools\\bridge.cmd premium polish "${intent}"`,
+    });
     return;
   }
 
@@ -6279,6 +6342,11 @@ async function runPremium(subcommand = 'status', args = []) {
         overallScore: Cinematic.createAuditReport(goal).overallScore,
         momentType: Cinematic.parseGoal(goal).momentType,
         nextCommand: `tools\\bridge.cmd cinematic polish "${goal}"`,
+      },
+      qaSummary: {
+        overallScore: QaSwarm.createLaunchReadinessReport(goal).launchReadinessScore,
+        rating: QaSwarm.createLaunchReadinessReport(goal).rating,
+        nextCommand: `tools\\bridge.cmd qa launch "${goal}"`,
       },
       manifestPath: manifest.manifestPath || Premium.manifestPath(goal),
     });
@@ -6345,7 +6413,7 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
-  throw new Error('premium command must be status, plan, style, assets, world, motion, build, critique, qa, polish, director, score, bake, or self-check.');
+  throw new Error('premium command must be status, plan, style, assets, world, motion, build, critique, qa, launch, polish, director, score, bake, or self-check.');
 }
 
 async function visualEvidenceOptions(extra = {}) {
@@ -6694,6 +6762,93 @@ async function runCinematic(subcommand = 'status', args = []) {
     return;
   }
   throw new Error('cinematic command must be status, styles, plan, timeline, beats, camera, animation, vfx-sync, audio-sync, gamefeel, generate, preview, audit, polish, manifest, or self-check.');
+}
+
+async function qaStudioOptions(extra = {}) {
+  const health = await requestSafe('/health', { timeoutMs: 1200, noAutoStart: true });
+  return {
+    studioConnected: health.ok && health.value && health.value.studioConnected === true,
+    source: extra.source || 'tools.bridge.qa',
+    ...extra,
+  };
+}
+
+async function runQaSwarm(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'premium anime dungeon hub launch QA';
+  if (!subcommand || subcommand === 'status') {
+    print(QaSwarm.createStatus());
+    return;
+  }
+  if (subcommand === 'self-check' || subcommand === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-qa-swarm.js'));
+    return;
+  }
+  if (subcommand === 'personas' || subcommand === 'persona-catalog') {
+    const personas = QaSwarm.getPersonaCatalog();
+    print({ ok: true, version: HELPER_VERSION, personaCount: personas.length, personas, nextCommand: 'tools\\bridge.cmd qa plan "premium anime dungeon hub launch QA"' });
+    return;
+  }
+  if (subcommand === 'plan') {
+    print(QaSwarm.createQaPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'swarm') {
+    print(QaSwarm.createSwarmPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'run') {
+    print(QaSwarm.createRunPlan(cleanGoal(), await qaStudioOptions({ source: 'tools.bridge.qa.run' })));
+    return;
+  }
+  if (subcommand === 'route') {
+    print(QaSwarm.createRouteTestPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'ui') {
+    print(QaSwarm.createUiTestPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'combat') {
+    print(QaSwarm.createCombatTestPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'economy') {
+    print(QaSwarm.createEconomyAuditPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'multiplayer') {
+    print(QaSwarm.createMultiplayerTestPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'performance') {
+    print(QaSwarm.createPerformanceProbePlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'regression') {
+    print(QaSwarm.createRegressionPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'accessibility') {
+    print(QaSwarm.createAccessibilityAuditPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'launch' || subcommand === 'launch-readiness') {
+    print(QaSwarm.createLaunchReadinessReport(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'report' || subcommand === 'issues') {
+    print(QaSwarm.createReport(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'fix-plan' || subcommand === 'fix') {
+    print(QaSwarm.createFixPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'manifest') {
+    print(QaSwarm.createManifest(cleanGoal()));
+    return;
+  }
+  throw new Error('qa command must be status, personas, plan, swarm, run, route, ui, combat, economy, multiplayer, performance, regression, accessibility, launch, report, fix-plan, manifest, or self-check.');
 }
 
 async function runVision(subcommand, args) {
@@ -11486,11 +11641,6 @@ async function main(argv) {
     return;
   }
 
-  if (command === 'qa') {
-    await runQa(args[0] || 'status', args.slice(1));
-    return;
-  }
-
   if (command === 'events') {
     print(await runReadCommand('getRuntimeEvents', { limit: Number(args[0] || 100) }));
     return;
@@ -11542,6 +11692,16 @@ async function main(argv) {
 
   if (command === 'cinematic') {
     await runCinematic(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'qa') {
+    await runQaSwarm(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'swarm' && (args[0] || '').toLowerCase() === 'qa') {
+    await runQaSwarm('swarm', args.slice(1));
     return;
   }
 
@@ -11650,6 +11810,32 @@ async function main(argv) {
   };
   if (directCinematicCommands[command]) {
     await runCinematic(directCinematicCommands[command], args);
+    return;
+  }
+
+  const directQaCommands = {
+    qa_status: 'status',
+    qa_personas: 'personas',
+    qa_plan: 'plan',
+    qa_swarm: 'swarm',
+    qa_run: 'run',
+    qa_route: 'route',
+    qa_ui: 'ui',
+    qa_combat: 'combat',
+    qa_economy: 'economy',
+    qa_multiplayer: 'multiplayer',
+    qa_performance: 'performance',
+    qa_regression: 'regression',
+    qa_accessibility: 'accessibility',
+    qa_launch: 'launch',
+    qa_report: 'report',
+    qa_fix_plan: 'fix-plan',
+    qa_manifest: 'manifest',
+    test_swarm: 'swarm',
+    launch_ready: 'launch',
+  };
+  if (directQaCommands[command]) {
+    await runQaSwarm(directQaCommands[command], args);
     return;
   }
 

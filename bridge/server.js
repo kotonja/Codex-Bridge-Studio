@@ -11,8 +11,9 @@ const Visual = require('./visual');
 const Worldgen = require('./worldgen');
 const AssetForge = require('./assetforge');
 const Cinematic = require('./cinematic');
+const QaSwarm = require('./qa-swarm');
 
-const VERSION = '0.68.0';
+const VERSION = '0.69.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -434,6 +435,48 @@ const supportedCommands = new Set([
   'make_cinematic',
   'gamefeel',
   'sync_moment',
+  'getQaSwarmStatus',
+  'getQaPersonaCatalog',
+  'getQaIntentPlan',
+  'getQaSwarmPlan',
+  'getQaRunPlan',
+  'getQaRouteTestPlan',
+  'getQaUiTestPlan',
+  'getQaCombatTestPlan',
+  'getQaEconomyAuditPlan',
+  'getQaMultiplayerTestPlan',
+  'getQaPerformanceProbePlan',
+  'getQaRegressionPlan',
+  'getQaAccessibilityAuditPlan',
+  'getQaLaunchReadinessReport',
+  'getQaIssueReport',
+  'getQaFixPlan',
+  'getQaManifest',
+  'runQaSwarmPlan',
+  'runQaRouteProbe',
+  'runQaUiProbe',
+  'runQaCombatProbe',
+  'runQaPerformanceProbe',
+  'bakeQaSwarmManifest',
+  'qa_status',
+  'qa_personas',
+  'qa_plan',
+  'qa_swarm',
+  'qa_run',
+  'qa_route',
+  'qa_ui',
+  'qa_combat',
+  'qa_economy',
+  'qa_multiplayer',
+  'qa_performance',
+  'qa_regression',
+  'qa_accessibility',
+  'qa_launch',
+  'qa_report',
+  'qa_fix_plan',
+  'qa_manifest',
+  'test_swarm',
+  'launch_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
   'bakePremiumDirectorManifest',
@@ -1137,6 +1180,14 @@ const mutatingCommands = new Set([
   'cinematic_preview',
   'cinematic_polish',
   'make_cinematic',
+  'runQaSwarmPlan',
+  'runQaRouteProbe',
+  'runQaUiProbe',
+  'runQaCombatProbe',
+  'runQaPerformanceProbe',
+  'bakeQaSwarmManifest',
+  'qa_run',
+  'test_swarm',
   'premium_build_round',
   'premium_polish',
 ]);
@@ -4008,6 +4059,26 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'qa',
+    title: 'V69 Autonomous QA Swarm',
+    safety: 'readOnlyPlanOrFullTrustCodexOwnedQaReports',
+    readiness: ['bridge', 'plugin', 'codexReady', 'testPilot', 'actionBridge', 'visualCritic', 'cinematic', 'outputDiagnostics'],
+    commands: [
+      { command: 'tools\\bridge.cmd qa status', example: 'tools\\bridge.cmd qa status', bestFor: 'Check QA Swarm readiness and integrations.' },
+      { command: 'tools\\bridge.cmd qa personas', example: 'tools\\bridge.cmd qa personas', bestFor: 'List structured QA personas for onboarding, mobile, performance, combat, economy, accessibility, and launch checks.' },
+      { command: 'tools\\bridge.cmd qa plan <goal>', example: 'tools\\bridge.cmd qa plan "premium anime dungeon hub launch QA"', bestFor: 'Plan QA scope, personas, scenarios, evidence, integrations, and risk areas.' },
+      { command: 'tools\\bridge.cmd qa swarm <goal>', example: 'tools\\bridge.cmd qa swarm "premium anime dungeon hub launch QA"', bestFor: 'Create coordinated QA agents, missions, pass/fail criteria, and schedule.' },
+      { command: 'tools\\bridge.cmd qa run <goal>', example: 'tools\\bridge.cmd qa run "premium anime dungeon hub launch QA"', bestFor: 'Create/run bounded Codex-owned QA reports when Studio evidence is available; otherwise return manualRequired.' },
+      { command: 'tools\\bridge.cmd qa route <goal>', example: 'tools\\bridge.cmd qa route "premium anime dungeon hub"', bestFor: 'Plan spawn/shop/quest/portal/training/full-loop route probes from worldgen QA routes.' },
+      { command: 'tools\\bridge.cmd qa ui <goal>', example: 'tools\\bridge.cmd qa ui "premium anime dungeon hub"', bestFor: 'Plan UI/action target checks, tap targets, close buttons, spam safety, and mobile safe zones.' },
+      { command: 'tools\\bridge.cmd qa combat <goal>', example: 'tools\\bridge.cmd qa combat "premium anime dungeon hub"', bestFor: 'Plan combat response, cooldown, hit feedback, camera/VFX/audio sync, and no-error checks.' },
+      { command: 'tools\\bridge.cmd qa performance <goal>', example: 'tools\\bridge.cmd qa performance "premium anime dungeon hub"', bestFor: 'Plan observational performance/mobile risk probes without fake profiler readings.' },
+      { command: 'tools\\bridge.cmd qa launch <goal>', example: 'tools\\bridge.cmd qa launch "premium anime dungeon hub"', bestFor: 'Score launch readiness with onboarding, route, UI, combat, cinematic, economy, multiplayer, performance, mobile, accessibility, regression, premium feel, and safety subscores.' },
+      { command: 'tools\\bridge.cmd qa fix-plan <goal>', example: 'tools\\bridge.cmd qa fix-plan "premium anime dungeon hub"', bestFor: 'Group QA fixes by blockers, onboarding, routes, UI, combat/cinematic, performance/mobile, accessibility, regression, and final premium pass.' },
+      { command: 'tools\\bridge.cmd premium qa <goal>', example: 'tools\\bridge.cmd premium qa "premium anime dungeon hub"', bestFor: 'Run Premium Director QA through V69 QA Swarm.' },
+    ],
+  },
+  {
     id: 'robloxBrain',
     title: 'Roblox Brain Core / Unified Game Creator OS',
     safety: 'fullTrustOrchestratedLocalActions',
@@ -4168,6 +4239,25 @@ const V46_DIRECT_ALIASES = [
   'make_cinematic',
   'gamefeel',
   'sync_moment',
+  'qa_status',
+  'qa_personas',
+  'qa_plan',
+  'qa_swarm',
+  'qa_run',
+  'qa_route',
+  'qa_ui',
+  'qa_combat',
+  'qa_economy',
+  'qa_multiplayer',
+  'qa_performance',
+  'qa_regression',
+  'qa_accessibility',
+  'qa_launch',
+  'qa_report',
+  'qa_fix_plan',
+  'qa_manifest',
+  'test_swarm',
+  'launch_ready',
   'list_rigs',
   'inspect_rig',
   'get_rig_pose',
@@ -6327,6 +6417,45 @@ async function route(req, res) {
     const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'anime boss intro attack';
     sendJson(res, 200, Cinematic.createManifest(goal, { source: 'bridge.http.cinematic.manifest' }));
     return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/qa/status') {
+    sendJson(res, 200, QaSwarm.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/qa/personas') {
+    const personas = QaSwarm.getPersonaCatalog();
+    sendJson(res, 200, { ok: true, version: VERSION, personaCount: personas.length, personas, nextCommand: 'tools\\bridge.cmd qa plan "premium anime dungeon hub launch QA"' });
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/qa/')) {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium anime dungeon hub launch QA';
+    const endpoint = path.replace('/codex/qa/', '');
+    const active = getActiveStudioEntry();
+    const studioConnected = Boolean(active && isPlaceFresh(active));
+    const map = {
+      plan: () => QaSwarm.createQaPlan(goal),
+      swarm: () => QaSwarm.createSwarmPlan(goal),
+      run: () => QaSwarm.createRunPlan(goal, { source: 'bridge.http.qa.run', studioConnected }),
+      route: () => QaSwarm.createRouteTestPlan(goal),
+      ui: () => QaSwarm.createUiTestPlan(goal),
+      combat: () => QaSwarm.createCombatTestPlan(goal),
+      economy: () => QaSwarm.createEconomyAuditPlan(goal),
+      multiplayer: () => QaSwarm.createMultiplayerTestPlan(goal),
+      performance: () => QaSwarm.createPerformanceProbePlan(goal),
+      regression: () => QaSwarm.createRegressionPlan(goal),
+      accessibility: () => QaSwarm.createAccessibilityAuditPlan(goal),
+      launch: () => QaSwarm.createLaunchReadinessReport(goal),
+      report: () => QaSwarm.createReport(goal),
+      'fix-plan': () => QaSwarm.createFixPlan(goal),
+      manifest: () => QaSwarm.createManifest(goal),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, map[endpoint]());
+      return;
+    }
   }
 
   if (req.method === 'POST' && path === '/codex/do') {

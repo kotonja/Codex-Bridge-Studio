@@ -66,7 +66,7 @@ function run() {
   }
   const goal = 'premium anime dungeon hub asset kit';
   const status = AssetForge.createStatus();
-  assert.equal(status.version, '0.68.0');
+  assert.equal(status.version, '0.69.0');
   assert.equal(status.ok, true);
   assert.equal(status.integrations.worldgen, true);
   const styles = AssetForge.getStyleCatalog();
@@ -118,9 +118,9 @@ function run() {
   assertRoute('visual critique', 'visual');
   assertRoute('generate purple sword slash vfx', 'vfx');
   assertRoute('new pairing code', 'pairing');
-  assert.equal(Worldgen.createStatus().version, '0.68.0');
-  assert.equal(Visual.createStatus().version, '0.68.0');
-  assert.equal(Premium.createPremiumManifest('premium anime dungeon hub').version, '0.68.0');
+  assert.equal(Worldgen.createStatus().version, '0.69.0');
+  assert.equal(Visual.createStatus().version, '0.69.0');
+  assert.equal(Premium.createPremiumManifest('premium anime dungeon hub').version, '0.69.0');
   return {
     ok: true,
     version: AssetForge.VERSION,

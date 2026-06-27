@@ -301,6 +301,32 @@ V68 Cinematic Motion Director is the preferred specialist when the user says com
 
 Routing priority for V68: pairing/recovery still wins, explicit VFX-only stays VFX, explicit asset/mesh/material stays Asset Forge, explicit map/layout stays Worldgen, whole premium game/lobby stays Premium Director, and motion/game-feel/impact/cinematic/sync language goes to Cinematic. Generated cinematic work is Codex-owned under `ReplicatedStorage.CodexCinematicMotion` and mirrored under `ReplicatedStorage.CodexPremiumDirector.Cinematic`. Do not fake animation/audio asset IDs; animation publish and audio asset selection remain `manualRequired` unless a supported existing asset is supplied. No publish/upload, marketplace, DataStore, economy, monetization, production script overwrite, or broad delete is added.
 
+V69 Autonomous QA Swarm is the preferred route when the user says `test everything`, `full launch QA`, `is this ready to publish`, or asks whether a whole game is launch-ready. It coordinates QA personas across route flow, UI, combat, economy risk, multiplayer, performance, regression, accessibility, evidence, issue grouping, and fix planning:
+
+```powershell
+.\tools\bridge.cmd qa status
+.\tools\bridge.cmd qa personas
+.\tools\bridge.cmd qa plan "full launch QA"
+.\tools\bridge.cmd qa swarm "test everything"
+.\tools\bridge.cmd qa run "test everything"
+.\tools\bridge.cmd qa route "first 5 minutes onboarding"
+.\tools\bridge.cmd qa ui "mobile HUD and shop"
+.\tools\bridge.cmd qa combat "anime boss fight"
+.\tools\bridge.cmd qa economy "shop and rewards"
+.\tools\bridge.cmd qa multiplayer "party lobby and match start"
+.\tools\bridge.cmd qa performance "premium anime dungeon hub"
+.\tools\bridge.cmd qa regression "last build changes"
+.\tools\bridge.cmd qa accessibility "mobile readability"
+.\tools\bridge.cmd qa launch "is this ready to publish"
+.\tools\bridge.cmd qa report "full launch QA"
+.\tools\bridge.cmd qa fix-plan "launch blockers"
+.\tools\bridge.cmd qa manifest "full launch QA"
+.\tools\bridge.cmd test_swarm "test everything"
+.\tools\bridge.cmd launch_ready "premium anime dungeon hub"
+```
+
+Routing priority for V69: pairing/recovery still wins, explicit VFX-only stays VFX, explicit asset/mesh/material stays Asset Forge, explicit map/layout stays Worldgen, explicit visual critique stays Visual, whole premium game/lobby stays Premium Director, combat feel/cinematic/sync language stays Cinematic, and broad QA/launch-readiness language goes to QA Swarm. Generated QA work is Codex-owned under `ReplicatedStorage.CodexQaSwarm` and `Workspace.CodexQaSwarm`. Economy/save/monetization-looking actions and unsupported multiplayer/performance execution remain `manualRequired`; QA reports should expose evidence gaps instead of pretending a live test happened.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

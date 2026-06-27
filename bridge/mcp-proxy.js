@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
-const VERSION = '0.68.0';
+const VERSION = '0.69.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -595,6 +595,23 @@ const toolHandlers = {
   make_cinematic: async (args) => requestBridge('GET', `/codex/cinematic/generate?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'anime boss intro attack')}`, undefined, 2500),
   gamefeel: async (args) => requestBridge('GET', `/codex/cinematic/gamefeel?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'make combat feel good')}`, undefined, 2500),
   sync_moment: async (args) => requestBridge('GET', `/codex/cinematic/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'sync animation vfx audio')}`, undefined, 2500),
+  qa_status: async () => requestBridge('GET', '/codex/qa/status', undefined, 2500),
+  qa_personas: async () => requestBridge('GET', '/codex/qa/personas', undefined, 2500),
+  qa_plan: async (args) => requestBridge('GET', `/codex/qa/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub launch QA')}`, undefined, 2500),
+  qa_swarm: async (args) => requestBridge('GET', `/codex/qa/swarm?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub launch QA')}`, undefined, 2500),
+  qa_run: async (args) => requestBridge('GET', `/codex/qa/run?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub launch QA')}`, undefined, 2500),
+  qa_route: async (args) => requestBridge('GET', `/codex/qa/route?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_ui: async (args) => requestBridge('GET', `/codex/qa/ui?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_combat: async (args) => requestBridge('GET', `/codex/qa/combat?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_economy: async (args) => requestBridge('GET', `/codex/qa/economy?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_multiplayer: async (args) => requestBridge('GET', `/codex/qa/multiplayer?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_performance: async (args) => requestBridge('GET', `/codex/qa/performance?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_regression: async (args) => requestBridge('GET', `/codex/qa/regression?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_accessibility: async (args) => requestBridge('GET', `/codex/qa/accessibility?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_launch: async (args) => requestBridge('GET', `/codex/qa/launch?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_report: async (args) => requestBridge('GET', `/codex/qa/report?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_fix_plan: async (args) => requestBridge('GET', `/codex/qa/fix-plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  qa_manifest: async (args) => requestBridge('GET', `/codex/qa/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
   style_bible: async (args) => readCommand('getCreatorStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   forge_assets: async (args) => readCommand('getCreatorAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
   execute_luau: async (args) => ({
@@ -717,6 +734,23 @@ const toolDefinitions = [
   ['make_cinematic', 'Direct alias for V68 cinematic generation.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['gamefeel', 'Direct alias for V68 game-feel plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['sync_moment', 'Direct alias for V68 marker sync planning.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_status', 'Return V69 Autonomous QA Swarm readiness and integrations.', {}],
+  ['qa_personas', 'List V69 QA personas for onboarding, mobile, performance, route, UI, prompt, combat, economy, multiplayer, accessibility, and premium checks.', {}],
+  ['qa_plan', 'Plan QA scope, personas, scenarios, evidence, integrations, and risk areas.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_swarm', 'Return coordinated QA agents, scenario missions, schedule, pass/fail criteria, and evidence targets.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_run', 'Return/run a bounded QA swarm plan through StudioBridge when available; otherwise manualRequired.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_route', 'Plan worldgen route walker probes for spawn/shop/quest/portal/training/full-loop paths.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_ui', 'Plan UI/action probes for CTAs, shop, quest, close buttons, mobile safe zone, truncation, and spam safety.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_combat', 'Plan combat/game-feel QA using V68 cinematic timing, VFX/audio sync, hit feedback, cooldown, and output checks.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_economy', 'Return read-only/manualRequired economy/reward-loop audit plan; no DataStore/purchase/monetization mutation.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_multiplayer', 'Return bounded local multiplayer QA plan or manualRequired when local players are unavailable.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_performance', 'Return observational performance probe plan without fake profiler readings.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_regression', 'Return output-baseline and manifest-aware regression plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_accessibility', 'Return readability, contrast, motion comfort, safe-zone, and color/audio-only accessibility checks.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_launch', 'Return V69 launch readiness score with all required subscores.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_report', 'Return QA issue/evidence report.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_fix_plan', 'Return staged QA fix plan from blockers through final premium pass.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['qa_manifest', 'Return V69 QA Swarm manifest shape.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['style_bible', 'Return a V62 style bible for a Roblox game/build intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['forge_assets', 'Return a V62 asset forge plan for meshes, textures, materials, audio, animations, and reusable kits.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['execute_luau', 'Return safe StudioBridge alternatives for arbitrary Luau execution.', { code: { type: 'string' } }],

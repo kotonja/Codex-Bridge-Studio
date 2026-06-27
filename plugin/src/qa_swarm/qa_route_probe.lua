@@ -1,0 +1,2 @@
+-- V69 reserved QA Swarm route probe extraction stub.
+-- Behavior currently lives in plugin/src/legacy/CodexStudioBridge.legacy.lua.

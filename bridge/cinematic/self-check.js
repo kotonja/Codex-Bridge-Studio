@@ -56,7 +56,7 @@ function run() {
   const audit = Cinematic.createAuditReport(goal);
   const polish = Cinematic.createPolishPlan(goal);
 
-  assert(status.ok && status.version === '0.68.0', 'status version/shape failed');
+  assert(status.ok && status.version === '0.69.0', 'status version/shape failed');
   assert(styles.length >= 16, 'style catalog must include at least 16 styles');
   for (const style of styles) {
     for (const key of ['motionPillars', 'timingPillars', 'cameraLanguage', 'animationLanguage', 'vfxLanguage', 'audioLanguage', 'uiPunchLanguage', 'shakeRules', 'hitStopRules', 'mobileMotionHints', 'forbiddenCheapPatterns']) {
