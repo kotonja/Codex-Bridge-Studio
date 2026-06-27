@@ -1,0 +1,35 @@
+{
+  "id": "quest-objectives",
+  "title": "Quest Objectives",
+  "genre": "universal",
+  "description": "Objective assignment, progress, completion, and reward feedback contract.",
+  "profileIds": ["universal", "horror", "simulator", "ruleforge"],
+  "loopStages": ["objective", "reward", "feedback"],
+  "ownedRoots": ["ReplicatedStorage.CodexSystems.Quests", "ServerScriptService.CodexSystems.Quests"],
+  "contract": {
+    "folders": ["ReplicatedStorage.CodexSystems.Quests", "ServerScriptService.CodexSystems.Quests"],
+    "remotes": [
+      { "name": "QuestUpdated", "className": "RemoteEvent", "direction": "serverToClient" },
+      { "name": "QuestActionRequested", "className": "RemoteEvent", "direction": "clientToServer" }
+    ],
+    "scripts": ["ReplicatedStorage.CodexSystems.Quests.Contract"],
+    "tests": ["Quest remotes exist", "Quest owned folders exist", "Contract module exists"]
+  },
+  "blueprint": {
+    "name": "Quest Objectives Feature Plan",
+    "mode": "supervised",
+    "steps": [
+      { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems.Quests" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems.Quests" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.QuestUpdated" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.QuestActionRequested" },
+      {
+        "type": "writeScript",
+        "className": "ModuleScript",
+        "path": "ReplicatedStorage.CodexSystems.Quests.Contract",
+        "source": "local Contract = {}\n\nContract.id = \"quest-objectives\"\nContract.remotes = { \"QuestUpdated\", \"QuestActionRequested\" }\nContract.generatedBy = \"Codex Studio Bridge V15\"\n\nreturn Contract\n"
+      }
+    ]
+  }
+}

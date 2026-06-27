@@ -1,0 +1,239 @@
+{
+  "id": "obby",
+  "name": "Obby",
+  "genre": "platformer",
+  "description": "Checkpoint platformer profile.",
+  "detection": {
+    "paths": [
+      "Workspace.Checkpoints",
+      "Workspace.Obby",
+      "ReplicatedStorage.Remotes"
+    ],
+    "scriptNames": [
+      "CheckpointService",
+      "ObbyController",
+      "StageService"
+    ],
+    "remoteNames": [
+      "CheckpointReached",
+      "StageUpdated"
+    ],
+    "uiRoots": [
+      "StarterGui.ObbyHUD"
+    ],
+    "workspaceNames": [
+      "Checkpoints",
+      "KillBricks",
+      "MovingPlatforms"
+    ],
+    "sourcePatterns": [
+      "CheckpointReached",
+      "leaderstats"
+    ]
+  },
+  "expected": {
+    "paths": [
+      {
+        "path": "Workspace.Checkpoints",
+        "className": "Folder",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.KillBricks",
+        "className": "Folder",
+        "severity": "warning"
+      },
+      {
+        "path": "ReplicatedStorage.Remotes",
+        "className": "Folder",
+        "severity": "warning"
+      }
+    ],
+    "scripts": [],
+    "remotes": [
+      {
+        "name": "CheckpointReached",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "StageUpdated",
+        "className": "RemoteEvent"
+      }
+    ],
+    "uiRoots": [
+      "StarterGui.ObbyHUD"
+    ],
+    "workspace": [
+      "Workspace.Checkpoints",
+      "Workspace.KillBricks"
+    ]
+  },
+  "health": {
+    "weights": {
+      "contexts": 0.12,
+      "structure": 0.18,
+      "scripts": 0.14,
+      "remotes": 0.14,
+      "ui": 0.12,
+      "world": 0.18,
+      "output": 0.08,
+      "scenarios": 0.04
+    }
+  },
+  "cleanup": {
+    "duplicateRenameSuffix": "_Obby",
+    "keepEmptyPaths": [
+      "Workspace.Checkpoints",
+      "Workspace.KillBricks",
+      "ReplicatedStorage.Remotes"
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "obby-checkpoint-loop",
+      "title": "Obby Checkpoint Loop",
+      "file": "blueprints/templates/obby-checkpoint-loop.json"
+    }
+  ],
+  "visualLandmarks": [
+    "Workspace.Checkpoints",
+    "Workspace.KillBricks",
+    "Workspace.Obby"
+  ],
+  "uiExpectations": {
+    "roots": [
+      "StarterGui.ObbyHUD"
+    ],
+    "patterns": [
+      "stage counter",
+      "checkpoint feedback",
+      "mobile-friendly reset/settings"
+    ]
+  },
+  "assetCategories": {
+    "course": [
+      "Part",
+      "Model",
+      "MeshPart"
+    ],
+    "feedback": [
+      "Sound",
+      "ParticleEmitter"
+    ],
+    "ui": [
+      "ScreenGui",
+      "TextLabel",
+      "TextButton"
+    ]
+  },
+  "styleDefaults": {
+    "tone": "bright readable platformer",
+    "lighting": "clear obstacle visibility",
+    "ui": "small stage/checkpoint HUD"
+  },
+  "protectedPaths": [
+    "Workspace.Checkpoints",
+    "ReplicatedStorage.Remotes"
+  ],
+  "gameLoop": {
+    "lobbyPath": "Workspace.Lobby",
+    "objectivePath": "Workspace.Checkpoints",
+    "pieces": [
+      "spawn",
+      "objective",
+      "reward",
+      "replay",
+      "playerFeedback"
+    ],
+    "remotes": [
+      "CheckpointReached",
+      "StageChanged",
+      "RunCompleted"
+    ]
+  },
+  "uiForge": {
+    "root": "StarterGui.CodexObbyHUD",
+    "required": [
+      "stage counter",
+      "checkpoint feedback",
+      "reset button",
+      "mobile-friendly controls"
+    ]
+  },
+  "cameraBookmarks": [
+    {
+      "name": "CourseStart",
+      "pathHint": "Workspace.Checkpoints",
+      "purpose": "Review first-stage readability"
+    }
+  ],
+  "styleGuide": {
+    "tone": "bright readable platformer",
+    "uiDensity": "small persistent stage HUD",
+    "feedback": "clear checkpoint and fall recovery feedback"
+  },
+  "assetNeeds": [
+    {
+      "category": "CheckpointFeedback",
+      "classes": [
+        "Sound",
+        "ParticleEmitter"
+      ],
+      "purpose": "checkpoint reward feedback"
+    },
+    {
+      "category": "CourseVisuals",
+      "classes": [
+        "Texture",
+        "Decal"
+      ],
+      "purpose": "stage direction and hazard readability"
+    }
+  ],
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawn", "title": "Spawn at Course" },
+    { "id": "understandObjective", "title": "See Next Checkpoint" },
+    { "id": "interactPlay", "title": "Run / Jump / Reach Checkpoint" },
+    { "id": "receiveFeedback", "title": "Checkpoint Feedback" },
+    { "id": "failWin", "title": "Fall / Finish" },
+    { "id": "reward", "title": "Stage Reward" },
+    { "id": "replayReturn", "title": "Replay Course" }
+  ],
+  "objectivePaths": [
+    "Workspace.Checkpoints",
+    "Workspace.ObbyCourse",
+    "Workspace.Finish"
+  ],
+  "qaSignals": [
+    "checkpoint",
+    "stage",
+    "finish",
+    "fall",
+    "reset"
+  ],
+  "failureSignals": [
+    "fall",
+    "died",
+    "reset",
+    "failed"
+  ],
+  "successSignals": [
+    "checkpoint",
+    "stage complete",
+    "finished",
+    "reward"
+  ],
+  "bugReportPriorities": [
+    "spawn/checkpoint issues",
+    "death/fall loops",
+    "missing checkpoint feedback",
+    "missing finish/replay"
+  ],
+  "directorPriorities": [
+    "loop",
+    "ui",
+    "assets",
+    "autonomous"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "Basic Lobby Starter",
+  "mode": "supervised",
+  "description": "Creates a neutral lobby with spawn, remotes, and a small server marker.",
+  "templateId": "basic-lobby",
+  "steps": [
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.LobbyToast" },
+    { "type": "ensureFolder", "path": "Workspace.Lobby" },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.Lobby.PlayerSpawn",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 10, "y": 1, "z": 10 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 3, "z": 0 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.Lobby.InfoPad",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 18, "y": 1, "z": 10 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 1, "z": -22 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 180, "b": 255 },
+        "Material": "SmoothPlastic"
+      }
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.LobbyBootstrap",
+      "className": "Script",
+      "source": "print(\"[LobbyBootstrap] Basic lobby starter loaded.\")\n"
+    }
+  ]
+}

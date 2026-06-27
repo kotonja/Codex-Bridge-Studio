@@ -1,0 +1,52 @@
+{
+  "name": "Basic Roblox Game Starter",
+  "mode": "supervised",
+  "description": "Creates a small playable foundation: folders, remotes, a spawn, an objective pad, lighting, and a server bootstrap script.",
+  "steps": [
+    {
+      "type": "ensureFolder",
+      "path": "ReplicatedStorage.Remotes"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.GameToast"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.GameWorld"
+    },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.GameWorld.PlayerSpawn",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 8, "y": 1, "z": 8 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 3, "z": 0 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.GameWorld.ObjectivePad",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 16, "y": 1, "z": 16 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 1, "z": -40 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 0, "g": 180, "b": 255 },
+        "Material": "Neon"
+      }
+    },
+    {
+      "type": "setLighting",
+      "properties": {
+        "ClockTime": 14,
+        "Brightness": 2
+      }
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.GameBootstrap",
+      "className": "Script",
+      "source": "local ReplicatedStorage = game:GetService(\"ReplicatedStorage\")\nlocal Remotes = ReplicatedStorage:WaitForChild(\"Remotes\")\nlocal GameToast = Remotes:WaitForChild(\"GameToast\")\n\nprint(\"[GameBootstrap] Basic game starter loaded.\")\n"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "extraction-reward-replay",
+  "title": "Ruleforge Extraction Reward + Replay",
+  "genre": "arena-extraction",
+  "description": "Ruleforge-specific extraction reward summary and replay/requeue contract.",
+  "profileIds": ["ruleforge"],
+  "loopStages": ["extraction", "reward", "replay", "feedback"],
+  "ownedRoots": ["ReplicatedStorage.CodexSystems.ExtractionRewardReplay", "ServerScriptService.CodexSystems.ExtractionRewardReplay", "StarterGui.UIRoot.CodexDirectorHUD"],
+  "protectedPaths": ["StarterGui.UIRoot"],
+  "contract": {
+    "folders": ["ReplicatedStorage.CodexSystems.ExtractionRewardReplay", "ServerScriptService.CodexSystems.ExtractionRewardReplay", "StarterGui.UIRoot.CodexDirectorHUD"],
+    "remotes": [
+      { "name": "ExtractionRewardSummary", "className": "RemoteEvent", "direction": "serverToClient" },
+      { "name": "ReplayRequested", "className": "RemoteEvent", "direction": "clientToServer" }
+    ],
+    "ui": ["StarterGui.UIRoot", "StarterGui.UIRoot.CodexDirectorHUD"],
+    "world": ["Workspace.ExtractionPad", "Workspace.ExtractionZone"],
+    "scripts": ["ReplicatedStorage.CodexSystems.ExtractionRewardReplay.Contract"],
+    "tests": ["Extraction reward remote exists", "Replay request remote exists", "Draft UI root exists", "Extraction landmarks exist"]
+  },
+  "blueprint": {
+    "name": "Ruleforge Extraction Reward Replay Feature Plan",
+    "mode": "supervised",
+    "steps": [
+      { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems.ExtractionRewardReplay" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems.ExtractionRewardReplay" },
+      { "type": "ensureFolder", "path": "StarterGui.UIRoot.CodexDirectorHUD" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.ExtractionRewardSummary" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.ReplayRequested" },
+      {
+        "type": "ensureInstance",
+        "className": "StringValue",
+        "path": "StarterGui.UIRoot.CodexDirectorHUD.ExtractionRewardReplayNote",
+        "properties": {
+          "Value": "Draft V15 hook: connect production reward/replay UI to ExtractionRewardSummary and ReplayRequested after review."
+        }
+      },
+      {
+        "type": "writeScript",
+        "className": "ModuleScript",
+        "path": "ReplicatedStorage.CodexSystems.ExtractionRewardReplay.Contract",
+        "source": "local Contract = {}\n\nContract.id = \"extraction-reward-replay\"\nContract.remotes = { \"ExtractionRewardSummary\", \"ReplayRequested\" }\nContract.uiRoot = \"StarterGui.UIRoot.CodexDirectorHUD\"\nContract.world = { \"Workspace.ExtractionPad\", \"Workspace.ExtractionZone\" }\nContract.generatedBy = \"Codex Studio Bridge V15\"\n\nreturn Contract\n"
+      }
+    ]
+  }
+}

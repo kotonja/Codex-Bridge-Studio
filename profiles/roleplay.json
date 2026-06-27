@@ -1,0 +1,55 @@
+{
+  "id": "roleplay",
+  "name": "Roleplay Roblox Project",
+  "genre": "roleplay",
+  "description": "Universal roleplay profile for homes, jobs, vehicles, shops, character customization, and social interaction loops.",
+  "detection": {
+    "paths": ["Workspace", "ReplicatedStorage", "ServerScriptService", "StarterGui"],
+    "scriptNames": ["Roleplay", "Job", "Vehicle", "House", "Avatar", "Emote", "Shop"],
+    "remoteNames": ["JobChanged", "VehicleSpawned", "HouseClaimed", "AvatarUpdated"],
+    "uiRoots": ["StarterGui"],
+    "workspaceNames": ["Houses", "Vehicles", "Jobs", "Shops", "Town", "SpawnLocations"]
+  },
+  "expected": {
+    "paths": [
+      { "path": "Workspace", "className": "Workspace", "severity": "error" },
+      { "path": "ReplicatedStorage", "className": "ReplicatedStorage", "severity": "error" },
+      { "path": "StarterGui", "className": "StarterGui", "severity": "warning" }
+    ],
+    "scripts": [],
+    "remotes": [],
+    "uiRoots": ["StarterGui"],
+    "workspace": ["SpawnLocations"]
+  },
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawn", "title": "Spawn In Town" },
+    { "id": "chooseRole", "title": "Choose Role / Job" },
+    { "id": "customize", "title": "Customize Character" },
+    { "id": "interact", "title": "Interact With World" },
+    { "id": "socialFeedback", "title": "Social / Economy Feedback" },
+    { "id": "return", "title": "Continue Roleplay" }
+  ],
+  "qaSignals": ["role", "job", "vehicle", "house", "shop", "avatar", "emote", "claim"],
+  "successSignals": ["equipped", "claimed", "spawned", "joined", "changed"],
+  "failureSignals": ["failed", "denied", "missing", "not enough", "error"],
+  "uiActions": [
+    { "id": "jobs", "keywords": ["job", "role", "work"] },
+    { "id": "shop", "keywords": ["shop", "store", "buy"] },
+    { "id": "customize", "keywords": ["avatar", "customize", "outfit"] }
+  ],
+  "worldArchetypes": ["town spawn", "role/job stations", "houses", "shops", "vehicle spawns"],
+  "landmarkExpectations": [
+    { "path": "Workspace.SpawnLocations", "purpose": "player entry points" },
+    { "path": "Workspace.Jobs", "purpose": "job or role stations" }
+  ],
+  "featurePriorities": ["quest-objectives", "shop-loop", "reward-replay"],
+  "bugReportPriorities": [
+    "Job button has no feedback",
+    "Vehicle spawn fails",
+    "House claim is ambiguous",
+    "Shop purchase lacks confirmation",
+    "Mobile role UI is hard to use"
+  ],
+  "protectedPaths": ["ServerScriptService", "ReplicatedStorage.Remotes"]
+}

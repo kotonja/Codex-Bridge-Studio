@@ -1,0 +1,115 @@
+{
+  "name": "Codex Basic Burst",
+  "description": "Small universal preview burst for testing the Codex VFX workbench.",
+  "layers": [
+    {
+      "className": "ParticleEmitter",
+      "name": "BurstParticles",
+      "properties": {
+        "Enabled": false,
+        "Rate": 0,
+        "MaxParticles": 160,
+        "Lifetime": {
+          "__type": "NumberRange",
+          "min": 0.55,
+          "max": 0.95
+        },
+        "Speed": {
+          "__type": "NumberRange",
+          "min": 18,
+          "max": 26
+        },
+        "SpreadAngle": {
+          "__type": "Vector2",
+          "x": 360,
+          "y": 360
+        },
+        "Size": {
+          "__type": "NumberSequence",
+          "keypoints": [
+            {
+              "time": 0,
+              "value": 0.35
+            },
+            {
+              "time": 0.35,
+              "value": 1.25
+            },
+            {
+              "time": 1,
+              "value": 0.05
+            }
+          ]
+        },
+        "Transparency": {
+          "__type": "NumberSequence",
+          "keypoints": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.8,
+              "value": 0.25
+            },
+            {
+              "time": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Color": {
+          "__type": "ColorSequence",
+          "keypoints": [
+            {
+              "time": 0,
+              "color": {
+                "__type": "Color3",
+                "mode": "rgb",
+                "r": 80,
+                "g": 190,
+                "b": 255
+              }
+            },
+            {
+              "time": 1,
+              "color": {
+                "__type": "Color3",
+                "mode": "rgb",
+                "r": 255,
+                "g": 240,
+                "b": 120
+              }
+            }
+          ]
+        },
+        "LightEmission": 0.55
+      }
+    },
+    {
+      "className": "PointLight",
+      "name": "BurstLight",
+      "properties": {
+        "Enabled": true,
+        "Brightness": 2.25,
+        "Range": 18,
+        "Color": {
+          "__type": "Color3",
+          "mode": "rgb",
+          "r": 90,
+          "g": 190,
+          "b": 255
+        }
+      }
+    },
+    {
+      "className": "Sound",
+      "name": "BurstSoundPlaceholder",
+      "properties": {
+        "Volume": 0.25,
+        "PlaybackSpeed": 1,
+        "SoundId": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,249 @@
+{
+  "id": "horror",
+  "name": "Horror",
+  "genre": "horror",
+  "description": "Exploration, flashlight, objective, and atmosphere profile.",
+  "detection": {
+    "paths": [
+      "Workspace.Objectives",
+      "Workspace.SafeZones",
+      "Lighting",
+      "ReplicatedStorage.Remotes"
+    ],
+    "scriptNames": [
+      "ObjectiveService",
+      "FlashlightController",
+      "MonsterDirector",
+      "DoorService"
+    ],
+    "remoteNames": [
+      "ObjectiveUpdated",
+      "FlashlightToggled",
+      "FearPulse"
+    ],
+    "uiRoots": [
+      "StarterGui.HorrorHUD"
+    ],
+    "workspaceNames": [
+      "Objectives",
+      "SafeZones",
+      "MonsterSpawns",
+      "Doors"
+    ],
+    "sourcePatterns": [
+      "Flashlight",
+      "ObjectiveUpdated",
+      "Monster"
+    ]
+  },
+  "expected": {
+    "paths": [
+      {
+        "path": "Workspace.Objectives",
+        "className": "Folder",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.MonsterSpawns",
+        "className": "Folder",
+        "severity": "warning"
+      },
+      {
+        "path": "ReplicatedStorage.Remotes",
+        "className": "Folder",
+        "severity": "warning"
+      }
+    ],
+    "scripts": [],
+    "remotes": [
+      {
+        "name": "ObjectiveUpdated",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "FlashlightToggled",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "FearPulse",
+        "className": "RemoteEvent"
+      }
+    ],
+    "uiRoots": [
+      "StarterGui.HorrorHUD"
+    ],
+    "workspace": [
+      "Workspace.Objectives",
+      "Workspace.MonsterSpawns"
+    ]
+  },
+  "health": {
+    "weights": {
+      "contexts": 0.12,
+      "structure": 0.16,
+      "scripts": 0.16,
+      "remotes": 0.12,
+      "ui": 0.12,
+      "world": 0.18,
+      "output": 0.1,
+      "scenarios": 0.04
+    }
+  },
+  "cleanup": {
+    "duplicateRenameSuffix": "_Horror",
+    "keepEmptyPaths": [
+      "Workspace.Objectives",
+      "Workspace.MonsterSpawns",
+      "ReplicatedStorage.Remotes"
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "horror-objective-starter",
+      "title": "Horror Objective Starter",
+      "file": "blueprints/templates/horror-objective-starter.json"
+    }
+  ],
+  "visualLandmarks": [
+    "Workspace.Objectives",
+    "Workspace.MonsterSpawns",
+    "Workspace.SafeZones",
+    "Workspace.Doors"
+  ],
+  "uiExpectations": {
+    "roots": [
+      "StarterGui.HorrorHUD"
+    ],
+    "patterns": [
+      "objective text",
+      "flashlight state",
+      "danger/fear feedback"
+    ]
+  },
+  "assetCategories": {
+    "atmosphere": [
+      "Sound",
+      "ParticleEmitter",
+      "Texture"
+    ],
+    "interactables": [
+      "Model",
+      "Part",
+      "MeshPart"
+    ],
+    "ui": [
+      "ScreenGui",
+      "TextLabel"
+    ]
+  },
+  "styleDefaults": {
+    "tone": "tense atmospheric exploration",
+    "lighting": "dark but navigable",
+    "ui": "minimal objective/flashlight HUD"
+  },
+  "protectedPaths": [
+    "Lighting",
+    "ReplicatedStorage.Remotes"
+  ],
+  "gameLoop": {
+    "lobbyPath": "Workspace.SafeRoom",
+    "objectivePath": "Workspace.Objectives",
+    "pieces": [
+      "spawn",
+      "objective",
+      "failWin",
+      "replay",
+      "playerFeedback"
+    ],
+    "remotes": [
+      "ObjectiveChanged",
+      "FlashlightToggled",
+      "DangerChanged",
+      "RunEnded"
+    ]
+  },
+  "uiForge": {
+    "root": "StarterGui.CodexHorrorHUD",
+    "required": [
+      "objective text",
+      "flashlight status",
+      "danger feedback",
+      "minimal mobile controls"
+    ]
+  },
+  "cameraBookmarks": [
+    {
+      "name": "SafeRoom",
+      "pathHint": "Workspace.SafeRoom",
+      "purpose": "Review spawn safety and first objective visibility"
+    }
+  ],
+  "styleGuide": {
+    "tone": "tense atmospheric exploration",
+    "uiDensity": "minimal objective HUD",
+    "feedback": "subtle danger, flashlight, and objective cues"
+  },
+  "assetNeeds": [
+    {
+      "category": "AtmosphereAudio",
+      "classes": [
+        "Sound"
+      ],
+      "purpose": "ambient dread and threat feedback"
+    },
+    {
+      "category": "ObjectiveVFX",
+      "classes": [
+        "ParticleEmitter",
+        "Beam"
+      ],
+      "purpose": "subtle interactable/objective guidance"
+    }
+  ],
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawn", "title": "Spawn in Safe Area" },
+    { "id": "understandObjective", "title": "Understand Objective" },
+    { "id": "interactPlay", "title": "Explore / Interact" },
+    { "id": "receiveFeedback", "title": "Danger or Objective Feedback" },
+    { "id": "failWin", "title": "Escape or Get Caught" },
+    { "id": "reward", "title": "Objective Reward" },
+    { "id": "replayReturn", "title": "Replay / Return" }
+  ],
+  "objectivePaths": [
+    "Workspace.SafeRoom",
+    "Workspace.Objectives",
+    "Workspace.Exits"
+  ],
+  "qaSignals": [
+    "objective",
+    "flashlight",
+    "danger",
+    "escape",
+    "interact"
+  ],
+  "failureSignals": [
+    "caught",
+    "died",
+    "failed",
+    "danger"
+  ],
+  "successSignals": [
+    "escaped",
+    "objective complete",
+    "safe",
+    "reward"
+  ],
+  "bugReportPriorities": [
+    "objective clarity",
+    "spawn safety",
+    "danger feedback",
+    "escape/replay flow"
+  ],
+  "directorPriorities": [
+    "loop",
+    "ui",
+    "assets",
+    "autonomous"
+  ]
+}

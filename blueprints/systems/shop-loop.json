@@ -1,0 +1,37 @@
+{
+  "id": "shop-loop",
+  "title": "Shop Loop",
+  "genre": "universal",
+  "description": "Shop request and catalog contract with draft UI ownership.",
+  "profileIds": ["universal", "simulator", "arena-combat", "ruleforge"],
+  "loopStages": ["menu", "reward", "feedback"],
+  "ownedRoots": ["ReplicatedStorage.CodexSystems.Shop", "ServerScriptService.CodexSystems.Shop", "StarterGui.CodexDirectorHUD.ShopDraft"],
+  "contract": {
+    "folders": ["ReplicatedStorage.CodexSystems.Shop", "ServerScriptService.CodexSystems.Shop"],
+    "remotes": [
+      { "name": "ShopRequest", "className": "RemoteFunction", "direction": "clientToServer" },
+      { "name": "ShopUpdated", "className": "RemoteEvent", "direction": "serverToClient" }
+    ],
+    "ui": ["StarterGui.CodexDirectorHUD"],
+    "scripts": ["ReplicatedStorage.CodexSystems.Shop.Contract"],
+    "tests": ["Shop remotes exist", "Shop owned folders exist", "Contract module exists"]
+  },
+  "blueprint": {
+    "name": "Shop Loop Feature Plan",
+    "mode": "supervised",
+    "steps": [
+      { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems.Shop" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems.Shop" },
+      { "type": "ensureFolder", "path": "StarterGui.CodexDirectorHUD" },
+      { "type": "ensureRemoteFunction", "path": "ReplicatedStorage.Remotes.ShopRequest" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.ShopUpdated" },
+      {
+        "type": "writeScript",
+        "className": "ModuleScript",
+        "path": "ReplicatedStorage.CodexSystems.Shop.Contract",
+        "source": "local Contract = {}\n\nContract.id = \"shop-loop\"\nContract.remotes = { \"ShopRequest\", \"ShopUpdated\" }\nContract.generatedBy = \"Codex Studio Bridge V15\"\n\nreturn Contract\n"
+      }
+    ]
+  }
+}

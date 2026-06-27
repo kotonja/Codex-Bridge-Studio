@@ -1,0 +1,35 @@
+{
+  "id": "reward-replay",
+  "title": "Reward + Replay",
+  "genre": "universal",
+  "description": "Reward summary and replay/requeue contract for repeatable loops.",
+  "profileIds": ["universal", "arena-combat", "simulator", "ruleforge"],
+  "loopStages": ["reward", "replay", "feedback"],
+  "ownedRoots": ["ReplicatedStorage.CodexSystems.RewardReplay", "ServerScriptService.CodexSystems.RewardReplay"],
+  "contract": {
+    "folders": ["ReplicatedStorage.CodexSystems.RewardReplay", "ServerScriptService.CodexSystems.RewardReplay"],
+    "remotes": [
+      { "name": "RewardSummary", "className": "RemoteEvent", "direction": "serverToClient" },
+      { "name": "ReplayRequested", "className": "RemoteEvent", "direction": "clientToServer" }
+    ],
+    "scripts": ["ReplicatedStorage.CodexSystems.RewardReplay.Contract"],
+    "tests": ["Reward summary remote exists", "Replay request remote exists", "Contract module exists"]
+  },
+  "blueprint": {
+    "name": "Reward Replay Feature Plan",
+    "mode": "supervised",
+    "steps": [
+      { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems.RewardReplay" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems.RewardReplay" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.RewardSummary" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.ReplayRequested" },
+      {
+        "type": "writeScript",
+        "className": "ModuleScript",
+        "path": "ReplicatedStorage.CodexSystems.RewardReplay.Contract",
+        "source": "local Contract = {}\n\nContract.id = \"reward-replay\"\nContract.remotes = { \"RewardSummary\", \"ReplayRequested\" }\nContract.generatedBy = \"Codex Studio Bridge V15\"\n\nreturn Contract\n"
+      }
+    ]
+  }
+}

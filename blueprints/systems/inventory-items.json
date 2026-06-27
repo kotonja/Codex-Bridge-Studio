@@ -1,0 +1,35 @@
+{
+  "id": "inventory-items",
+  "title": "Inventory Items",
+  "genre": "universal",
+  "description": "Shared item catalog and inventory state contract.",
+  "profileIds": ["universal", "simulator", "horror", "arena-combat", "ruleforge"],
+  "loopStages": ["reward", "feedback"],
+  "ownedRoots": ["ReplicatedStorage.CodexSystems.Inventory", "ServerScriptService.CodexSystems.Inventory"],
+  "contract": {
+    "folders": ["ReplicatedStorage.CodexSystems.Inventory", "ServerScriptService.CodexSystems.Inventory"],
+    "remotes": [
+      { "name": "InventoryUpdated", "className": "RemoteEvent", "direction": "serverToClient" },
+      { "name": "InventoryActionRequested", "className": "RemoteEvent", "direction": "clientToServer" }
+    ],
+    "scripts": ["ReplicatedStorage.CodexSystems.Inventory.Contract"],
+    "tests": ["Inventory remotes exist", "Inventory owned folders exist", "Contract module exists"]
+  },
+  "blueprint": {
+    "name": "Inventory Items Feature Plan",
+    "mode": "supervised",
+    "steps": [
+      { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems.Inventory" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems.Inventory" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.InventoryUpdated" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.InventoryActionRequested" },
+      {
+        "type": "writeScript",
+        "className": "ModuleScript",
+        "path": "ReplicatedStorage.CodexSystems.Inventory.Contract",
+        "source": "local Contract = {}\n\nContract.id = \"inventory-items\"\nContract.remotes = { \"InventoryUpdated\", \"InventoryActionRequested\" }\nContract.generatedBy = \"Codex Studio Bridge V15\"\n\nreturn Contract\n"
+      }
+    ]
+  }
+}

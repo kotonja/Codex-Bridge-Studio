@@ -1,0 +1,51 @@
+{
+  "name": "Ruleforge V6 Loot Smoke",
+  "mode": "supervised",
+  "description": "Safe loot smoke scenario markers, remotes, and inert diagnostics.",
+  "steps": [
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeV6Scenarios"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeV6Scenarios.LootSmoke"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.LootOffer"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.LootPick"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.LootResult"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.LootFX"
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeV6Scenarios.LootSmoke.Marker",
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "Size": { "__type": "Vector3", "x": 5, "y": 0.5, "z": 5 },
+        "Position": { "__type": "Vector3", "x": -18, "y": 4, "z": 0 }
+      }
+    },
+    {
+      "type": "ensureFolder",
+      "path": "ReplicatedStorage.CodexDiagnostics"
+    },
+    {
+      "type": "writeScript",
+      "path": "ReplicatedStorage.CodexDiagnostics.LootSmokeNotes",
+      "className": "ModuleScript",
+      "source": "return {\n\tname = \"LootSmoke\",\n\tpurpose = \"Inspect loot remotes, LootChests, InkCaches, and pickup UI during a supervised playtest.\",\n\tcreatedBy = \"Codex Studio Bridge V7\"\n}\n"
+    }
+  ]
+}

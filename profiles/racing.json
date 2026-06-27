@@ -1,0 +1,55 @@
+{
+  "id": "racing",
+  "name": "Racing Roblox Project",
+  "genre": "racing",
+  "description": "Universal racing profile for vehicles, tracks, checkpoints, laps, timers, finish lines, rewards, and respawn recovery.",
+  "detection": {
+    "paths": ["Workspace", "ReplicatedStorage", "ServerScriptService", "StarterGui"],
+    "scriptNames": ["Race", "Vehicle", "Checkpoint", "Lap", "Timer", "Finish", "Kart", "Car"],
+    "remoteNames": ["RaceStart", "CheckpointReached", "LapUpdated", "RaceFinished"],
+    "uiRoots": ["StarterGui"],
+    "workspaceNames": ["Track", "Checkpoints", "Vehicles", "FinishLine", "StartingGrid"]
+  },
+  "expected": {
+    "paths": [
+      { "path": "Workspace", "className": "Workspace", "severity": "error" },
+      { "path": "ReplicatedStorage", "className": "ReplicatedStorage", "severity": "error" },
+      { "path": "StarterGui", "className": "StarterGui", "severity": "warning" }
+    ],
+    "scripts": [],
+    "remotes": [],
+    "uiRoots": ["StarterGui"],
+    "workspace": ["Track", "Checkpoints"]
+  },
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawnVehicle", "title": "Get Vehicle" },
+    { "id": "startRace", "title": "Start Race" },
+    { "id": "checkpoint", "title": "Reach Checkpoints" },
+    { "id": "finish", "title": "Finish Race" },
+    { "id": "reward", "title": "Receive Reward" },
+    { "id": "replay", "title": "Race Again" }
+  ],
+  "qaSignals": ["race", "vehicle", "checkpoint", "lap", "timer", "finish", "boost"],
+  "successSignals": ["checkpoint", "lap", "finished", "reward", "time"],
+  "failureSignals": ["stuck", "missed", "wrong way", "failed", "error"],
+  "uiActions": [
+    { "id": "start", "keywords": ["start", "race", "play"] },
+    { "id": "respawn", "keywords": ["respawn", "reset"] },
+    { "id": "garage", "keywords": ["garage", "vehicle", "car"] }
+  ],
+  "worldArchetypes": ["starting grid", "track path", "checkpoints", "finish line", "vehicle spawn"],
+  "landmarkExpectations": [
+    { "path": "Workspace.Track", "purpose": "race track" },
+    { "path": "Workspace.Checkpoints", "purpose": "lap/checkpoint flow" }
+  ],
+  "featurePriorities": ["checkpoint-loop", "reward-replay"],
+  "bugReportPriorities": [
+    "Checkpoint order broken",
+    "Vehicle spawn fails",
+    "Timer or lap UI missing",
+    "Finish line does not reward",
+    "Player cannot recover after falling"
+  ],
+  "protectedPaths": ["ServerScriptService", "ReplicatedStorage.Remotes"]
+}

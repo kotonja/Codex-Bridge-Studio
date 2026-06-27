@@ -1,0 +1,37 @@
+{
+  "id": "round-loop",
+  "title": "Round Loop",
+  "genre": "universal",
+  "description": "Lobby, round start, round end, and replay contract for round-based games.",
+  "profileIds": ["universal", "arena-combat", "horror", "ruleforge"],
+  "loopStages": ["lobby", "start", "objective", "end", "replay"],
+  "ownedRoots": ["ReplicatedStorage.CodexSystems.RoundLoop", "ServerScriptService.CodexSystems.RoundLoop"],
+  "contract": {
+    "folders": ["ReplicatedStorage.CodexSystems.RoundLoop", "ServerScriptService.CodexSystems.RoundLoop"],
+    "remotes": [
+      { "name": "RoundStateChanged", "className": "RemoteEvent", "direction": "serverToClient" },
+      { "name": "RoundActionRequested", "className": "RemoteEvent", "direction": "clientToServer" }
+    ],
+    "scripts": ["ReplicatedStorage.CodexSystems.RoundLoop.Contract"],
+    "tests": ["Round remotes exist", "Round loop owned folders exist", "Contract module exists"]
+  },
+  "blueprint": {
+    "name": "Round Loop Feature Plan",
+    "mode": "supervised",
+    "steps": [
+      { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems.RoundLoop" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems.RoundLoop" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.RoundStateChanged" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.RoundActionRequested" },
+      {
+        "type": "writeScript",
+        "className": "ModuleScript",
+        "path": "ReplicatedStorage.CodexSystems.RoundLoop.Contract",
+        "source": "local Contract = {}\n\nContract.id = \"round-loop\"\nContract.states = { \"Lobby\", \"Starting\", \"InRound\", \"Ended\" }\nContract.remotes = { \"RoundStateChanged\", \"RoundActionRequested\" }\nContract.generatedBy = \"Codex Studio Bridge V15\"\n\nreturn Contract\n"
+      }
+    ]
+  }
+}

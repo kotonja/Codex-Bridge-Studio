@@ -1,0 +1,39 @@
+{
+  "name": "Horror Objective Starter",
+  "mode": "supervised",
+  "description": "Creates a dark objective starter with flashlight/objective remotes.",
+  "templateId": "horror-objective-starter",
+  "steps": [
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.ObjectiveUpdated" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.FlashlightToggled" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.FearPulse" },
+    { "type": "ensureFolder", "path": "Workspace.Objectives" },
+    { "type": "ensureFolder", "path": "Workspace.MonsterSpawns" },
+    {
+      "type": "createPart",
+      "path": "Workspace.Objectives.FirstClue",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 4, "y": 1, "z": 4 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 2, "z": -26 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 120, "g": 210, "b": 255 },
+        "Material": "Neon"
+      }
+    },
+    {
+      "type": "setLighting",
+      "properties": {
+        "ClockTime": 1,
+        "Brightness": 0.8,
+        "FogEnd": 120
+      }
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.ObjectiveService",
+      "className": "Script",
+      "source": "print(\"[ObjectiveService] horror objective starter loaded.\")\n"
+    }
+  ]
+}

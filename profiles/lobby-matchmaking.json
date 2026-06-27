@@ -1,0 +1,54 @@
+{
+  "id": "lobby-matchmaking",
+  "name": "Lobby / Matchmaking Roblox Project",
+  "genre": "lobby-matchmaking",
+  "description": "Universal lobby and matchmaking profile for queues, parties, voting, teleporters, match start, and ready-state flows.",
+  "detection": {
+    "paths": ["Workspace", "ReplicatedStorage", "ServerScriptService", "StarterGui"],
+    "scriptNames": ["Lobby", "Queue", "Matchmaking", "Party", "Vote", "Teleport", "Ready"],
+    "remoteNames": ["JoinQueue", "LeaveQueue", "VoteCast", "ReadyChanged", "MatchStart"],
+    "uiRoots": ["StarterGui"],
+    "workspaceNames": ["Lobby", "Queues", "Portals", "VotePads", "Matchmaking"]
+  },
+  "expected": {
+    "paths": [
+      { "path": "Workspace", "className": "Workspace", "severity": "error" },
+      { "path": "ReplicatedStorage", "className": "ReplicatedStorage", "severity": "error" },
+      { "path": "StarterGui", "className": "StarterGui", "severity": "warning" }
+    ],
+    "scripts": [],
+    "remotes": [],
+    "uiRoots": ["StarterGui"],
+    "workspace": ["Lobby"]
+  },
+  "expectedLoop": [
+    { "id": "join", "title": "Join Lobby" },
+    { "id": "chooseMode", "title": "Choose Mode" },
+    { "id": "queue", "title": "Enter Queue" },
+    { "id": "ready", "title": "Ready / Vote" },
+    { "id": "matchStart", "title": "Match Starts" },
+    { "id": "returnLobby", "title": "Return To Lobby" }
+  ],
+  "qaSignals": ["queue", "ready", "vote", "party", "match", "portal", "teleport"],
+  "successSignals": ["queued", "ready", "matched", "starting", "vote"],
+  "failureSignals": ["queue failed", "teleport failed", "missing", "error"],
+  "uiActions": [
+    { "id": "play", "keywords": ["play", "queue", "join"] },
+    { "id": "ready", "keywords": ["ready"] },
+    { "id": "vote", "keywords": ["vote", "map", "mode"] }
+  ],
+  "worldArchetypes": ["lobby spawn", "queue portals", "vote pads", "party area"],
+  "landmarkExpectations": [
+    { "path": "Workspace.Lobby", "purpose": "main lobby space" },
+    { "path": "Workspace.Queues", "purpose": "queue pads or portals" }
+  ],
+  "featurePriorities": ["round-loop", "reward-replay"],
+  "bugReportPriorities": [
+    "Queue does not update state",
+    "Ready button lacks feedback",
+    "Vote UI is unclear",
+    "Teleport or match start fails",
+    "Return-to-lobby loop missing"
+  ],
+  "protectedPaths": ["ServerScriptService", "ReplicatedStorage.Remotes"]
+}

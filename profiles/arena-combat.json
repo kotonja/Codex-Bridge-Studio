@@ -1,0 +1,257 @@
+{
+  "id": "arena-combat",
+  "name": "Arena Combat",
+  "genre": "combat",
+  "description": "Round-based combat arena profile.",
+  "detection": {
+    "paths": [
+      "Workspace.Arena",
+      "Workspace.Spawns",
+      "ServerScriptService.Systems",
+      "ReplicatedStorage.Remotes"
+    ],
+    "scriptNames": [
+      "CombatService",
+      "RoundService",
+      "WeaponService",
+      "DamageService"
+    ],
+    "remoteNames": [
+      "CombatRequest",
+      "RoundState",
+      "DamageNumber"
+    ],
+    "uiRoots": [
+      "StarterGui.CombatHUD"
+    ],
+    "workspaceNames": [
+      "Arena",
+      "Spawns",
+      "WeaponPads"
+    ],
+    "sourcePatterns": [
+      "CombatRequest",
+      "RoundState",
+      "DamageService"
+    ]
+  },
+  "expected": {
+    "paths": [
+      {
+        "path": "Workspace.Arena",
+        "className": "Folder",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.Spawns",
+        "className": "Folder",
+        "severity": "warning"
+      },
+      {
+        "path": "ReplicatedStorage.Remotes",
+        "className": "Folder",
+        "severity": "warning"
+      }
+    ],
+    "scripts": [],
+    "remotes": [
+      {
+        "name": "CombatRequest",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "RoundState",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "DamageNumber",
+        "className": "RemoteEvent"
+      }
+    ],
+    "uiRoots": [
+      "StarterGui.CombatHUD"
+    ],
+    "workspace": [
+      "Workspace.Arena",
+      "Workspace.Spawns",
+      "Workspace.WeaponPads"
+    ]
+  },
+  "health": {
+    "weights": {
+      "contexts": 0.12,
+      "structure": 0.16,
+      "scripts": 0.18,
+      "remotes": 0.16,
+      "ui": 0.1,
+      "world": 0.14,
+      "output": 0.1,
+      "scenarios": 0.04
+    }
+  },
+  "cleanup": {
+    "duplicateRenameSuffix": "_Arena",
+    "keepEmptyPaths": [
+      "Workspace.Arena",
+      "Workspace.Spawns",
+      "Workspace.WeaponPads",
+      "ReplicatedStorage.Remotes"
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "arena-combat-starter",
+      "title": "Arena Combat Starter",
+      "file": "blueprints/templates/arena-combat-starter.json"
+    }
+  ],
+  "visualLandmarks": [
+    "Workspace.Arena",
+    "Workspace.Spawns",
+    "Workspace.WeaponPads"
+  ],
+  "uiExpectations": {
+    "roots": [
+      "StarterGui.CombatHUD"
+    ],
+    "patterns": [
+      "health/status HUD",
+      "round timer",
+      "damage feedback"
+    ]
+  },
+  "assetCategories": {
+    "weapons": [
+      "Tool",
+      "Model"
+    ],
+    "combatVfx": [
+      "ParticleEmitter",
+      "Beam",
+      "Trail"
+    ],
+    "arena": [
+      "Part",
+      "Model",
+      "MeshPart"
+    ],
+    "audio": [
+      "Sound"
+    ]
+  },
+  "styleDefaults": {
+    "tone": "competitive arena clarity",
+    "lighting": "readable silhouettes",
+    "ui": "compact combat/round HUD"
+  },
+  "protectedPaths": [
+    "ServerScriptService.Systems",
+    "ReplicatedStorage.Remotes"
+  ],
+  "gameLoop": {
+    "lobbyPath": "Workspace.Lobby",
+    "objectivePath": "Workspace.Arena",
+    "pieces": [
+      "lobby",
+      "spawn",
+      "start",
+      "objective",
+      "failWin",
+      "reward",
+      "replay",
+      "playerFeedback"
+    ],
+    "remotes": [
+      "MatchStart",
+      "DamageDealt",
+      "RoundEnded",
+      "RewardGranted"
+    ]
+  },
+  "uiForge": {
+    "root": "StarterGui.CodexArenaCombatHUD",
+    "required": [
+      "health/status HUD",
+      "round timer",
+      "damage feedback",
+      "mobile-friendly controls"
+    ]
+  },
+  "cameraBookmarks": [
+    {
+      "name": "ArenaOverview",
+      "pathHint": "Workspace.Arena",
+      "purpose": "Review sightlines, spawns, and combat readability"
+    }
+  ],
+  "styleGuide": {
+    "tone": "competitive arena clarity",
+    "uiDensity": "compact combat/round HUD",
+    "feedback": "strong damage, round, reward, and respawn cues"
+  },
+  "assetNeeds": [
+    {
+      "category": "CombatVFX",
+      "classes": [
+        "ParticleEmitter",
+        "Beam",
+        "Trail"
+      ],
+      "purpose": "damage and ability feedback"
+    },
+    {
+      "category": "CombatAudio",
+      "classes": [
+        "Sound"
+      ],
+      "purpose": "weapon, hit, win, and countdown feedback"
+    }
+  ],
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawn", "title": "Spawn in Arena" },
+    { "id": "understandObjective", "title": "Understand Round Objective" },
+    { "id": "interactPlay", "title": "Fight / Use Ability" },
+    { "id": "receiveFeedback", "title": "Damage and Round Feedback" },
+    { "id": "failWin", "title": "Win or Lose Round" },
+    { "id": "reward", "title": "Round Reward" },
+    { "id": "replayReturn", "title": "Next Round / Replay" }
+  ],
+  "objectivePaths": [
+    "Workspace.Arena",
+    "Workspace.Spawns",
+    "Workspace.Lobby"
+  ],
+  "qaSignals": [
+    "combat",
+    "damage",
+    "round",
+    "kill",
+    "reward",
+    "respawn"
+  ],
+  "failureSignals": [
+    "died",
+    "defeat",
+    "failed",
+    "eliminated"
+  ],
+  "successSignals": [
+    "win",
+    "victory",
+    "round ended",
+    "reward"
+  ],
+  "bugReportPriorities": [
+    "spawn fairness",
+    "combat feedback",
+    "round end",
+    "reward/replay"
+  ],
+  "directorPriorities": [
+    "ui",
+    "loop",
+    "assets",
+    "autonomous"
+  ]
+}

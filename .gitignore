@@ -1,0 +1,14 @@
+node_modules/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+snapshots/
+tmp/
+.codex-studio/
+.codex/
+.agents/
+logs/
+*.out.log
+*.err.log
+bridge/*.log

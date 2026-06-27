@@ -1,0 +1,32 @@
+{
+  "name": "Simulator Coin Loop",
+  "mode": "supervised",
+  "description": "Creates collectible folders, currency remotes, and one test coin.",
+  "templateId": "simulator-coin-loop",
+  "steps": [
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.CollectCurrency" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.CurrencyUpdated" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.BuyUpgrade" },
+    { "type": "ensureFolder", "path": "Workspace.Collectibles" },
+    { "type": "ensureFolder", "path": "Workspace.UpgradePads" },
+    {
+      "type": "createPart",
+      "path": "Workspace.Collectibles.TestCoin",
+      "properties": {
+        "Anchored": true,
+        "Shape": "Ball",
+        "Size": { "__type": "Vector3", "x": 3, "y": 3, "z": 3 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 4, "z": -20 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 255, "g": 213, "b": 74 },
+        "Material": "Neon"
+      }
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.CurrencyService",
+      "className": "Script",
+      "source": "print(\"[CurrencyService] simulator currency starter loaded.\")\n"
+    }
+  ]
+}

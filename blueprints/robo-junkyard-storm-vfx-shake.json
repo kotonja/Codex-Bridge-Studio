@@ -1,0 +1,50 @@
+{
+  "name": "Robo Junkyard Storm VFX + Shake Scripts",
+  "mode": "supervised",
+  "description": "Updates storm feedback/hazard scripts, adds client camera shake, and creates VFX/feedback folders.",
+  "steps": [
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Shared" },
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Shared.Config" },
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes.Feedback" },
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Vfx" },
+    { "type": "ensureFolder", "path": "ServerScriptService.Server" },
+    { "type": "ensureFolder", "path": "ServerScriptService.Server.Services" },
+    { "type": "ensureFolder", "path": "StarterPlayer.StarterPlayerScripts.Client" },
+    {
+      "type": "writeScript",
+      "path": "ReplicatedStorage.Shared.Config.FeedbackConfig",
+      "className": "ModuleScript",
+      "overwrite": true,
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/shared/Config/FeedbackConfig.luau"
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.Server.Services.FeedbackService",
+      "className": "ModuleScript",
+      "overwrite": true,
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/FeedbackService.luau"
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.Server.Services.HazardService",
+      "className": "ModuleScript",
+      "overwrite": true,
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/HazardService.luau"
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.Server.Services.GameLoopService",
+      "className": "ModuleScript",
+      "overwrite": true,
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/GameLoopService.luau"
+    },
+    {
+      "type": "writeScript",
+      "path": "StarterPlayer.StarterPlayerScripts.Client.Effects",
+      "className": "LocalScript",
+      "overwrite": true,
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/client/Effects.client.luau"
+    }
+  ]
+}

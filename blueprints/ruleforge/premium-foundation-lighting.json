@@ -1,0 +1,462 @@
+{
+  "name": "Ruleforge Premium Foundation And Lighting",
+  "mode": "supervised",
+  "description": "Adds a readable island foundation/base and brightens Ruleforge map lighting without touching gameplay scripts.",
+  "steps": [
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeMap"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeMap.Terrain"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeMap.Readability"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights"
+    },
+    {
+      "type": "setLighting",
+      "properties": {
+        "ClockTime": 14.65,
+        "Brightness": 3.2,
+        "Ambient": { "__type": "Color3", "mode": "rgb", "r": 92, "g": 102, "b": 118 },
+        "OutdoorAmbient": { "__type": "Color3", "mode": "rgb", "r": 132, "g": 146, "b": 160 },
+        "ExposureCompensation": 0.32,
+        "ShadowSoftness": 0.42,
+        "EnvironmentDiffuseScale": 0.8,
+        "EnvironmentSpecularScale": 0.72,
+        "FogStart": 150,
+        "FogEnd": 760,
+        "FogColor": { "__type": "Color3", "mode": "rgb", "r": 132, "g": 162, "b": 178 }
+      }
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Lighting.RuleforgeAtmosphere",
+      "className": "Atmosphere",
+      "properties": {
+        "Density": 0.24,
+        "Offset": 0.12,
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 205, "g": 226, "b": 255 },
+        "Decay": { "__type": "Color3", "mode": "rgb", "r": 82, "g": 105, "b": 132 },
+        "Glare": 0.12,
+        "Haze": 1.05
+      },
+      "overwrite": true
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Lighting.RuleforgeBloom",
+      "className": "BloomEffect",
+      "properties": {
+        "Enabled": true,
+        "Intensity": 0.36,
+        "Size": 24,
+        "Threshold": 1.15
+      },
+      "overwrite": true
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Lighting.RuleforgeColorGrade",
+      "className": "ColorCorrectionEffect",
+      "properties": {
+        "Enabled": true,
+        "Brightness": 0.08,
+        "Contrast": 0.08,
+        "Saturation": 0.08,
+        "TintColor": { "__type": "Color3", "mode": "rgb", "r": 226, "g": 238, "b": 255 }
+      },
+      "overwrite": true
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Lighting.RuleforgeSunRays",
+      "className": "SunRaysEffect",
+      "properties": {
+        "Enabled": true,
+        "Intensity": 0.035,
+        "Spread": 0.72
+      },
+      "overwrite": true
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.ReadableOceanPlane",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": 0, "y": -1.55, "z": 18 },
+        "Size": { "__type": "Vector3", "x": 560, "y": 0.2, "z": 560 },
+        "Material": "ForceField",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 22, "g": 98, "b": 116 },
+        "Transparency": 0.34
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.IslandStoneCore",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": -8, "z": 14 },
+        "Size": { "__type": "Vector3", "x": 380, "y": 16, "z": 360 },
+        "Material": "Slate",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 38, "g": 47, "b": 50 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.CenterGroundPlate",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": -0.45, "z": 8 },
+        "Size": { "__type": "Vector3", "x": 322, "y": 1.2, "z": 270 },
+        "Material": "Concrete",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 62, "g": 74, "b": 66 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.NorthGroundShelf",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": -0.25, "z": -126 },
+        "Size": { "__type": "Vector3", "x": 268, "y": 1.4, "z": 112 },
+        "Material": "Slate",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 54, "g": 65, "b": 62 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.SouthGroundShelf",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": -0.25, "z": 139 },
+        "Size": { "__type": "Vector3", "x": 230, "y": 1.4, "z": 142 },
+        "Material": "Concrete",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 60, "g": 74, "b": 78 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.WestGroundShelf",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": -146, "y": -0.35, "z": -8 },
+        "Size": { "__type": "Vector3", "x": 112, "y": 1.25, "z": 236 },
+        "Material": "Slate",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 52, "g": 64, "b": 57 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.EastGroundShelf",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 146, "y": -0.35, "z": -8 },
+        "Size": { "__type": "Vector3", "x": 112, "y": 1.25, "z": 236 },
+        "Material": "Slate",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 52, "g": 64, "b": 57 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.ExtractionApproachFoundation",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": -0.4, "z": 167 },
+        "Size": { "__type": "Vector3", "x": 148, "y": 1.2, "z": 106 },
+        "Material": "Metal",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 48, "g": 62, "b": 68 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.NorthCliffSkirt",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": -9.5, "z": -188 },
+        "Size": { "__type": "Vector3", "x": 342, "y": 23, "z": 18 },
+        "Material": "Rock",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 33, "g": 39, "b": 42 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.SouthCliffSkirt",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": -9.5, "z": 226 },
+        "Size": { "__type": "Vector3", "x": 270, "y": 23, "z": 18 },
+        "Material": "Rock",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 33, "g": 39, "b": 42 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.WestCliffSkirt",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": -205, "y": -9.5, "z": 10 },
+        "Size": { "__type": "Vector3", "x": 18, "y": 23, "z": 320 },
+        "Material": "Rock",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 31, "g": 38, "b": 40 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.EastCliffSkirt",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 205, "y": -9.5, "z": 10 },
+        "Size": { "__type": "Vector3", "x": 18, "y": 23, "z": 320 },
+        "Material": "Rock",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 31, "g": 38, "b": 40 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.NorthShorelineGlow",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": 0, "y": 0.55, "z": -178 },
+        "Size": { "__type": "Vector3", "x": 332, "y": 0.18, "z": 2.4 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 54, "g": 202, "b": 255 },
+        "Transparency": 0.52
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.SouthShorelineGlow",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": 0, "y": 0.55, "z": 212 },
+        "Size": { "__type": "Vector3", "x": 260, "y": 0.18, "z": 2.4 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 54, "g": 202, "b": 255 },
+        "Transparency": 0.48
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.WestShorelineGlow",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": -191, "y": 0.55, "z": 4 },
+        "Size": { "__type": "Vector3", "x": 2.4, "y": 0.18, "z": 302 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 54, "g": 202, "b": 255 },
+        "Transparency": 0.58
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Terrain.PremiumFoundation.EastShorelineGlow",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": 191, "y": 0.55, "z": 4 },
+        "Size": { "__type": "Vector3", "x": 2.4, "y": 0.18, "z": 302 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 54, "g": 202, "b": 255 },
+        "Transparency": 0.58
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.CenterFillAnchor",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": 0, "y": 44, "z": 0 },
+        "Size": { "__type": "Vector3", "x": 2, "y": 2, "z": 2 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 185, "g": 210, "b": 255 },
+        "Transparency": 1
+      }
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.CenterFillAnchor.PointLight",
+      "className": "PointLight",
+      "overwrite": true,
+      "properties": {
+        "Brightness": 1.45,
+        "Range": 132,
+        "Shadows": false,
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 185, "g": 210, "b": 255 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.BankFillAnchor",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": 0, "y": 34, "z": 78 },
+        "Size": { "__type": "Vector3", "x": 2, "y": 2, "z": 2 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 255, "g": 205, "b": 118 },
+        "Transparency": 1
+      }
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.BankFillAnchor.PointLight",
+      "className": "PointLight",
+      "overwrite": true,
+      "properties": {
+        "Brightness": 1.35,
+        "Range": 96,
+        "Shadows": false,
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 255, "g": 205, "b": 118 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.ExtractionFillAnchor",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": 0, "y": 36, "z": 158 },
+        "Size": { "__type": "Vector3", "x": 2, "y": 2, "z": 2 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 220, "b": 255 },
+        "Transparency": 1
+      }
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.ExtractionFillAnchor.PointLight",
+      "className": "PointLight",
+      "overwrite": true,
+      "properties": {
+        "Brightness": 1.65,
+        "Range": 104,
+        "Shadows": false,
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 220, "b": 255 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.NorthSpawnFillAnchor",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": 0, "y": 34, "z": -118 },
+        "Size": { "__type": "Vector3", "x": 2, "y": 2, "z": 2 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 170, "g": 220, "b": 255 },
+        "Transparency": 1
+      }
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.NorthSpawnFillAnchor.PointLight",
+      "className": "PointLight",
+      "overwrite": true,
+      "properties": {
+        "Brightness": 1.05,
+        "Range": 126,
+        "Shadows": false,
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 170, "g": 220, "b": 255 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.WestFillAnchor",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": -144, "y": 32, "z": 30 },
+        "Size": { "__type": "Vector3", "x": 2, "y": 2, "z": 2 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 190, "g": 215, "b": 255 },
+        "Transparency": 1
+      }
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.WestFillAnchor.PointLight",
+      "className": "PointLight",
+      "overwrite": true,
+      "properties": {
+        "Brightness": 0.95,
+        "Range": 92,
+        "Shadows": false,
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 190, "g": 215, "b": 255 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.EastFillAnchor",
+      "overwrite": true,
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "CanQuery": false,
+        "Position": { "__type": "Vector3", "x": 144, "y": 32, "z": 30 },
+        "Size": { "__type": "Vector3", "x": 2, "y": 2, "z": 2 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 190, "g": 215, "b": 255 },
+        "Transparency": 1
+      }
+    },
+    {
+      "type": "ensureInstance",
+      "path": "Workspace.RuleforgeMap.Readability.FillLights.EastFillAnchor.PointLight",
+      "className": "PointLight",
+      "overwrite": true,
+      "properties": {
+        "Brightness": 0.95,
+        "Range": 92,
+        "Shadows": false,
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 190, "g": 215, "b": 255 }
+      }
+    }
+  ]
+}

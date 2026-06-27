@@ -1,0 +1,772 @@
+'use strict';
+
+const childProcess = require('node:child_process');
+const crypto = require('node:crypto');
+const fs = require('node:fs');
+const http = require('node:http');
+const path = require('node:path');
+
+const VERSION = '0.61.1';
+const ROOT = path.resolve(__dirname, '..');
+const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
+const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
+const SUPERVISOR_SCRIPT = path.join(ROOT, 'bridge', 'supervisor.js');
+const LOG_DIR = path.join(ROOT, '.codex-studio', 'mcp-proxy');
+const DEFAULT_READ_TIMEOUT_MS = Number(process.env.CODEX_STUDIO_MCP_PROXY_HTTP_MS || 2500);
+const DEFAULT_COMMAND_TIMEOUT_MS = Number(process.env.CODEX_STUDIO_MCP_PROXY_COMMAND_MS || 20000);
+const TERMINAL_STATUSES = new Set(['executed', 'failed', 'rejected', 'blockedExternalRisk', 'cancelledByPairReset', 'duplicateIgnored']);
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function safeJson(value) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return JSON.stringify({ ok: false, error: 'JSON serialization failed.' });
+  }
+}
+
+function redacted(value, depth = 0) {
+  if (depth > 7) return '[MaxDepth]';
+  if (value === null || value === undefined) return value === undefined ? null : value;
+  if (typeof value === 'string') return value.length > 1500 ? `${value.slice(0, 1500)}...[truncated ${value.length}]` : value;
+  if (typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.slice(0, 80).map((item) => redacted(item, depth + 1));
+  const output = {};
+  for (const [key, raw] of Object.entries(value)) {
+    const lower = key.toLowerCase();
+    if (lower.includes('token') || lower === 'source' || lower === 'newsource' || lower === 'oldsource' || lower === 'payload' || lower.includes('patch')) {
+      output[key] = '[redacted]';
+    } else {
+      output[key] = redacted(raw, depth + 1);
+    }
+  }
+  return output;
+}
+
+function compactPlace(place) {
+  if (!place || typeof place !== 'object') return null;
+  return {
+    studioId: place.studioId,
+    placeId: place.placeId,
+    placeName: place.placeName,
+    gameId: place.gameId,
+    runtimeMode: place.runtimeMode,
+    connected: place.connected,
+    stale: place.stale,
+    heartbeatAgeMs: place.heartbeatAgeMs,
+    pluginVersion: place.pluginVersion,
+    commandQueueLength: place.commandQueueLength,
+  };
+}
+
+function compactHealth(health) {
+  if (!health || typeof health !== 'object') return health || null;
+  return {
+    ok: health.ok,
+    version: health.version,
+    paired: health.paired,
+    studioConnected: health.studioConnected,
+    pairingCode: health.pairingCode,
+    activeStudioId: health.activeStudioId,
+    activePlace: compactPlace(health.activePlace),
+    connectedPlaces: Array.isArray(health.places)
+      ? health.places.filter((place) => place.connected && !place.stale).map(compactPlace)
+      : [],
+    awareness: health.awareness ? {
+      fresh: health.awareness.fresh,
+      activeContextType: health.awareness.activeContextType,
+      latestAgeMs: health.awareness.latestAgeMs,
+      bufferSize: health.awareness.bufferSize,
+    } : null,
+    supervisor: health.supervisor ? {
+      running: health.supervisor.running,
+      heartbeatAgeMs: health.supervisor.heartbeatAgeMs,
+      mcpDuplicateCount: health.supervisor.mcpDuplicateCount,
+    } : null,
+  };
+}
+
+function compactPlaces(places) {
+  if (!places || typeof places !== 'object') return places || null;
+  return {
+    ok: places.ok,
+    version: places.version,
+    activeStudioId: places.activeStudioId,
+    activePlaceId: places.activePlaceId,
+    connectedCount: places.connectedCount,
+    places: Array.isArray(places.places) ? places.places.map(compactPlace) : [],
+  };
+}
+
+function compactTransport(transport) {
+  if (!transport || typeof transport !== 'object') return transport || null;
+  return {
+    ok: transport.ok,
+    version: transport.version,
+    status: transport.status,
+    studioMcp: transport.studioMcp ? {
+      ok: transport.studioMcp.ok,
+      studios: transport.studioMcp.studios,
+      proxies: transport.studioMcp.proxies,
+      toolsCached: transport.studioMcp.toolsCached,
+      error: transport.studioMcp.error,
+    } : null,
+    studioBridge: transport.studioBridge ? {
+      localBridgeHealthy: transport.studioBridge.localBridgeHealthy,
+      activeStudioId: transport.studioBridge.activeStudioId,
+      placeCount: transport.studioBridge.placeCount,
+      connectedPlaces: Array.isArray(transport.studioBridge.connectedPlaces)
+        ? transport.studioBridge.connectedPlaces.map(compactPlace)
+        : [],
+    } : null,
+    diagnostics: transport.diagnostics || null,
+    codexInternalMcp: transport.codexInternalMcp ? {
+      likelyFailureWhenToolSaysTransportClosed: transport.codexInternalMcp.likelyFailureWhenToolSaysTransportClosed,
+      canLocalBridgeReopenPrivateSocket: transport.codexInternalMcp.canLocalBridgeReopenPrivateSocket,
+      recovery: transport.codexInternalMcp.recovery,
+    } : null,
+    nextCommand: transport.nextCommand,
+  };
+}
+
+function compactContext(context) {
+  if (!context || typeof context !== 'object') return context || null;
+  return {
+    ok: context.ok,
+    version: context.version,
+    mode: context.mode,
+    connection: context.connection ? {
+      paired: context.connection.paired,
+      studioConnected: context.connection.studioConnected,
+      pluginVersion: context.connection.pluginVersion,
+      versionMatch: context.connection.versionMatch,
+      activeStudioId: context.connection.activeStudioId,
+      place: compactPlace(context.connection.place),
+    } : null,
+    playContext: context.playContext || null,
+    player: context.player || null,
+    character: context.character ? {
+      position: context.character.position,
+      health: context.character.health,
+      state: context.character.state,
+    } : null,
+    camera: context.camera || null,
+    ui: context.ui ? {
+      screenCount: context.ui.screenCount,
+      visibleObjects: context.ui.visibleObjects,
+      buttons: context.ui.buttons,
+      textObjects: context.ui.textObjects,
+      topText: context.ui.topText,
+    } : null,
+    latestOutputIssue: context.latestOutputIssue || null,
+    commandFlow: context.commandFlow ? {
+      queued: context.commandFlow.queued,
+      manualFallbackPending: context.commandFlow.manualFallbackPending,
+      recentCount: context.commandFlow.recentCount,
+      slowCommandCount: Array.isArray(context.commandFlow.slowCommands) ? context.commandFlow.slowCommands.length : 0,
+    } : null,
+    readiness: context.readiness || null,
+    freshness: context.freshness ? {
+      source: context.freshness.source,
+      fresh: context.freshness.fresh,
+      ageMs: context.freshness.ageMs,
+      staleReason: context.freshness.staleReason,
+      fallbackSource: context.freshness.fallbackSource,
+    } : null,
+    summary: context.summary,
+    nextAction: context.nextAction,
+  };
+}
+
+function compactWatch(watch) {
+  if (!watch || typeof watch !== 'object') return watch || null;
+  return {
+    ok: watch.ok,
+    version: watch.version,
+    mode: watch.mode,
+    fresh: watch.fresh,
+    status: watch.status ? {
+      latestAgeMs: watch.status.latestAgeMs,
+      activeContextType: watch.status.activeContextType,
+      activeSource: watch.status.activeSource,
+      fresh: watch.status.fresh,
+      bufferSize: watch.status.bufferSize,
+      recent10s: watch.status.recent10s,
+      dropped: watch.status.dropped,
+      trimmed: watch.status.trimmed,
+    } : null,
+    current: watch.current ? {
+      at: watch.current.at,
+      contextType: watch.current.contextType,
+      source: watch.current.source,
+      player: watch.current.player,
+      character: watch.current.character ? {
+        position: watch.current.character.position,
+        health: watch.current.character.health,
+        state: watch.current.character.state,
+      } : null,
+      camera: watch.current.camera,
+      ui: watch.current.ui ? {
+        screenCount: watch.current.ui.screenCount,
+        visibleObjects: watch.current.ui.visibleObjects,
+        buttons: watch.current.ui.buttons,
+        textObjects: watch.current.ui.textObjects,
+        topText: watch.current.ui.topText,
+      } : null,
+    } : null,
+    recentMomentCount: Array.isArray(watch.recentMoments) ? watch.recentMoments.length : 0,
+    latestOutputIssue: watch.latestOutputIssue || null,
+    loop: watch.loop ? {
+      coverage: watch.loop.coverage,
+      nextMissing: watch.loop.nextMissing,
+    } : null,
+    summary: watch.summary,
+    nextCommand: watch.nextCommand,
+  };
+}
+
+function appendLog(event) {
+  try {
+    fs.mkdirSync(LOG_DIR, { recursive: true });
+    fs.appendFileSync(path.join(LOG_DIR, 'mcp-proxy.log'), `${JSON.stringify({ at: nowIso(), version: VERSION, ...redacted(event) })}\n`, 'utf8');
+  } catch {
+    // Logging is best-effort and must never affect tool calls.
+  }
+}
+
+function httpJson(method, endpoint, body, timeoutMs = DEFAULT_READ_TIMEOUT_MS) {
+  const url = new URL(endpoint, BASE_URL);
+  const payload = body === undefined ? null : Buffer.from(JSON.stringify(body), 'utf8');
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: url.hostname,
+      port: url.port,
+      path: `${url.pathname}${url.search}`,
+      method,
+      timeout: timeoutMs,
+      headers: payload ? {
+        'Content-Type': 'application/json',
+        'Content-Length': payload.length,
+      } : {},
+    }, (res) => {
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => {
+        const text = Buffer.concat(chunks).toString('utf8');
+        let parsed = {};
+        try {
+          parsed = text ? JSON.parse(text) : {};
+        } catch {
+          parsed = { raw: text };
+        }
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          const error = new Error((parsed && parsed.error && (parsed.error.message || parsed.error)) || `HTTP ${res.statusCode}`);
+          error.statusCode = res.statusCode;
+          error.body = parsed;
+          reject(error);
+          return;
+        }
+        resolve(parsed);
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error(`Timed out after ${timeoutMs}ms`)));
+    req.on('error', reject);
+    if (payload) req.write(payload);
+    req.end();
+  });
+}
+
+async function bridgeHealth(timeoutMs = 900) {
+  try {
+    return { ok: true, body: await httpJson('GET', '/health', undefined, timeoutMs) };
+  } catch (error) {
+    return { ok: false, error: error.message, code: 'bridgeOffline' };
+  }
+}
+
+function spawnDetached(scriptPath, args = []) {
+  try {
+    if (!fs.existsSync(scriptPath)) return { ok: false, error: `Missing script: ${scriptPath}` };
+    const child = childProcess.spawn(process.execPath, [scriptPath, ...args], {
+      cwd: ROOT,
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true,
+    });
+    child.unref();
+    return { ok: true, pid: child.pid };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+}
+
+async function ensureBridge() {
+  const first = await bridgeHealth(900);
+  if (first.ok) return { ok: true, started: false, health: first.body };
+
+  const supervisor = spawnDetached(SUPERVISOR_SCRIPT, ['run']);
+  for (let i = 0; i < 10; i += 1) {
+    await sleep(300);
+    const check = await bridgeHealth(900);
+    if (check.ok) return { ok: true, started: true, via: 'supervisor', supervisor, health: check.body };
+  }
+
+  const server = spawnDetached(SERVER_SCRIPT, []);
+  for (let i = 0; i < 10; i += 1) {
+    await sleep(300);
+    const check = await bridgeHealth(900);
+    if (check.ok) return { ok: true, started: true, via: 'server', supervisor, server, health: check.body };
+  }
+
+  return {
+    ok: false,
+    code: 'bridgeOffline',
+    error: 'StudioBridge HTTP server did not respond after bounded auto-start attempts.',
+    firstError: first.error,
+    supervisor,
+    server,
+    recovery: [
+      'Run .\\tools\\bridge.cmd always-on status',
+      'Run .\\tools\\bridge.cmd always-on start',
+      'Run .\\tools\\bridge.cmd pair code',
+    ],
+  };
+}
+
+async function requestBridge(method, endpoint, body, timeoutMs) {
+  const ready = await ensureBridge();
+  if (!ready.ok) return { ok: false, ...ready };
+  try {
+    return await httpJson(method, endpoint, body, timeoutMs);
+  } catch (error) {
+    return {
+      ok: false,
+      code: error.statusCode === 409 ? 'activePlaceStale' : (error.statusCode === 404 ? 'studioNotPaired' : 'bridgeRequestFailed'),
+      error: error.message,
+      statusCode: error.statusCode || null,
+      details: error.body || null,
+      bridge: redacted(ready.health || null),
+    };
+  }
+}
+
+async function waitForCommand(id, timeoutMs = DEFAULT_COMMAND_TIMEOUT_MS) {
+  const startedAt = Date.now();
+  let last = null;
+  while (Date.now() - startedAt < timeoutMs) {
+    const snapshot = await requestBridge('GET', '/codex/commands?full=1', undefined, 3500);
+    if (!snapshot || snapshot.ok === false) return snapshot;
+    const command = Array.isArray(snapshot.commands) ? snapshot.commands.find((item) => item.id === id) : null;
+    if (command) {
+      last = command;
+      if (TERMINAL_STATUSES.has(command.status)) return command;
+    }
+    await sleep(250);
+  }
+  return {
+    ok: false,
+    code: 'commandTimedOut',
+    id,
+    lastStatus: last ? last.status : null,
+    command: redacted(last),
+    recovery: 'Run .\\tools\\bridge.cmd commands --full to inspect the command, then .\\tools\\bridge.cmd places to verify the target place is fresh.',
+  };
+}
+
+async function queueStudioCommand(type, payload = {}, options = {}) {
+  const body = {
+    id: options.id || crypto.randomUUID(),
+    type,
+    payload,
+  };
+  if (options.requiresApproval !== undefined) body.requiresApproval = options.requiresApproval;
+  if (options.targetStudioId) body.targetStudioId = options.targetStudioId;
+  if (options.targetPlaceId) body.targetPlaceId = options.targetPlaceId;
+  if (options.targetPlaceName) body.targetPlaceName = options.targetPlaceName;
+
+  const queued = await requestBridge('POST', '/codex/commands', body, 3500);
+  if (!queued || queued.ok === false) return queued;
+  const command = queued.commands && queued.commands[0];
+  if (!command || !command.id) return { ok: false, code: 'commandQueueFailed', response: queued };
+  const result = await waitForCommand(command.id, options.timeoutMs || DEFAULT_COMMAND_TIMEOUT_MS);
+  if (!result || result.ok === false) return result;
+  if (result.status === 'executed') return { ok: true, command: redacted(result), result: result.result };
+  return { ok: false, code: result.status || 'commandFailed', command: redacted(result), error: result.error || null };
+}
+
+async function readCommand(type, payload = {}, options = {}) {
+  return queueStudioCommand(type, payload, { ...options, requiresApproval: false, timeoutMs: options.timeoutMs || DEFAULT_COMMAND_TIMEOUT_MS });
+}
+
+async function mutationCommand(type, payload = {}, options = {}) {
+  return queueStudioCommand(type, payload, { ...options, requiresApproval: true, timeoutMs: options.timeoutMs || DEFAULT_COMMAND_TIMEOUT_MS });
+}
+
+function basePayload(args = {}) {
+  const payload = { helperVersion: args.helperVersion || VERSION };
+  const expectedVersion = args.expectedVersion || args.pluginVersion || args.bridgeVersion;
+  if (expectedVersion) payload.expectedVersion = expectedVersion;
+  return payload;
+}
+
+function selectorPayload(args = {}) {
+  const payload = {};
+  for (const key of ['id', 'path', 'name', 'text', 'target', 'targetId']) {
+    if (args[key] !== undefined && args[key] !== null && String(args[key]).trim() !== '') payload[key] = args[key];
+  }
+  return payload;
+}
+
+function outputQuery(args = {}) {
+  const mode = String(args.mode || (args.history || args.full ? 'history' : 'current'));
+  const limit = Math.max(1, Math.min(Number(args.limit || args.maxResults || 50), 500));
+  const includeNoise = args.includeNoise || args.all ? '&includeNoise=1' : '';
+  return `/codex/output/v2?mode=${encodeURIComponent(mode)}&limit=${encodeURIComponent(limit)}${includeNoise}`;
+}
+
+async function freshReadCommand(type, payload = {}, meta = {}) {
+  const result = await readCommand(type, payload);
+  return {
+    ok: result && result.ok !== false,
+    version: VERSION,
+    at: nowIso(),
+    freshness: {
+      source: 'StudioBridge proxy read command',
+      bounded: true,
+      historyIncluded: false,
+      maxResults: payload.maxResults || payload.maxNodes || payload.limit || null,
+    },
+    contract: meta,
+    result,
+  };
+}
+
+async function listRobloxStudios(args) {
+  const places = await requestBridge('GET', '/codex/places', undefined, 2500);
+  const mcp = await requestBridge('GET', '/codex/mcp-transport', undefined, 2500);
+  if (places && places.ok === false) return places;
+  return {
+    ok: true,
+    source: 'StudioBridge MCP proxy',
+    places: compactPlaces(places),
+    rawStudioMcp: mcp && mcp.ok !== false ? compactTransport(mcp).studioMcp : compactTransport(mcp),
+    targetHint: args && args.place ? `Use place_use or pass place=${args.place}` : 'Use place_use to switch active place when several places are connected.',
+  };
+}
+
+async function getStudioState() {
+  const [health, context, watch, mcp] = await Promise.all([
+    requestBridge('GET', '/health', undefined, 2500),
+    requestBridge('GET', '/codex/context', undefined, 2500),
+    requestBridge('GET', '/codex/watch', undefined, 2500),
+    requestBridge('GET', '/codex/mcp-transport', undefined, 2500),
+  ]);
+  return { ok: true, health: compactHealth(health), context: compactContext(context), watch: compactWatch(watch), mcpTransport: compactTransport(mcp) };
+}
+
+const toolHandlers = {
+  bridge_health: async () => compactHealth(await requestBridge('GET', '/health', undefined, 2500)),
+  pairing_status: async () => requestBridge('GET', '/pairing', undefined, 2500),
+  list_roblox_studios: listRobloxStudios,
+  get_studio_state: getStudioState,
+  get_console_output: async (args) => requestBridge('GET', outputQuery(args), undefined, 2500),
+  get_output_errors: async (args) => requestBridge('GET', outputQuery({ ...args, mode: 'errors' }), undefined, 2500),
+  mark_output_baseline: async () => requestBridge('POST', '/codex/output-baseline', { action: 'mark' }, 2500),
+  place_use: async (args) => requestBridge('POST', '/codex/place/use', { selector: args.selector || args.place || args.name || args.placeId || args.studioId }, 3500),
+  codex_context: async () => compactContext(await requestBridge('GET', '/codex/context', undefined, 2500)),
+  watch_now: async () => compactWatch(await requestBridge('GET', '/codex/watch', undefined, 2500)),
+  test_snapshot: async (args) => readCommand('getTestSnapshot', { ...basePayload(args), ...args }),
+  test_move: async (args) => mutationCommand('moveTestCharacter', { ...basePayload(args), x: Number(args.x || 0), y: Number(args.y || 0), z: Number(args.z || 0), vector: args.vector }),
+  test_teleport: async (args) => mutationCommand('teleportTestCharacter', { ...basePayload(args), x: Number(args.x || 0), y: Number(args.y || 0), z: Number(args.z || 0), vector: args.vector }),
+  test_jump: async (args) => mutationCommand('jumpTestCharacter', { ...basePayload(args), ...args }),
+  get_tree: async (args) => freshReadCommand('getTree', { path: args.path || args.root || 'Workspace', depth: Number(args.depth || 3), maxNodes: Number(args.maxNodes || args.limit || 500) }, { defaultMode: 'boundedFreshTree' }),
+  search_game_tree: async (args) => freshReadCommand('searchInstances', { query: args.query || args.text || '', maxResults: Number(args.maxResults || args.limit || 100) }, { defaultMode: 'boundedInstanceSearch' }),
+  script_search: async (args) => freshReadCommand(args.source ? 'searchSource' : 'searchScripts', { query: args.query || args.text || args.source || '', contextLines: Number(args.contextLines || 2), maxResults: Number(args.maxResults || args.limit || 100) }, { defaultMode: 'boundedScriptSearch' }),
+  script_read: async (args) => freshReadCommand('readScriptSource', { path: args.path || args.script || args.query, instanceId: args.instanceId || args.id }, { defaultMode: 'explicitScriptRead', fullSource: Boolean(args.full || args.source) }),
+  screen_capture: async (args) => readCommand('getVisualCaptureReport', { ...basePayload(args), ...args }),
+  start_stop_play: async (args) => {
+    const action = String(args.action || args.mode || 'status').toLowerCase();
+    if (action === 'status') return readCommand('getStudioPlayControlStatus', { ...basePayload(args), ...args });
+    if (action === 'start' || action === 'play' || action === 'run') return mutationCommand('requestStartPlay', { ...basePayload(args), mode: action, ...args });
+    if (action === 'stop' || action === 'end') return mutationCommand('requestStopPlay', { ...basePayload(args), ...args });
+    if (action === 'restart') return mutationCommand('requestRestartPlay', { ...basePayload(args), ...args });
+    return { ok: false, code: 'invalidPlayAction', error: 'Use action=start, stop, restart, or status.' };
+  },
+  user_mouse_input: async (args) => mutationCommand('applyUiClickAction', { ...basePayload(args), ...selectorPayload(args), source: 'mcpProxyMouseInput' }),
+  user_keyboard_input: async (args) => ({
+    ok: false,
+    code: 'manualRequired',
+    reason: 'Generic keyboard injection is not exposed through the safe StudioBridge proxy.',
+    alternatives: ['Use action_ui_list then user_mouse_input for UI targets.', 'Use test_move/test_jump/test_teleport for player actions.'],
+    requested: redacted(args),
+  }),
+  action_ui_list: async (args) => readCommand('getUiActionTargets', { ...basePayload(args), ...selectorPayload(args), limit: Number(args.limit || 200) }),
+  action_prompt_list: async (args) => readCommand('getPromptActionTargets', { ...basePayload(args), ...selectorPayload(args), limit: Number(args.limit || 200) }),
+  animation_rigs: async (args) => readCommand('getAnimationRigInventory', { ...basePayload(args), path: args.path || args.root || 'Workspace' }),
+  create_animation: async (args) => mutationCommand('saveGeneratedAnimation', { ...basePayload(args), rigPath: args.rigPath, animation: args.animation || args.spec, animationPath: args.animationPath, path: args.path }),
+  preview_animation: async (args) => mutationCommand('previewAnimation', { ...basePayload(args), rigPath: args.rigPath, animationPath: args.animationPath || args.path, animation: args.animation || args.spec }),
+  scrub_animation: async (args) => mutationCommand('scrubAnimationPreview', { ...basePayload(args), rigPath: args.rigPath, animationPath: args.animationPath || args.path, path: args.animationPath || args.path, time: Number(args.time || args.seconds || 0) }),
+  vfx_inventory: async (args) => readCommand('getVfxInventory', { ...basePayload(args), path: args.path || args.root || 'Workspace' }),
+  generate_vfx: async (args) => mutationCommand('generateVfxFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', targetPath: args.targetPath, assetRoot: args.assetRoot }),
+  generate_pro_vfx: async (args) => mutationCommand('generateProVfxFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', targetPath: args.targetPath, assetRoot: args.assetRoot }),
+  motion_vfx_generate: async (args) => mutationCommand('generateMotionVfxPackage', { ...basePayload(args), intent: args.intent || args.text || '', rigPath: args.rigPath, targetPath: args.targetPath, assetRoot: args.assetRoot }),
+  ability_generate: async (args) => mutationCommand('generateAbilityFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', rigPath: args.rigPath, targetPath: args.targetPath }),
+  audio_inventory: async (args) => readCommand('getAudioInventory', { ...basePayload(args), path: args.path || args.root || 'SoundService' }),
+  audio_audit: async (args) => readCommand('getAudioQualityAudit', { ...basePayload(args), path: args.path || args.root || 'Workspace' }),
+  audio_plan: async (args) => readCommand('getAudioMixPlan', { ...basePayload(args), intent: args.intent || args.text || args.profile || 'balanced', profile: args.profile }),
+  audio_mix: async (args) => mutationCommand('applyAudioMixPlan', { ...basePayload(args), intent: args.intent || args.text || args.profile || 'balanced', profile: args.profile }),
+  audio_live: async (args) => readCommand('getAudioLiveMonitorStatus', { ...basePayload(args), path: args.path || args.root }),
+  sync_audio: async (args) => mutationCommand('syncAudioToPackage', { ...basePayload(args), path: args.path || args.packagePath || args.animationPath || args.vfxPath, packagePath: args.packagePath }),
+  build_styles: async (args) => readCommand('getBuildStyleCatalog', { ...basePayload(args), ...args }),
+  build_plan: async (args) => readCommand('getBuildIntentPlan', { ...basePayload(args), intent: args.intent || args.text || '' }),
+  generate_model: async (args) => mutationCommand('generateModelFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', targetPath: args.targetPath, assetRoot: args.assetRoot }),
+  generate_scene: async (args) => mutationCommand('generateSceneFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', targetPath: args.targetPath, assetRoot: args.assetRoot }),
+  audit_build: async (args) => readCommand('getBuildQualityAudit', { ...basePayload(args), path: args.path || args.modelPath || args.targetPath, modelPath: args.modelPath || args.path }),
+  polish_build: async (args) => mutationCommand('polishGeneratedBuild', { ...basePayload(args), path: args.path || args.modelPath || args.targetPath, modelPath: args.modelPath || args.path }),
+  optimize_build: async (args) => mutationCommand('optimizeGeneratedBuild', { ...basePayload(args), path: args.path || args.modelPath || args.targetPath, modelPath: args.modelPath || args.path }),
+  roblox_brain: async (args) => mutationCommand('executeRobloxBrainPlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: args.action || 'build' }),
+  build_game: async (args) => mutationCommand('buildGameFromGoal', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: 'build' }),
+  improve_game: async (args) => mutationCommand('improveGameFromGoal', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', action: 'improve' }),
+  test_game: async (args) => mutationCommand('testGameFromGoal', { ...basePayload(args), goal: args.goal || args.intent || args.text || 'full game QA', intent: args.intent || args.goal || args.text || 'full game QA', action: 'test' }),
+  polish_game: async (args) => mutationCommand('polishGameFromGoal', { ...basePayload(args), goal: args.goal || args.intent || args.text || 'premium game polish', intent: args.intent || args.goal || args.text || 'premium game polish', action: 'polish' }),
+  execute_luau: async (args) => ({
+    ok: false,
+    code: 'unsupportedUnsafeRawExecution',
+    reason: 'The durable StudioBridge MCP proxy does not provide hidden arbitrary Luau execution.',
+    alternatives: ['script_search', 'script_read', 'search_game_tree', 'create_animation', 'generate_vfx', 'test_move', 'start_stop_play'],
+    requested: redacted(args),
+  }),
+};
+
+const toolDefinitions = [
+  ['bridge_health', 'Return StudioBridge HTTP health and version.', {}],
+  ['pairing_status', 'Return current pairing code/state for the StudioBridge plugin.', {}],
+  ['list_roblox_studios', 'List StudioBridge paired/open places and raw StudioMCP health if available.', { place: { type: 'string' } }],
+  ['get_studio_state', 'Return active Studio state, fast Codex context, watch summary, and transport diagnostics.', {}],
+  ['get_console_output', 'Return fresh baseline-aware Output by default; use mode=history for old logs.', { mode: { type: 'string', enum: ['current', 'recent', 'history', 'errors', 'warnings', 'all'] }, limit: { type: 'number' }, includeNoise: { type: 'boolean' } }],
+  ['get_output_errors', 'Return current grouped actionable Output errors/warnings since baseline.', { limit: { type: 'number' } }],
+  ['mark_output_baseline', 'Mark the current Output baseline so future reads ignore old history.', {}],
+  ['place_use', 'Switch the active StudioBridge place.', { selector: { type: 'string' } }],
+  ['codex_context', 'Return fast live Codex context.', {}],
+  ['watch_now', 'Return compact Smart Watch state.', {}],
+  ['get_tree', 'Return a bounded fresh Roblox game tree report.', { path: { type: 'string' }, depth: { type: 'number' }, maxNodes: { type: 'number' } }],
+  ['search_game_tree', 'Search Roblox game tree instances.', { query: { type: 'string' }, maxResults: { type: 'number' } }],
+  ['script_search', 'Search scripts or source text.', { query: { type: 'string' }, source: { type: 'string' }, maxResults: { type: 'number' } }],
+  ['script_read', 'Read script source by path or instance id.', { path: { type: 'string' }, instanceId: { type: 'string' } }],
+  ['screen_capture', 'Return screenshot/capture status or structured visual fallback.', { path: { type: 'string' } }],
+  ['start_stop_play', 'Start, stop, restart, or inspect Play mode. Defaults to manual-watch; pass allowStudioTestServiceApi=true only when debugging the risky Studio API path.', { action: { type: 'string', enum: ['status', 'start', 'stop', 'restart', 'run'] }, allowStudioTestServiceApi: { type: 'boolean' } }],
+  ['user_mouse_input', 'Attempt a safe UI click action by id/path/name/text through StudioBridge.', { id: { type: 'string' }, path: { type: 'string' }, text: { type: 'string' }, name: { type: 'string' } }],
+  ['user_keyboard_input', 'Report safe keyboard-input alternatives.', { text: { type: 'string' } }],
+  ['action_ui_list', 'List actionable visible UI targets.', { text: { type: 'string' }, name: { type: 'string' }, id: { type: 'string' } }],
+  ['action_prompt_list', 'List ProximityPrompt/interactable targets.', { text: { type: 'string' }, name: { type: 'string' }, id: { type: 'string' } }],
+  ['test_snapshot', 'Return universal test pilot snapshot.', {}],
+  ['test_move', 'Move the test character by vector/components.', { x: { type: 'number' }, y: { type: 'number' }, z: { type: 'number' } }],
+  ['test_teleport', 'Teleport the test character to a position.', { x: { type: 'number' }, y: { type: 'number' }, z: { type: 'number' } }],
+  ['test_jump', 'Make the test character jump.', {}],
+  ['animation_rigs', 'List animation-capable rigs.', { path: { type: 'string' } }],
+  ['create_animation', 'Create/save a generated animation from a provided spec under generated paths.', { rigPath: { type: 'string' }, animation: { type: 'object' }, spec: { type: 'object' } }],
+  ['preview_animation', 'Preview an animation on a rig.', { rigPath: { type: 'string' }, animationPath: { type: 'string' } }],
+  ['scrub_animation', 'Scrub/apply an animation pose at time.', { rigPath: { type: 'string' }, animationPath: { type: 'string' }, time: { type: 'number' } }],
+  ['vfx_inventory', 'Inspect VFX objects under a path.', { path: { type: 'string' } }],
+  ['generate_vfx', 'Generate a Codex-owned VFX preset from intent.', { intent: { type: 'string' }, targetPath: { type: 'string' }, assetRoot: { type: 'string' } }],
+  ['generate_pro_vfx', 'Generate a pro VFX preset from intent and available asset kits.', { intent: { type: 'string' }, targetPath: { type: 'string' }, assetRoot: { type: 'string' } }],
+  ['motion_vfx_generate', 'Generate a synchronized motion/VFX package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
+  ['ability_generate', 'Generate a Codex-owned ability package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
+  ['audio_inventory', 'Inspect Roblox Sound/SoundGroup/audio objects and classify their roles.', { path: { type: 'string' }, root: { type: 'string' } }],
+  ['audio_audit', 'Audit game audio for loudness, grouping, spam, rolloff, and sync risks.', { path: { type: 'string' }, root: { type: 'string' } }],
+  ['audio_plan', 'Create a safe audio mix plan for a profile or plain-language intent.', { intent: { type: 'string' }, profile: { type: 'string' } }],
+  ['audio_mix', 'Apply a backed-up SoundGroup/volume mix plan through Full Trust audit.', { intent: { type: 'string' }, profile: { type: 'string' } }],
+  ['audio_live', 'Report Play-mode active sound loudness bands and audio monitor status.', { path: { type: 'string' }, root: { type: 'string' } }],
+  ['sync_audio', 'Add audio cue manifest metadata to a generated animation/VFX/ability package.', { path: { type: 'string' }, packagePath: { type: 'string' }, animationPath: { type: 'string' }, vfxPath: { type: 'string' } }],
+  ['build_styles', 'List StudioBridge build/model/scene archetypes, detail layers, and style rules.', {}],
+  ['build_plan', 'Plan a clean Roblox model/scene from intent with scale, parts, sockets, material palette, and performance budget.', { intent: { type: 'string' }, text: { type: 'string' } }],
+  ['generate_model', 'Generate a Codex-owned versioned Roblox model from intent using safe primitive construction.', { intent: { type: 'string' }, text: { type: 'string' }, targetPath: { type: 'string' }, assetRoot: { type: 'string' } }],
+  ['generate_scene', 'Generate a Codex-owned versioned scene/lobby/arena/map composition from intent.', { intent: { type: 'string' }, text: { type: 'string' }, targetPath: { type: 'string' }, assetRoot: { type: 'string' } }],
+  ['audit_build', 'Audit a generated or selected model for scale, anchors, collision, detail density, materials, and performance risk.', { path: { type: 'string' }, modelPath: { type: 'string' } }],
+  ['polish_build', 'Apply a Codex-owned detail/polish pass to a generated model or scene.', { path: { type: 'string' }, modelPath: { type: 'string' } }],
+  ['optimize_build', 'Apply/write optimization guidance and safe generated-detail tuning for a model or scene.', { path: { type: 'string' }, modelPath: { type: 'string' } }],
+  ['roblox_brain', 'Route a whole-game goal through the unified Roblox Brain Core and execute clear Full Trust local actions.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, action: { type: 'string' } }],
+  ['build_game', 'Use the Roblox Brain to build a coordinated Codex-owned game feature/scene/system from a goal.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['improve_game', 'Use the Roblox Brain to improve an existing game slice with specialist tools and audit notes.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['test_game', 'Use the Roblox Brain to route universal Play/Test/watch/output QA for a goal.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['polish_game', 'Use the Roblox Brain to polish generated gameplay, visuals, audio, motion, and performance.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['execute_luau', 'Return safe StudioBridge alternatives for arbitrary Luau execution.', { code: { type: 'string' } }],
+].map(([name, description, properties]) => ({
+  name,
+  description,
+  inputSchema: {
+    type: 'object',
+    properties,
+    additionalProperties: true,
+  },
+}));
+
+function toolsList() {
+  return toolDefinitions;
+}
+
+async function callTool(name, args = {}) {
+  const handler = toolHandlers[name];
+  if (!handler) {
+    return {
+      ok: false,
+      code: 'unknownTool',
+      error: `Unknown StudioBridge MCP proxy tool: ${name}`,
+      availableTools: Object.keys(toolHandlers).sort(),
+    };
+  }
+  appendLog({ type: 'toolCall', name, args });
+  try {
+    const result = await handler(args && typeof args === 'object' ? args : {});
+    appendLog({ type: 'toolResult', name, ok: result && result.ok !== false, status: result && result.status, code: result && result.code });
+    return result;
+  } catch (error) {
+    const result = { ok: false, code: 'toolFailed', error: error.message, stack: error.stack };
+    appendLog({ type: 'toolFailed', name, error: error.message });
+    return result;
+  }
+}
+
+function mcpResultFromValue(value) {
+  const isError = value && value.ok === false;
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(value, null, 2),
+      },
+    ],
+    isError: Boolean(isError),
+  };
+}
+
+function sendJsonRpc(id, result, error) {
+  const message = error
+    ? { jsonrpc: '2.0', id, error }
+    : { jsonrpc: '2.0', id, result };
+  const body = Buffer.from(JSON.stringify(message), 'utf8');
+  process.stdout.write(`Content-Length: ${body.length}\r\n\r\n`);
+  process.stdout.write(body);
+}
+
+async function handleRpc(message) {
+  if (!message || typeof message !== 'object') return;
+  const id = message.id;
+  const method = message.method;
+  try {
+    if (method === 'initialize') {
+      sendJsonRpc(id, {
+        protocolVersion: message.params && message.params.protocolVersion ? message.params.protocolVersion : '2024-11-05',
+        capabilities: { tools: {} },
+        serverInfo: { name: 'codex-studiobridge-mcp-proxy', version: VERSION },
+      });
+      return;
+    }
+    if (method === 'notifications/initialized' || method === 'initialized') return;
+    if (method === 'tools/list') {
+      sendJsonRpc(id, { tools: toolsList() });
+      return;
+    }
+    if (method === 'tools/call') {
+      const params = message.params || {};
+      const value = await callTool(params.name, params.arguments || {});
+      sendJsonRpc(id, mcpResultFromValue(value));
+      return;
+    }
+    if (id !== undefined && id !== null) {
+      sendJsonRpc(id, null, { code: -32601, message: `Unsupported method: ${method}` });
+    }
+  } catch (error) {
+    if (id !== undefined && id !== null) sendJsonRpc(id, null, { code: -32603, message: error.message });
+  }
+}
+
+function runStdioServer() {
+  let buffer = Buffer.alloc(0);
+  process.stdin.on('data', (chunk) => {
+    buffer = Buffer.concat([buffer, chunk]);
+    for (;;) {
+      const headerEnd = buffer.indexOf('\r\n\r\n');
+      if (headerEnd === -1) break;
+      const header = buffer.slice(0, headerEnd).toString('utf8');
+      const match = header.match(/content-length:\s*(\d+)/i);
+      if (!match) {
+        buffer = buffer.slice(headerEnd + 4);
+        continue;
+      }
+      const length = Number(match[1]);
+      const bodyStart = headerEnd + 4;
+      const bodyEnd = bodyStart + length;
+      if (buffer.length < bodyEnd) break;
+      const body = buffer.slice(bodyStart, bodyEnd).toString('utf8');
+      buffer = buffer.slice(bodyEnd);
+      try {
+        handleRpc(JSON.parse(body));
+      } catch (error) {
+        appendLog({ type: 'badJsonRpc', error: error.message });
+      }
+    }
+  });
+}
+
+function cliStatus() {
+  return ensureBridge().then(async (bridge) => ({
+    ok: bridge.ok,
+    version: VERSION,
+    bridge: bridge && bridge.health ? { ...bridge, health: compactHealth(bridge.health) } : bridge,
+    health: bridge.ok ? compactHealth(await requestBridge('GET', '/health', undefined, 2000)) : null,
+    mcpTransport: bridge.ok ? compactTransport(await requestBridge('GET', '/codex/mcp-transport', undefined, 2000)) : null,
+    tools: toolsList().length,
+  }));
+}
+
+function print(value) {
+  process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
+}
+
+async function cliSmoke() {
+  const initialize = { ok: true, method: 'initialize', serverInfo: { name: 'codex-studiobridge-mcp-proxy', version: VERSION } };
+  const tools = toolsList();
+  const bridge = await callTool('bridge_health', {});
+  const studios = await callTool('list_roblox_studios', {});
+  const state = await callTool('get_studio_state', {});
+  return {
+    ok: bridge.ok !== false && studios.ok !== false && state.ok !== false,
+    version: VERSION,
+    initialize,
+    toolCount: tools.length,
+    bridge: redacted(bridge),
+    list_roblox_studios: redacted(studios),
+    get_studio_state: redacted(state),
+  };
+}
+
+async function main() {
+  const [arg] = process.argv.slice(2);
+  if (arg === '--status') {
+    print(await cliStatus());
+    return;
+  }
+  if (arg === '--tools') {
+    print({ ok: true, version: VERSION, tools: toolsList() });
+    return;
+  }
+  if (arg === '--smoke') {
+    print(await cliSmoke());
+    return;
+  }
+  runStdioServer();
+}
+
+main().catch((error) => {
+  appendLog({ type: 'fatal', error: error.stack || error.message });
+  process.stderr.write(`${error.stack || error.message}\n`);
+  process.exitCode = 1;
+});

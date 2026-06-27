@@ -1,0 +1,44 @@
+{
+  "name": "Ruleforge Arena Polish Kit",
+  "mode": "supervised",
+  "steps": [
+    { "type": "ensureFolder", "path": "Workspace.CodexWorldForge" },
+    { "type": "ensureFolder", "path": "Workspace.CodexWorldForge.RuleforgeArenaPolish" },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.RuleforgeArenaPolish.ExtractionReadabilityPlate",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 0.35, "z": 0 },
+        "Size": { "__type": "Vector3", "x": 34, "y": 0.25, "z": 34 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 35, "g": 180, "b": 255 },
+        "Transparency": 0.55
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.RuleforgeArenaPolish.ExtractionNorthBeacon",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 7, "z": -24 },
+        "Size": { "__type": "Vector3", "x": 2, "y": 14, "z": 2 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 220, "b": 255 },
+        "Transparency": 0.2
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.RuleforgeArenaPolish.ExtractionSouthBeacon",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 7, "z": 24 },
+        "Size": { "__type": "Vector3", "x": 2, "y": 14, "z": 2 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 220, "b": 255 },
+        "Transparency": 0.2
+      }
+    }
+  ]
+}

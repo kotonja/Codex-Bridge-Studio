@@ -1,0 +1,31 @@
+{
+  "name": "Robo Junkyard Audio Scripts",
+  "steps": [
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Shared" },
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Shared.Config" },
+    { "type": "ensureFolder", "path": "ServerScriptService.Server" },
+    { "type": "ensureFolder", "path": "ServerScriptService.Server.Services" },
+    { "type": "ensureFolder", "path": "StarterPlayer.StarterPlayerScripts.Client" },
+    {
+      "type": "writeScript",
+      "path": "ReplicatedStorage.Shared.Config.AudioConfig",
+      "className": "ModuleScript",
+      "overwrite": true,
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/shared/Config/AudioConfig.luau"
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.Server.Services.AudioService",
+      "className": "ModuleScript",
+      "overwrite": true,
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/AudioService.luau"
+    },
+    {
+      "type": "writeScript",
+      "path": "StarterPlayer.StarterPlayerScripts.Client.Audio",
+      "className": "LocalScript",
+      "overwrite": true,
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/client/Audio.client.luau"
+    }
+  ]
+}

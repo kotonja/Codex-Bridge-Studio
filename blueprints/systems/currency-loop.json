@@ -1,0 +1,35 @@
+{
+  "id": "currency-loop",
+  "title": "Currency Loop",
+  "genre": "simulator",
+  "description": "Collect, reward, and UI update contract for simulator-style currency games.",
+  "profileIds": ["universal", "simulator"],
+  "loopStages": ["objective", "reward", "feedback"],
+  "ownedRoots": ["ReplicatedStorage.CodexSystems.Currency", "ServerScriptService.CodexSystems.Currency"],
+  "contract": {
+    "folders": ["ReplicatedStorage.CodexSystems.Currency", "ServerScriptService.CodexSystems.Currency"],
+    "remotes": [
+      { "name": "CurrencyChanged", "className": "RemoteEvent", "direction": "serverToClient" },
+      { "name": "CollectCurrencyRequested", "className": "RemoteEvent", "direction": "clientToServer" }
+    ],
+    "scripts": ["ReplicatedStorage.CodexSystems.Currency.Contract"],
+    "tests": ["Currency remotes exist", "Currency owned folders exist", "Contract module exists"]
+  },
+  "blueprint": {
+    "name": "Currency Loop Feature Plan",
+    "mode": "supervised",
+    "steps": [
+      { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems.Currency" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems.Currency" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.CurrencyChanged" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.CollectCurrencyRequested" },
+      {
+        "type": "writeScript",
+        "className": "ModuleScript",
+        "path": "ReplicatedStorage.CodexSystems.Currency.Contract",
+        "source": "local Contract = {}\n\nContract.id = \"currency-loop\"\nContract.currencyName = \"Coins\"\nContract.remotes = { \"CurrencyChanged\", \"CollectCurrencyRequested\" }\nContract.generatedBy = \"Codex Studio Bridge V15\"\n\nreturn Contract\n"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1109 @@
+{
+  "id": "ruleforge",
+  "name": "Ruleforge",
+  "genre": "arena-extraction",
+  "description": "Ruleforge arena extraction project profile.",
+  "detection": {
+    "paths": [
+      "ServerScriptService.Systems",
+      "ReplicatedStorage.Remotes",
+      "StarterGui.UIRoot",
+      "Workspace.EnemySpawns",
+      "Workspace.ExtractionPad"
+    ],
+    "scriptNames": [
+      "00_SetupRemotes",
+      "CombatService",
+      "DamageService",
+      "RuleEngine",
+      "VoteManager",
+      "UIController"
+    ],
+    "remoteNames": [
+      "CombatRequest",
+      "StartVote",
+      "VoteResult",
+      "ObjectiveUpdate",
+      "ExtractionTimer"
+    ],
+    "uiRoots": [
+      "StarterGui.UIRoot"
+    ],
+    "workspaceNames": [
+      "EnemySpawns",
+      "SupplySpawns",
+      "LootChests",
+      "InkCaches",
+      "LiveEnemies",
+      "RelicZones",
+      "WeaponPads",
+      "ExtractionPad",
+      "ExtractionZone"
+    ],
+    "sourcePatterns": [
+      "ALL_REMOTE_EVENTS",
+      "RuleEngine",
+      "ExtractionTimer"
+    ]
+  },
+  "expected": {
+    "paths": [
+      {
+        "path": "ServerScriptService.Systems",
+        "className": "Folder",
+        "severity": "error"
+      },
+      {
+        "path": "ReplicatedStorage.Remotes",
+        "className": "Folder",
+        "severity": "error"
+      },
+      {
+        "path": "StarterGui.UIRoot",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.EnemySpawns",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.SupplySpawns",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.LootChests",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.InkCaches",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.LiveEnemies",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.RelicZones",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.WeaponPads",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.ExtractionPad",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.ExtractionZone",
+        "severity": "warning"
+      }
+    ],
+    "scripts": [
+      {
+        "path": "ServerScriptService.Systems.00_SetupRemotes",
+        "className": "Script",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.CombatService",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.DamageService",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.DirectorEvents",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.DownedService",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.EnemyDirector",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.EnemyService",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.MatchStats",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.ProjectileService",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.RevealPulseService",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.ReviveChannelServer",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.RuleCatalogValidator",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.RuleEffects",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.RuleEngine",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.VoteManager",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService.Systems.WeaponService",
+        "severity": "error"
+      }
+    ],
+    "remotes": [
+      {
+        "name": "AbilityCooldown",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "ActiveRulesUpdated",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "BossDropPing",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "BossRelicState",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "CastVote",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "CombatFX",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "CombatRequest",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "DirectorEvent",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "ExtractionFX",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "ExtractionTimer",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "FinishFX",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "HeatBoardUpdate",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "HeatScoreboardUpdate",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "Killfeed",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "LootFX",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "LootOffer",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "LootPick",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "LootResult",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "MatchEnd",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "MatchSummary",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "ObjectiveUpdate",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "RealityShiftImpact",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "RevealPulse",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "ReviveState",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "RuleforgeArenaPing",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "StartMatch",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "StartVote",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "Toast",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "UpdateThreat",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "VoteResult",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "VoteTally",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "WorldPing",
+        "className": "RemoteEvent"
+      }
+    ],
+    "uiRoots": [
+      "StarterGui.UIRoot"
+    ],
+    "workspace": [
+      "Workspace.EnemySpawns",
+      "Workspace.SupplySpawns",
+      "Workspace.LootChests",
+      "Workspace.InkCaches",
+      "Workspace.LiveEnemies",
+      "Workspace.RelicZones",
+      "Workspace.WeaponPads",
+      "Workspace.ExtractionPad",
+      "Workspace.ExtractionZone"
+    ]
+  },
+  "health": {
+    "weights": {
+      "contexts": 0.14,
+      "structure": 0.14,
+      "scripts": 0.18,
+      "remotes": 0.2,
+      "ui": 0.08,
+      "world": 0.1,
+      "output": 0.1,
+      "scenarios": 0.06
+    }
+  },
+  "cleanup": {
+    "duplicateRenameSuffix": "_Ruleforge",
+    "keepEmptyPaths": [
+      "Workspace.EnemySpawns",
+      "Workspace.SupplySpawns",
+      "Workspace.LootChests",
+      "Workspace.InkCaches",
+      "Workspace.LiveEnemies",
+      "Workspace.RelicZones",
+      "Workspace.WeaponPads",
+      "ReplicatedStorage.Remotes",
+      "ServerScriptService.Systems"
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "ruleforge-smoke",
+      "title": "Ruleforge Smoke",
+      "file": "blueprints/ruleforge/playtest-smoke.json",
+      "checks": [
+        {
+          "type": "path",
+          "path": "ServerScriptService.Systems"
+        },
+        {
+          "type": "path",
+          "path": "ReplicatedStorage.Remotes"
+        },
+        {
+          "type": "remote",
+          "name": "WorldPing",
+          "className": "RemoteEvent"
+        },
+        {
+          "type": "remote",
+          "name": "RuleforgeArenaPing",
+          "className": "RemoteEvent"
+        }
+      ]
+    },
+    {
+      "name": "combat-smoke",
+      "title": "Combat Smoke",
+      "file": "blueprints/ruleforge/combat-smoke.json",
+      "checks": [
+        {
+          "type": "path",
+          "path": "ServerScriptService.Systems.CombatService"
+        },
+        {
+          "type": "path",
+          "path": "ServerScriptService.Systems.DamageService"
+        },
+        {
+          "type": "remote",
+          "name": "CombatRequest",
+          "className": "RemoteEvent"
+        },
+        {
+          "type": "remote",
+          "name": "CombatFX",
+          "className": "RemoteEvent"
+        },
+        {
+          "type": "remote",
+          "name": "AbilityCooldown",
+          "className": "RemoteEvent"
+        }
+      ]
+    },
+    {
+      "name": "extraction-smoke",
+      "title": "Extraction Smoke",
+      "file": "blueprints/ruleforge/extraction-smoke.json",
+      "checks": [
+        {
+          "type": "path",
+          "path": "Workspace.ExtractionPad"
+        },
+        {
+          "type": "path",
+          "path": "Workspace.ExtractionZone"
+        },
+        {
+          "type": "remote",
+          "name": "ExtractionTimer",
+          "className": "RemoteEvent"
+        },
+        {
+          "type": "remote",
+          "name": "ExtractionFX",
+          "className": "RemoteEvent"
+        }
+      ]
+    },
+    {
+      "name": "loot-smoke",
+      "title": "Loot Smoke",
+      "file": "blueprints/ruleforge/loot-smoke.json",
+      "checks": [
+        {
+          "type": "path",
+          "path": "Workspace.LootChests"
+        },
+        {
+          "type": "path",
+          "path": "Workspace.InkCaches"
+        },
+        {
+          "type": "remote",
+          "name": "LootOffer",
+          "className": "RemoteEvent"
+        },
+        {
+          "type": "remote",
+          "name": "LootPick",
+          "className": "RemoteEvent"
+        },
+        {
+          "type": "remote",
+          "name": "LootResult",
+          "className": "RemoteEvent"
+        }
+      ]
+    },
+    {
+      "name": "enemy-wave-smoke",
+      "title": "Enemy Wave Smoke",
+      "file": "blueprints/ruleforge/enemy-wave-smoke.json",
+      "checks": [
+        {
+          "type": "path",
+          "path": "Workspace.EnemySpawns"
+        },
+        {
+          "type": "path",
+          "path": "Workspace.LiveEnemies"
+        },
+        {
+          "type": "path",
+          "path": "ServerScriptService.Systems.EnemyService"
+        },
+        {
+          "type": "remote",
+          "name": "DirectorEvent",
+          "className": "RemoteEvent"
+        }
+      ]
+    },
+    {
+      "name": "vote-smoke",
+      "title": "Vote Smoke",
+      "file": "blueprints/ruleforge/vote-smoke.json",
+      "checks": [
+        {
+          "type": "path",
+          "path": "ServerScriptService.Systems.VoteManager"
+        },
+        {
+          "type": "remote",
+          "name": "StartVote",
+          "className": "RemoteEvent"
+        },
+        {
+          "type": "remote",
+          "name": "CastVote",
+          "className": "RemoteEvent"
+        },
+        {
+          "type": "remote",
+          "name": "VoteResult",
+          "className": "RemoteEvent"
+        },
+        {
+          "type": "remote",
+          "name": "VoteTally",
+          "className": "RemoteEvent"
+        }
+      ]
+    }
+  ],
+  "visualLandmarks": [
+    "Workspace.ExtractionPad",
+    "Workspace.ExtractionZone",
+    "Workspace.EnemySpawns",
+    "Workspace.LootChests",
+    "Workspace.WeaponPads"
+  ],
+  "uiExpectations": {
+    "roots": [
+      "StarterGui.UIRoot"
+    ],
+    "patterns": [
+      "combat HUD",
+      "vote/rules UI",
+      "objective/extraction status",
+      "toast/killfeed feedback"
+    ]
+  },
+  "assetCategories": {
+    "combat": [
+      "Tool",
+      "ParticleEmitter",
+      "Beam",
+      "Trail"
+    ],
+    "arena": [
+      "Model",
+      "MeshPart",
+      "Part"
+    ],
+    "ui": [
+      "ScreenGui",
+      "TextButton",
+      "TextLabel"
+    ],
+    "audio": [
+      "Sound"
+    ]
+  },
+  "styleDefaults": {
+    "tone": "dark readable arena extraction",
+    "lighting": "high-contrast playtest clarity",
+    "ui": "compact combat HUD with status and votes"
+  },
+  "worldArchetypes": [
+    "arena extraction",
+    "readable objective zone",
+    "enemy pressure lanes"
+  ],
+  "landmarkExpectations": [
+    {
+      "path": "Workspace.ExtractionPad",
+      "purpose": "primary extraction objective"
+    },
+    {
+      "path": "Workspace.ExtractionZone",
+      "purpose": "extraction boundary/readability"
+    },
+    {
+      "path": "Workspace.EnemySpawns",
+      "purpose": "encounter source"
+    },
+    {
+      "path": "Workspace.WeaponPads",
+      "purpose": "loadout readability"
+    }
+  ],
+  "materialPalette": {
+    "floor": [
+      "Slate",
+      "Concrete",
+      "Metal"
+    ],
+    "objective": [
+      "Neon",
+      "ForceField"
+    ],
+    "props": [
+      "Metal",
+      "WoodPlanks"
+    ]
+  },
+  "propKits": [
+    {
+      "id": "ruleforge-arena-polish-kit",
+      "title": "Ruleforge Arena Polish Kit",
+      "file": "blueprints/kits/ruleforge-arena-polish-kit.json"
+    }
+  ],
+  "lightingPresets": {
+    "default": "dark arena extraction",
+    "clockTime": 19.25,
+    "brightness": 2.3
+  },
+  "worldForgePriorities": [
+    "extraction readability",
+    "spawn lane clarity",
+    "objective silhouettes",
+    "safe placeholder props"
+  ],
+  "gameplaySystems": [],
+  "featureTemplates": [
+    {
+      "id": "extraction-reward-replay",
+      "title": "Ruleforge Extraction Reward + Replay",
+      "file": "blueprints/systems/extraction-reward-replay.json"
+    },
+    {
+      "id": "reward-replay",
+      "title": "Reward + Replay",
+      "file": "blueprints/systems/reward-replay.json"
+    },
+    {
+      "id": "enemy-wave",
+      "title": "Enemy Wave",
+      "file": "blueprints/systems/enemy-wave.json"
+    },
+    {
+      "id": "inventory-items",
+      "title": "Inventory Items",
+      "file": "blueprints/systems/inventory-items.json"
+    },
+    {
+      "id": "shop-loop",
+      "title": "Shop Loop",
+      "file": "blueprints/systems/shop-loop.json"
+    }
+  ],
+  "systemContracts": {
+    "ownedRoots": [
+      "ReplicatedStorage.CodexSystems",
+      "ServerScriptService.CodexSystems",
+      "StarterGui.UIRoot.CodexDirectorHUD"
+    ],
+    "productionRoots": [
+      "ServerScriptService.Systems",
+      "ReplicatedStorage.Shared",
+      "StarterGui.UIRoot"
+    ]
+  },
+  "featurePriorities": [
+    "reward-replay",
+    "enemy-wave",
+    "inventory-items"
+  ],
+  "milestonePriorities": [
+    "prototype-core-loop",
+    "arena-combat-round-milestone",
+    "ruleforge-reward-replay",
+    "ruleforge-ui-replay-polish",
+    "ruleforge-combat-vfx-pass"
+  ],
+  "ruleforgeTestFixtures": [
+    "extraction-reward-replay",
+    "ruleforge-reward-replay",
+    "ruleforge-ui-replay-polish",
+    "ruleforge-combat-vfx-pass"
+  ],
+  "acceptanceCriteria": {
+    "ruleforge-reward-replay": [
+      "Reward/replay owned folders and contract module exist.",
+      "ExtractionRewardSummary and ReplayRequested remotes exist.",
+      "Project score does not regress and no new Output errors appear."
+    ]
+  },
+  "verificationChecks": {
+    "coreRegression": [
+      "Ruleforge remotes remain healthy.",
+      "Production roots stay protected unless explicitly targeted.",
+      "Approved edits remain undoable through Studio history."
+    ]
+  },
+  "systemHarnessRules": {
+    "ownedRoots": [
+      "ReplicatedStorage.CodexSystemHarness",
+      "ServerScriptService.CodexSystemHarness",
+      "Workspace.CodexSystemHarness"
+    ]
+  },
+  "protectedPaths": [
+    "ServerScriptService.Systems",
+    "ReplicatedStorage.Remotes",
+    "StarterGui.UIRoot"
+  ],
+  "codeSystems": [
+    {
+      "id": "server-systems",
+      "name": "Server Systems",
+      "root": "ServerScriptService.Systems"
+    },
+    {
+      "id": "shared",
+      "name": "Shared Modules",
+      "root": "ReplicatedStorage.Shared"
+    },
+    {
+      "id": "client-player",
+      "name": "Client Player Scripts",
+      "root": "StarterPlayer.StarterPlayerScripts"
+    },
+    {
+      "id": "client-character",
+      "name": "Client Character Scripts",
+      "root": "StarterPlayer.StarterCharacterScripts"
+    },
+    {
+      "id": "ui",
+      "name": "UI Scripts",
+      "root": "StarterGui.UIRoot"
+    }
+  ],
+  "criticalScripts": [
+    "ServerScriptService.Systems.00_SetupRemotes",
+    "ServerScriptService.Systems.CombatService",
+    "ServerScriptService.Systems.DamageService",
+    "ServerScriptService.Systems.RuleEngine",
+    "ServerScriptService.Systems.VoteManager",
+    "StarterPlayer.StarterPlayerScripts.CombatClient",
+    "StarterPlayer.StarterPlayerScripts.ObjectiveClient",
+    "StarterGui.UIRoot.UIController"
+  ],
+  "remoteExpectations": [
+    {
+      "name": "CombatRequest",
+      "className": "RemoteEvent",
+      "direction": "clientToServer",
+      "critical": true
+    },
+    {
+      "name": "ObjectiveUpdate",
+      "className": "RemoteEvent",
+      "direction": "serverToClient",
+      "critical": true
+    },
+    {
+      "name": "ExtractionTimer",
+      "className": "RemoteEvent",
+      "direction": "serverToClient",
+      "critical": true
+    },
+    {
+      "name": "CastVote",
+      "className": "RemoteEvent",
+      "direction": "clientToServer",
+      "critical": true
+    },
+    {
+      "name": "VoteResult",
+      "className": "RemoteEvent",
+      "direction": "serverToClient",
+      "critical": true
+    },
+    {
+      "name": "LootPick",
+      "className": "RemoteEvent",
+      "direction": "clientToServer",
+      "critical": true
+    },
+    {
+      "name": "MatchEnd",
+      "className": "RemoteEvent",
+      "direction": "serverToClient",
+      "critical": true
+    }
+  ],
+  "codeRiskRules": {
+    "oversizedScriptLineWarning": 900,
+    "requireResolution": "warn",
+    "missingRemoteGuard": "info",
+    "disabledScripts": "info",
+    "stalePatchProtection": "required"
+  },
+  "moduleResolutionRules": {
+    "resolveWaitForChildChains": true,
+    "dynamicRequiresAreInfo": true,
+    "assetIdRequiresAreInfo": true
+  },
+  "clientServerRules": {
+    "clientForbiddenServices": [
+      "ServerStorage",
+      "ServerScriptService",
+      "DataStoreService",
+      "MessagingService"
+    ],
+    "serverForbiddenApis": [
+      "Players.LocalPlayer",
+      "UserInputService",
+      "ContextActionService",
+      "RunService.RenderStepped",
+      "workspace.CurrentCamera"
+    ]
+  },
+  "remoteContractRules": {
+    "criticalRemotes": [
+      "CombatRequest",
+      "ObjectiveUpdate",
+      "ExtractionTimer",
+      "CastVote",
+      "VoteResult",
+      "LootPick",
+      "MatchEnd"
+    ],
+    "oneWayRemotesAllowed": true
+  },
+  "codeDoctorPriorities": [
+    "resolve true missing module requires",
+    "audit client/server boundary mistakes",
+    "confirm critical remote contracts",
+    "prepare small hash-verified patch sets"
+  ],
+  "productionRefactorRules": {
+    "defaultAllowDeletes": false,
+    "requireBackups": true,
+    "requireSourceHashes": true,
+    "allowProtectedPathsByDefault": false,
+    "safeRewriteModes": [
+      "quoted WaitForChild references",
+      "quoted FindFirstChild references",
+      "quoted require references",
+      "quoted remote helper references"
+    ],
+    "stressTestOnly": true
+  },
+  "gameLoop": {
+    "lobbyPath": "Workspace.ExtractionZone",
+    "objectivePath": "Workspace.ExtractionPad",
+    "pieces": [
+      "lobby",
+      "spawn",
+      "start",
+      "objective",
+      "failWin",
+      "reward",
+      "replay",
+      "playerFeedback"
+    ],
+    "remotes": [
+      "MatchStart",
+      "ObjectiveChanged",
+      "ExtractionStarted",
+      "RewardGranted",
+      "MatchEnd"
+    ]
+  },
+  "uiForge": {
+    "root": "StarterGui.UIRoot",
+    "buildRoot": "StarterGui.UIRoot.CodexDirectorHUD",
+    "required": [
+      "combat HUD",
+      "objective text",
+      "extraction status",
+      "vote prompt",
+      "toast feedback",
+      "mobile-friendly controls"
+    ]
+  },
+  "cameraBookmarks": [
+    {
+      "name": "ArenaCenter",
+      "pathHint": "Workspace.ExtractionPad",
+      "purpose": "Review objective/extraction readability"
+    },
+    {
+      "name": "EnemySpawns",
+      "pathHint": "Workspace.EnemySpawns",
+      "purpose": "Review encounter pressure"
+    }
+  ],
+  "styleGuide": {
+    "tone": "dark readable arena extraction",
+    "uiDensity": "compact combat HUD",
+    "feedback": "strong extraction, damage, vote, and reward cues"
+  },
+  "assetNeeds": [
+    {
+      "category": "CombatVFX",
+      "classes": [
+        "ParticleEmitter",
+        "Beam",
+        "Trail"
+      ],
+      "purpose": "weapon impacts and enemy feedback"
+    },
+    {
+      "category": "Audio",
+      "classes": [
+        "Sound"
+      ],
+      "purpose": "extraction, damage, reward, and warning cues"
+    },
+    {
+      "category": "Icons",
+      "classes": [
+        "ImageLabel",
+        "ImageButton",
+        "Decal"
+      ],
+      "purpose": "HUD status and vote readability"
+    }
+  ],
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawn", "title": "Spawn" },
+    { "id": "understandObjective", "title": "Understand Extraction Objective" },
+    { "id": "interactPlay", "title": "Combat / Vote / Loot" },
+    { "id": "receiveFeedback", "title": "Combat and Objective Feedback" },
+    { "id": "failWin", "title": "Extraction or Defeat" },
+    { "id": "reward", "title": "Reward Summary" },
+    { "id": "replayReturn", "title": "Replay / Requeue" }
+  ],
+  "objectivePaths": [
+    "Workspace.ExtractionPad",
+    "Workspace.ExtractionZone",
+    "Workspace.LootChests",
+    "Workspace.EnemySpawns"
+  ],
+  "qaSignals": [
+    "extraction",
+    "vote",
+    "combat",
+    "loot",
+    "revive",
+    "objective",
+    "match"
+  ],
+  "failureSignals": [
+    "downed",
+    "died",
+    "defeat",
+    "failed",
+    "error"
+  ],
+  "successSignals": [
+    "extracted",
+    "victory",
+    "reward",
+    "match end",
+    "summary"
+  ],
+  "bugReportPriorities": [
+    "Output errors",
+    "combat/extraction flow breaks",
+    "missing objective feedback",
+    "missing reward/replay evidence",
+    "player spawn/death issues"
+  ],
+  "uiScreens": [
+    "MainMenuUI",
+    "InGameUI",
+    "VoteUI",
+    "EndMatchUI"
+  ],
+  "uiActions": [
+    {
+      "id": "play",
+      "keywords": [
+        "play",
+        "queue",
+        "match"
+      ]
+    },
+    {
+      "id": "vote",
+      "keywords": [
+        "vote",
+        "select",
+        "reality shift"
+      ]
+    },
+    {
+      "id": "shop",
+      "keywords": [
+        "shop"
+      ]
+    },
+    {
+      "id": "settings",
+      "keywords": [
+        "settings",
+        "options"
+      ]
+    },
+    {
+      "id": "extraction",
+      "keywords": [
+        "extract",
+        "extraction"
+      ]
+    },
+    {
+      "id": "revive",
+      "keywords": [
+        "revive",
+        "downed"
+      ]
+    },
+    {
+      "id": "replay",
+      "keywords": [
+        "replay",
+        "requeue",
+        "return"
+      ]
+    }
+  ],
+  "responsiveRules": {
+    "requireSafeArea": true,
+    "preferUiScale": true,
+    "minimumTextSize": 12,
+    "draftRoot": "StarterGui.UIRoot.CodexDirectorHUD"
+  },
+  "flowStates": [
+    {
+      "id": "menu",
+      "screens": [
+        "MainMenuUI"
+      ],
+      "actions": [
+        "play",
+        "shop",
+        "settings"
+      ]
+    },
+    {
+      "id": "queue",
+      "patterns": [
+        "queue",
+        "searching"
+      ],
+      "actions": [
+        "play"
+      ]
+    },
+    {
+      "id": "inMatchHud",
+      "screens": [
+        "InGameUI",
+        "HUD"
+      ],
+      "patterns": [
+        "health",
+        "ammo",
+        "objective",
+        "rules"
+      ]
+    },
+    {
+      "id": "vote",
+      "screens": [
+        "VoteUI"
+      ],
+      "actions": [
+        "vote"
+      ]
+    },
+    {
+      "id": "extraction",
+      "patterns": [
+        "extract",
+        "extraction"
+      ],
+      "actions": [
+        "extraction"
+      ]
+    },
+    {
+      "id": "endMatch",
+      "screens": [
+        "EndMatchUI"
+      ],
+      "patterns": [
+        "victory",
+        "defeat",
+        "result"
+      ]
+    },
+    {
+      "id": "reward",
+      "patterns": [
+        "reward",
+        "coins",
+        "ink"
+      ]
+    },
+    {
+      "id": "replay",
+      "patterns": [
+        "replay",
+        "requeue",
+        "return"
+      ],
+      "actions": [
+        "replay"
+      ]
+    }
+  ],
+  "directorPriorities": [
+    "ui",
+    "loop",
+    "assets",
+    "autonomous"
+  ]
+}

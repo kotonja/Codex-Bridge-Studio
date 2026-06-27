@@ -1,0 +1,87 @@
+{
+  "name": "Robo Junkyard First Session Retention",
+  "mode": "supervised",
+  "steps": [
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Shared" },
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Shared.Config" },
+    { "type": "ensureFolder", "path": "ServerScriptService.Server" },
+    { "type": "ensureFolder", "path": "ServerScriptService.Server.Services" },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ReplicatedStorage.Shared.Config.FirstSessionConfig",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/shared/Config/FirstSessionConfig.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ReplicatedStorage.Shared.Config.WorldArtConfig",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/shared/Config/WorldArtConfig.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ServerScriptService.Server.Services.FirstSessionService",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/FirstSessionService.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ServerScriptService.Server.Services.WorldService",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/WorldService.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ServerScriptService.Server.Services.StormService",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/StormService.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ServerScriptService.Server.Services.SalvageService",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/SalvageService.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ServerScriptService.Server.Services.UpgradeService",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/UpgradeService.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ServerScriptService.Server.Services.TycoonService",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/TycoonService.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ServerScriptService.Server.Services.OnboardingService",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/OnboardingService.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ServerScriptService.Server.Services.GameLoopService",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/GameLoopService.luau",
+      "overwrite": true
+    },
+    {
+      "type": "writeScript",
+      "className": "ModuleScript",
+      "path": "ServerScriptService.Server.Services.FeedbackService",
+      "sourceFile": "C:/Users/tommy/OneDrive/Documentos/Roblox/src/server/Services/FeedbackService.luau",
+      "overwrite": true
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "id": "story",
+  "name": "Story Roblox Project",
+  "genre": "story",
+  "description": "Universal story/adventure profile for dialogue, quests, cutscenes, objectives, chapters, and checkpointed progression.",
+  "detection": {
+    "paths": ["Workspace", "ReplicatedStorage", "ServerScriptService", "StarterGui"],
+    "scriptNames": ["Story", "Dialogue", "Quest", "Objective", "Cutscene", "Chapter", "NPC"],
+    "remoteNames": ["DialogueStarted", "ObjectiveChanged", "CutsceneStarted", "QuestCompleted"],
+    "uiRoots": ["StarterGui"],
+    "workspaceNames": ["NPCs", "Objectives", "Cutscenes", "QuestMarkers", "Chapters"]
+  },
+  "expected": {
+    "paths": [
+      { "path": "Workspace", "className": "Workspace", "severity": "error" },
+      { "path": "ReplicatedStorage", "className": "ReplicatedStorage", "severity": "error" },
+      { "path": "ServerScriptService", "className": "ServerScriptService", "severity": "error" },
+      { "path": "StarterGui", "className": "StarterGui", "severity": "warning" }
+    ],
+    "scripts": [],
+    "remotes": [],
+    "uiRoots": ["StarterGui"],
+    "workspace": ["NPCs", "Objectives"]
+  },
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawn", "title": "Spawn" },
+    { "id": "receiveDialogue", "title": "Receive Dialogue" },
+    { "id": "understandObjective", "title": "Understand Objective" },
+    { "id": "completeObjective", "title": "Complete Objective" },
+    { "id": "cutsceneFeedback", "title": "Cutscene / Feedback" },
+    { "id": "chapterProgress", "title": "Chapter Progress" },
+    { "id": "replayReturn", "title": "Replay / Return" }
+  ],
+  "qaSignals": ["dialogue", "quest", "objective", "cutscene", "chapter", "npc", "checkpoint"],
+  "successSignals": ["completed", "chapter", "objective", "reward", "continue"],
+  "failureSignals": ["stuck", "failed", "missing", "error"],
+  "uiActions": [
+    { "id": "continue", "keywords": ["continue", "next", "ok"] },
+    { "id": "skip", "keywords": ["skip"] },
+    { "id": "quest", "keywords": ["quest", "objective"] }
+  ],
+  "worldArchetypes": ["spawn", "npc hub", "objective markers", "chapter gate", "exit/replay"],
+  "landmarkExpectations": [
+    { "path": "Workspace.NPCs", "purpose": "story characters" },
+    { "path": "Workspace.Objectives", "purpose": "quest objectives" }
+  ],
+  "featurePriorities": ["quest-objectives", "reward-replay", "round-loop"],
+  "bugReportPriorities": [
+    "Missing objective text",
+    "Dialogue button does not advance",
+    "Quest marker inaccessible",
+    "Cutscene never ends",
+    "Chapter progress does not save"
+  ],
+  "protectedPaths": ["ServerScriptService", "ReplicatedStorage.Remotes"]
+}

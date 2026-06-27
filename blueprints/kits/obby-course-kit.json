@@ -1,0 +1,51 @@
+{
+  "name": "Obby Course Kit",
+  "mode": "supervised",
+  "steps": [
+    { "type": "ensureFolder", "path": "Workspace.CodexWorldForge" },
+    { "type": "ensureFolder", "path": "Workspace.CodexWorldForge.ObbyCourseKit" },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.CodexWorldForge.ObbyCourseKit.StartSpawn",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 3, "z": 0 },
+        "Size": { "__type": "Vector3", "x": 12, "y": 1, "z": 12 },
+        "Neutral": true
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.ObbyCourseKit.Platform01",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 2, "z": 24 },
+        "Size": { "__type": "Vector3", "x": 18, "y": 2, "z": 12 },
+        "Material": "SmoothPlastic",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 90, "g": 180, "b": 255 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.ObbyCourseKit.Platform02",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 16, "y": 5, "z": 48 },
+        "Size": { "__type": "Vector3", "x": 16, "y": 2, "z": 10 },
+        "Material": "SmoothPlastic",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 255, "g": 210, "b": 90 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.ObbyCourseKit.FinishMarker",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 16, "y": 8, "z": 70 },
+        "Size": { "__type": "Vector3", "x": 20, "y": 8, "z": 2 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 255, "b": 130 }
+      }
+    }
+  ]
+}

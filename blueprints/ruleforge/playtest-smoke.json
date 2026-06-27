@@ -1,0 +1,33 @@
+{
+  "name": "Ruleforge V5 Playtest Smoke Scenario",
+  "mode": "supervised",
+  "description": "Creates a tiny, isolated diagnostics marker for supervised Ruleforge playtest checks.",
+  "steps": [
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeV5Smoke"
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeV5Smoke.DiagnosticsPad",
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "Size": { "__type": "Vector3", "x": 10, "y": 1, "z": 10 },
+        "Position": { "__type": "Vector3", "x": 160, "y": 5, "z": 42 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 255, "g": 196, "b": 66 },
+        "Material": "Neon"
+      }
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.RuleforgeSmokeSignal"
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.RuleforgeSmokeReporter",
+      "className": "Script",
+      "source": "local Players = game:GetService(\"Players\")\nlocal ReplicatedStorage = game:GetService(\"ReplicatedStorage\")\nlocal Remotes = ReplicatedStorage:WaitForChild(\"Remotes\")\nlocal SmokeSignal = Remotes:WaitForChild(\"RuleforgeSmokeSignal\")\n\nlocal function report()\n\tprint((\"[RuleforgeSmokeReporter] players=%d matchEnded=%s primaryFireInterval=%s\"):format(#Players:GetPlayers(), tostring(workspace:GetAttribute(\"MatchEnded\")), tostring(workspace:GetAttribute(\"PrimaryFireInterval\"))))\n\tSmokeSignal:FireAllClients({\n\t\tplayers = #Players:GetPlayers(),\n\t\tmatchEnded = workspace:GetAttribute(\"MatchEnded\"),\n\t})\nend\n\nreport()\nPlayers.PlayerAdded:Connect(report)\n"
+    }
+  ]
+}

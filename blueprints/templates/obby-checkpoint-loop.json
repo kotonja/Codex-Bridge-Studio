@@ -1,0 +1,39 @@
+{
+  "name": "Obby Checkpoint Loop",
+  "mode": "supervised",
+  "description": "Creates a tiny checkpoint obby foundation.",
+  "templateId": "obby-checkpoint-loop",
+  "steps": [
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.CheckpointReached" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.StageUpdated" },
+    { "type": "ensureFolder", "path": "Workspace.Checkpoints" },
+    { "type": "ensureFolder", "path": "Workspace.KillBricks" },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.Checkpoints.Stage1",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 8, "y": 1, "z": 8 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 3, "z": 0 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 64, "g": 220, "b": 120 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.Checkpoints.Stage2",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 8, "y": 1, "z": 8 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 3, "z": -36 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 160, "b": 255 }
+      }
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.CheckpointService",
+      "className": "Script",
+      "source": "local checkpoints = workspace:WaitForChild(\"Checkpoints\")\nprint(\"[CheckpointService] checkpoints ready\", #checkpoints:GetChildren())\n"
+    }
+  ]
+}

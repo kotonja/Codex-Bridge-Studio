@@ -1,0 +1,56 @@
+{
+  "id": "tycoon",
+  "name": "Tycoon Roblox Project",
+  "genre": "tycoon",
+  "description": "Universal tycoon profile for droppers, buttons, money loops, ownership, saves, and rebirth-style progression.",
+  "detection": {
+    "paths": ["Workspace", "ReplicatedStorage", "ServerScriptService", "StarterGui"],
+    "scriptNames": ["Tycoon", "Dropper", "Collector", "Purchase", "Button", "Cash", "Rebirth"],
+    "remoteNames": ["PurchaseRequest", "CashChanged", "RebirthRequest", "TycoonClaimed"],
+    "uiRoots": ["StarterGui"],
+    "workspaceNames": ["Tycoons", "Droppers", "Buttons", "Collectors", "Conveyors"]
+  },
+  "expected": {
+    "paths": [
+      { "path": "Workspace", "className": "Workspace", "severity": "error" },
+      { "path": "ReplicatedStorage", "className": "ReplicatedStorage", "severity": "error" },
+      { "path": "ServerScriptService", "className": "ServerScriptService", "severity": "error" },
+      { "path": "StarterGui", "className": "StarterGui", "severity": "warning" }
+    ],
+    "scripts": [],
+    "remotes": [],
+    "uiRoots": ["StarterGui"],
+    "workspace": ["Tycoons", "Buttons", "Droppers"]
+  },
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "claimTycoon", "title": "Claim Tycoon" },
+    { "id": "earnCash", "title": "Earn Cash" },
+    { "id": "buyButton", "title": "Buy Upgrade" },
+    { "id": "seeUpgrade", "title": "Upgrade Appears" },
+    { "id": "saveProgress", "title": "Save Progress" },
+    { "id": "rebirth", "title": "Rebirth / Prestige" }
+  ],
+  "qaSignals": ["claim", "cash", "buy", "purchase", "dropper", "collector", "save", "rebirth"],
+  "successSignals": ["purchased", "cash", "owned", "unlocked", "rebirth"],
+  "failureSignals": ["insufficient", "failed", "error", "not owner"],
+  "uiActions": [
+    { "id": "buy", "keywords": ["buy", "purchase", "unlock"] },
+    { "id": "rebirth", "keywords": ["rebirth", "prestige"] },
+    { "id": "shop", "keywords": ["shop", "store"] }
+  ],
+  "worldArchetypes": ["claim pad", "dropper line", "collector", "upgrade buttons", "cash feedback"],
+  "landmarkExpectations": [
+    { "path": "Workspace.Tycoons", "purpose": "owned tycoon plots" },
+    { "path": "Workspace.Buttons", "purpose": "purchase buttons" }
+  ],
+  "featurePriorities": ["currency-loop", "shop-loop", "reward-replay"],
+  "bugReportPriorities": [
+    "Claim flow broken",
+    "Cash does not change after collection",
+    "Purchase button gives no feedback",
+    "Save/load errors",
+    "Rebirth/reset bugs"
+  ],
+  "protectedPaths": ["ServerScriptService", "ReplicatedStorage.Remotes"]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Tycoon Starter",
+  "mode": "supervised",
+  "description": "Generic tycoon blockout: claim pad, collector, buttons folder, droppers folder, cash remote, and draft HUD root.",
+  "steps": [
+    { "type": "ensureFolder", "path": "Workspace.Tycoons" },
+    { "type": "ensureFolder", "path": "Workspace.Tycoons.Tycoon01" },
+    { "type": "ensureFolder", "path": "Workspace.Tycoons.Tycoon01.Buttons" },
+    { "type": "ensureFolder", "path": "Workspace.Tycoons.Tycoon01.Droppers" },
+    {
+      "type": "createPart",
+      "path": "Workspace.Tycoons.Tycoon01.ClaimPad",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 12, "y": 1, "z": 12 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 1, "z": 0 },
+        "Color": { "__type": "Color3", "r": 0.1, "g": 0.7, "b": 0.25 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.Tycoons.Tycoon01.Collector",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 10, "y": 1, "z": 6 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 1, "z": 18 },
+        "Color": { "__type": "Color3", "r": 0.95, "g": 0.78, "b": 0.2 }
+      }
+    },
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.CashChanged" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.PurchaseRequest" },
+    { "type": "ensureFolder", "path": "StarterGui.CodexDirectorHUD.TycoonDraft" }
+  ]
+}

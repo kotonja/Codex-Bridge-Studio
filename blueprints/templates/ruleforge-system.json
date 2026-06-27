@@ -1,0 +1,33 @@
+{
+  "name": "Ruleforge System Skeleton",
+  "mode": "supervised",
+  "description": "Creates common Ruleforge service folders, remotes, and a small system marker without overwriting existing gameplay code.",
+  "steps": [
+    {
+      "type": "ensureFolder",
+      "path": "ReplicatedStorage.Remotes"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "ReplicatedStorage.Shared"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "ServerScriptService.Systems"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.RuleforgeToast"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.RuleforgeBuildSignal"
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.Systems.RuleforgeBridgeMarker",
+      "className": "ModuleScript",
+      "source": "local RuleforgeBridgeMarker = {}\n\nRuleforgeBridgeMarker.Version = \"1.0.0\"\nRuleforgeBridgeMarker.CreatedBy = \"Codex Studio Bridge\"\n\nreturn RuleforgeBridgeMarker\n"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Story Quest Starter",
+  "mode": "supervised",
+  "description": "Generic story/adventure blockout: NPC folder, objective marker, chapter gate, dialogue/objective remotes, and draft UI root.",
+  "steps": [
+    { "type": "ensureFolder", "path": "Workspace.NPCs" },
+    { "type": "ensureFolder", "path": "Workspace.Objectives" },
+    { "type": "ensureFolder", "path": "Workspace.Chapters" },
+    {
+      "type": "createPart",
+      "path": "Workspace.Objectives.FirstObjectiveMarker",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 8, "y": 1, "z": 8 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 1, "z": 24 },
+        "Color": { "__type": "Color3", "r": 0.15, "g": 0.45, "b": 1 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.Chapters.ChapterGate01",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 14, "y": 12, "z": 1 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 6, "z": 42 },
+        "Color": { "__type": "Color3", "r": 0.25, "g": 0.2, "b": 0.5 }
+      }
+    },
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.DialogueStarted" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.ObjectiveChanged" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.QuestCompleted" },
+    { "type": "ensureFolder", "path": "StarterGui.CodexDirectorHUD.StoryDraft" }
+  ]
+}

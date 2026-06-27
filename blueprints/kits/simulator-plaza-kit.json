@@ -1,0 +1,41 @@
+{
+  "name": "Simulator Plaza Kit",
+  "mode": "supervised",
+  "steps": [
+    { "type": "ensureFolder", "path": "Workspace.CodexWorldForge" },
+    { "type": "ensureFolder", "path": "Workspace.CodexWorldForge.SimulatorPlazaKit" },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.SimulatorPlazaKit.PlazaFloor",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 0, "z": 0 },
+        "Size": { "__type": "Vector3", "x": 110, "y": 1, "z": 110 },
+        "Material": "Pavement",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 126, "g": 132, "b": 138 }
+      }
+    },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.CodexWorldForge.SimulatorPlazaKit.PlayerSpawn",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 2, "z": -32 },
+        "Size": { "__type": "Vector3", "x": 14, "y": 1, "z": 14 },
+        "Neutral": true
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.SimulatorPlazaKit.CoinLoopMarker",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 3, "z": 22 },
+        "Size": { "__type": "Vector3", "x": 16, "y": 6, "z": 16 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 255, "g": 220, "b": 80 },
+        "Transparency": 0.25
+      }
+    }
+  ]
+}

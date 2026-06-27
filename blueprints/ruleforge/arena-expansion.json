@@ -1,0 +1,65 @@
+{
+  "name": "Ruleforge Arena Expansion",
+  "mode": "supervised",
+  "description": "Adds a small isolated arena expansion sandbox for Ruleforge iteration.",
+  "steps": [
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeV4Arena"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeV4Arena.Spawns"
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeV4Arena.Floor",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 96, "y": 2, "z": 96 },
+        "Position": { "__type": "Vector3", "x": 160, "y": 1, "z": 0 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 34, "g": 39, "b": 46 },
+        "Material": "Slate"
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeV4Arena.ExtractionPad",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 18, "y": 1, "z": 18 },
+        "Position": { "__type": "Vector3", "x": 160, "y": 3, "z": -32 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 0, "g": 220, "b": 255 },
+        "Material": "Neon"
+      }
+    },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.RuleforgeV4Arena.Spawns.PlayerSpawnA",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 8, "y": 1, "z": 8 },
+        "Position": { "__type": "Vector3", "x": 128, "y": 4, "z": 32 }
+      }
+    },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.RuleforgeV4Arena.Spawns.PlayerSpawnB",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 8, "y": 1, "z": 8 },
+        "Position": { "__type": "Vector3", "x": 192, "y": 4, "z": 32 }
+      }
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.RuleforgeArenaPing"
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.RuleforgeArenaExpansionServer",
+      "className": "Script",
+      "source": "local ReplicatedStorage = game:GetService(\"ReplicatedStorage\")\nlocal Remotes = ReplicatedStorage:WaitForChild(\"Remotes\")\nlocal Ping = Remotes:WaitForChild(\"RuleforgeArenaPing\")\n\nprint(\"[RuleforgeArenaExpansion] Arena expansion loaded.\")\n"
+    }
+  ]
+}

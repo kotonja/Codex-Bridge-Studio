@@ -1,0 +1,251 @@
+{
+  "id": "simulator",
+  "name": "Simulator",
+  "genre": "simulator",
+  "description": "Collect, currency, upgrades, and shop loop profile.",
+  "detection": {
+    "paths": [
+      "Workspace.Collectibles",
+      "ServerScriptService.Systems",
+      "ReplicatedStorage.Remotes"
+    ],
+    "scriptNames": [
+      "CurrencyService",
+      "DataService",
+      "ShopService",
+      "PetService"
+    ],
+    "remoteNames": [
+      "CollectCurrency",
+      "CurrencyUpdated",
+      "BuyUpgrade"
+    ],
+    "uiRoots": [
+      "StarterGui.SimulatorHUD",
+      "StarterGui.ShopGui"
+    ],
+    "workspaceNames": [
+      "Collectibles",
+      "UpgradePads",
+      "Pets"
+    ],
+    "sourcePatterns": [
+      "CurrencyUpdated",
+      "leaderstats",
+      "BuyUpgrade"
+    ]
+  },
+  "expected": {
+    "paths": [
+      {
+        "path": "Workspace.Collectibles",
+        "className": "Folder",
+        "severity": "warning"
+      },
+      {
+        "path": "Workspace.UpgradePads",
+        "className": "Folder",
+        "severity": "warning"
+      },
+      {
+        "path": "ReplicatedStorage.Remotes",
+        "className": "Folder",
+        "severity": "warning"
+      }
+    ],
+    "scripts": [],
+    "remotes": [
+      {
+        "name": "CollectCurrency",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "CurrencyUpdated",
+        "className": "RemoteEvent"
+      },
+      {
+        "name": "BuyUpgrade",
+        "className": "RemoteEvent"
+      }
+    ],
+    "uiRoots": [
+      "StarterGui.SimulatorHUD"
+    ],
+    "workspace": [
+      "Workspace.Collectibles",
+      "Workspace.UpgradePads"
+    ]
+  },
+  "health": {
+    "weights": {
+      "contexts": 0.12,
+      "structure": 0.16,
+      "scripts": 0.16,
+      "remotes": 0.16,
+      "ui": 0.14,
+      "world": 0.12,
+      "output": 0.1,
+      "scenarios": 0.04
+    }
+  },
+  "cleanup": {
+    "duplicateRenameSuffix": "_Simulator",
+    "keepEmptyPaths": [
+      "Workspace.Collectibles",
+      "Workspace.UpgradePads",
+      "ReplicatedStorage.Remotes"
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "simulator-coin-loop",
+      "title": "Simulator Coin Loop",
+      "file": "blueprints/templates/simulator-coin-loop.json"
+    }
+  ],
+  "visualLandmarks": [
+    "Workspace.Collectibles",
+    "Workspace.UpgradePads",
+    "Workspace.Pets"
+  ],
+  "uiExpectations": {
+    "roots": [
+      "StarterGui.SimulatorHUD",
+      "StarterGui.ShopGui"
+    ],
+    "patterns": [
+      "currency display",
+      "shop/upgrade buttons",
+      "collection feedback"
+    ]
+  },
+  "assetCategories": {
+    "collectibles": [
+      "Part",
+      "MeshPart",
+      "Model"
+    ],
+    "pets": [
+      "Model",
+      "Animation"
+    ],
+    "feedback": [
+      "Sound",
+      "ParticleEmitter"
+    ],
+    "ui": [
+      "ScreenGui",
+      "TextButton"
+    ]
+  },
+  "styleDefaults": {
+    "tone": "clean progression loop",
+    "lighting": "colorful and readable",
+    "ui": "persistent currency/shop HUD"
+  },
+  "protectedPaths": [
+    "ReplicatedStorage.Remotes",
+    "ServerScriptService.Systems"
+  ],
+  "gameLoop": {
+    "lobbyPath": "Workspace.Lobby",
+    "objectivePath": "Workspace.Collectibles",
+    "pieces": [
+      "spawn",
+      "objective",
+      "reward",
+      "replay",
+      "playerFeedback"
+    ],
+    "remotes": [
+      "CollectibleCollected",
+      "CurrencyChanged",
+      "UpgradePurchased"
+    ]
+  },
+  "uiForge": {
+    "root": "StarterGui.CodexSimulatorHUD",
+    "required": [
+      "currency display",
+      "shop button",
+      "upgrade feedback",
+      "mobile-friendly controls"
+    ]
+  },
+  "cameraBookmarks": [
+    {
+      "name": "CollectionLoop",
+      "pathHint": "Workspace.Collectibles",
+      "purpose": "Review collect path and reward visibility"
+    }
+  ],
+  "styleGuide": {
+    "tone": "clean progression loop",
+    "uiDensity": "persistent currency/shop HUD",
+    "feedback": "fast collect, spend, upgrade confirmation"
+  },
+  "assetNeeds": [
+    {
+      "category": "CollectFeedback",
+      "classes": [
+        "Sound",
+        "ParticleEmitter"
+      ],
+      "purpose": "coin/collect reward feedback"
+    },
+    {
+      "category": "ShopIcons",
+      "classes": [
+        "ImageLabel",
+        "ImageButton"
+      ],
+      "purpose": "shop and upgrade readability"
+    }
+  ],
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawn", "title": "Spawn in Plaza" },
+    { "id": "understandObjective", "title": "See Collect Goal" },
+    { "id": "interactPlay", "title": "Collect Currency" },
+    { "id": "receiveFeedback", "title": "Currency Feedback" },
+    { "id": "failWin", "title": "Progress Gate / Upgrade" },
+    { "id": "reward", "title": "Spend or Earn Reward" },
+    { "id": "replayReturn", "title": "Repeat Collection Loop" }
+  ],
+  "objectivePaths": [
+    "Workspace.Collectibles",
+    "Workspace.Shop",
+    "Workspace.Upgrades"
+  ],
+  "qaSignals": [
+    "collect",
+    "currency",
+    "coins",
+    "shop",
+    "upgrade",
+    "reward"
+  ],
+  "failureSignals": [
+    "failed",
+    "not enough",
+    "error"
+  ],
+  "successSignals": [
+    "collected",
+    "purchased",
+    "upgraded",
+    "reward"
+  ],
+  "bugReportPriorities": [
+    "collectible visibility",
+    "currency feedback",
+    "shop/upgrade flow",
+    "reward repeatability"
+  ],
+  "directorPriorities": [
+    "loop",
+    "ui",
+    "assets",
+    "autonomous"
+  ]
+}

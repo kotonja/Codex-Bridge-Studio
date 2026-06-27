@@ -1,0 +1,47 @@
+{
+  "name": "Ruleforge V6 Extraction Smoke",
+  "mode": "supervised",
+  "description": "Safe extraction smoke scenario markers, remotes, and inert diagnostics.",
+  "steps": [
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeV6Scenarios"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "Workspace.RuleforgeV6Scenarios.ExtractionSmoke"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.ExtractionFX"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.ExtractionTimer"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.ObjectiveUpdate"
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.RuleforgeV6Scenarios.ExtractionSmoke.Marker",
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "Size": { "__type": "Vector3", "x": 8, "y": 0.5, "z": 8 },
+        "Position": { "__type": "Vector3", "x": 18, "y": 4, "z": 0 }
+      }
+    },
+    {
+      "type": "ensureFolder",
+      "path": "ReplicatedStorage.CodexDiagnostics"
+    },
+    {
+      "type": "writeScript",
+      "path": "ReplicatedStorage.CodexDiagnostics.ExtractionSmokeNotes",
+      "className": "ModuleScript",
+      "source": "return {\n\tname = \"ExtractionSmoke\",\n\tpurpose = \"Inspect extraction remotes, ExtractionPad, and ExtractionZone during a supervised playtest.\",\n\tcreatedBy = \"Codex Studio Bridge V7\"\n}\n"
+    }
+  ]
+}

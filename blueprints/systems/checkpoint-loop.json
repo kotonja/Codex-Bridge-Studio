@@ -1,0 +1,47 @@
+{
+  "id": "checkpoint-loop",
+  "title": "Checkpoint Loop",
+  "genre": "obby",
+  "description": "Checkpoint progress contract for platformers and obstacle games.",
+  "profileIds": ["universal", "obby"],
+  "loopStages": ["spawn", "objective", "reward", "replay"],
+  "ownedRoots": ["ReplicatedStorage.CodexSystems.Checkpoints", "ServerScriptService.CodexSystems.Checkpoints", "Workspace.CodexWorldForge.Checkpoints"],
+  "contract": {
+    "folders": ["ReplicatedStorage.CodexSystems.Checkpoints", "ServerScriptService.CodexSystems.Checkpoints", "Workspace.CodexWorldForge.Checkpoints"],
+    "remotes": [
+      { "name": "CheckpointReached", "className": "RemoteEvent", "direction": "serverToClient" }
+    ],
+    "world": ["Workspace.CodexWorldForge.Checkpoints"],
+    "scripts": ["ReplicatedStorage.CodexSystems.Checkpoints.Contract"],
+    "tests": ["Checkpoint remote exists", "Checkpoint folder exists", "Contract module exists"]
+  },
+  "blueprint": {
+    "name": "Checkpoint Loop Feature Plan",
+    "mode": "supervised",
+    "steps": [
+      { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems.Checkpoints" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems.Checkpoints" },
+      { "type": "ensureFolder", "path": "Workspace.CodexWorldForge.Checkpoints" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.CheckpointReached" },
+      {
+        "type": "createPart",
+        "path": "Workspace.CodexWorldForge.Checkpoints.CheckpointMarker01",
+        "properties": {
+          "Anchored": true,
+          "Position": { "__type": "Vector3", "x": 0, "y": 1, "z": 40 },
+          "Size": { "__type": "Vector3", "x": 10, "y": 1, "z": 10 },
+          "Material": "Neon",
+          "Color": { "__type": "Color3", "mode": "rgb", "r": 90, "g": 220, "b": 120 },
+          "Transparency": 0.35
+        }
+      },
+      {
+        "type": "writeScript",
+        "className": "ModuleScript",
+        "path": "ReplicatedStorage.CodexSystems.Checkpoints.Contract",
+        "source": "local Contract = {}\n\nContract.id = \"checkpoint-loop\"\nContract.remotes = { \"CheckpointReached\" }\nContract.generatedBy = \"Codex Studio Bridge V15\"\n\nreturn Contract\n"
+      }
+    ]
+  }
+}

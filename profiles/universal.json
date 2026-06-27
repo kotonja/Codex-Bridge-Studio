@@ -1,0 +1,499 @@
+{
+  "id": "universal",
+  "name": "Universal Roblox Project",
+  "genre": "general",
+  "description": "Default profile for any Roblox place.",
+  "detection": {
+    "paths": [
+      "Workspace",
+      "ReplicatedStorage",
+      "ServerScriptService",
+      "StarterGui",
+      "StarterPlayer"
+    ],
+    "scriptNames": [],
+    "remoteNames": [],
+    "uiRoots": [
+      "StarterGui"
+    ],
+    "workspaceNames": []
+  },
+  "expected": {
+    "paths": [
+      {
+        "path": "Workspace",
+        "className": "Workspace",
+        "severity": "error"
+      },
+      {
+        "path": "ReplicatedStorage",
+        "className": "ReplicatedStorage",
+        "severity": "error"
+      },
+      {
+        "path": "ServerScriptService",
+        "className": "ServerScriptService",
+        "severity": "error"
+      },
+      {
+        "path": "StarterGui",
+        "className": "StarterGui",
+        "severity": "warning"
+      },
+      {
+        "path": "StarterPlayer",
+        "className": "StarterPlayer",
+        "severity": "warning"
+      }
+    ],
+    "scripts": [],
+    "remotes": [],
+    "uiRoots": [
+      "StarterGui"
+    ],
+    "workspace": []
+  },
+  "health": {
+    "weights": {
+      "contexts": 0.14,
+      "structure": 0.18,
+      "scripts": 0.16,
+      "remotes": 0.16,
+      "ui": 0.1,
+      "world": 0.1,
+      "output": 0.1,
+      "scenarios": 0.06
+    }
+  },
+  "cleanup": {
+    "duplicateRenameSuffix": "_Codex",
+    "keepEmptyPaths": [
+      "Workspace",
+      "ReplicatedStorage",
+      "ServerScriptService",
+      "ServerStorage",
+      "StarterGui",
+      "StarterPlayer",
+      "ReplicatedFirst"
+    ]
+  },
+  "scenarios": [],
+  "visualLandmarks": [
+    "Workspace"
+  ],
+  "uiExpectations": {
+    "roots": [
+      "StarterGui"
+    ],
+    "patterns": [
+      "at least one player-facing ScreenGui for playable prototypes"
+    ]
+  },
+  "assetCategories": {
+    "audio": [
+      "Sound"
+    ],
+    "visuals": [
+      "Decal",
+      "Texture",
+      "ParticleEmitter",
+      "Beam",
+      "Trail"
+    ],
+    "models": [
+      "Model",
+      "MeshPart"
+    ],
+    "tools": [
+      "Tool"
+    ]
+  },
+  "styleDefaults": {
+    "tone": "clear readable Roblox prototype",
+    "lighting": "neutral",
+    "ui": "simple HUD/menu structure"
+  },
+  "worldArchetypes": [
+    "lobby",
+    "spawn",
+    "objective",
+    "reward loop"
+  ],
+  "landmarkExpectations": [
+    {
+      "path": "Workspace.CodexWorldForge.PlayerSpawn",
+      "purpose": "safe player entry"
+    },
+    {
+      "path": "Workspace.CodexWorldForge.ObjectiveMarker",
+      "purpose": "primary objective"
+    }
+  ],
+  "materialPalette": {
+    "floor": [
+      "Concrete",
+      "Grass",
+      "Pavement"
+    ],
+    "objective": [
+      "Neon",
+      "SmoothPlastic"
+    ],
+    "props": [
+      "Wood",
+      "Metal"
+    ]
+  },
+  "propKits": [
+    {
+      "id": "arena-combat-blockout",
+      "title": "Arena Combat Blockout",
+      "file": "blueprints/kits/arena-combat-blockout.json"
+    },
+    {
+      "id": "obby-course-kit",
+      "title": "Obby Course Kit",
+      "file": "blueprints/kits/obby-course-kit.json"
+    }
+  ],
+  "lightingPresets": {
+    "default": "neutral prototype",
+    "clockTime": 14,
+    "brightness": 2
+  },
+  "worldForgePriorities": [
+    "spawn readability",
+    "clear objective marker",
+    "safe blockout scale",
+    "placeholder props"
+  ],
+  "gameplaySystems": [],
+  "featureTemplates": [
+    {
+      "id": "round-loop",
+      "title": "Round Loop",
+      "file": "blueprints/systems/round-loop.json"
+    },
+    {
+      "id": "checkpoint-loop",
+      "title": "Checkpoint Loop",
+      "file": "blueprints/systems/checkpoint-loop.json"
+    },
+    {
+      "id": "currency-loop",
+      "title": "Currency Loop",
+      "file": "blueprints/systems/currency-loop.json"
+    },
+    {
+      "id": "inventory-items",
+      "title": "Inventory Items",
+      "file": "blueprints/systems/inventory-items.json"
+    },
+    {
+      "id": "shop-loop",
+      "title": "Shop Loop",
+      "file": "blueprints/systems/shop-loop.json"
+    },
+    {
+      "id": "quest-objectives",
+      "title": "Quest Objectives",
+      "file": "blueprints/systems/quest-objectives.json"
+    },
+    {
+      "id": "enemy-wave",
+      "title": "Enemy Wave",
+      "file": "blueprints/systems/enemy-wave.json"
+    },
+    {
+      "id": "reward-replay",
+      "title": "Reward + Replay",
+      "file": "blueprints/systems/reward-replay.json"
+    }
+  ],
+  "systemContracts": {
+    "ownedRoots": [
+      "ReplicatedStorage.CodexSystems",
+      "ServerScriptService.CodexSystems",
+      "StarterGui.CodexDirectorHUD",
+      "Workspace.CodexWorldForge"
+    ]
+  },
+  "featurePriorities": [
+    "reward-replay",
+    "round-loop",
+    "quest-objectives"
+  ],
+  "milestonePriorities": [
+    "prototype-core-loop",
+    "obby-checkpoint-milestone",
+    "simulator-currency-milestone",
+    "horror-objective-milestone",
+    "arena-combat-round-milestone"
+  ],
+  "acceptanceCriteria": {
+    "prototype-core-loop": [
+      "A clear owned gameplay-system folder exists.",
+      "At least one loop state or objective remote exists.",
+      "Verification reports no new Output errors."
+    ]
+  },
+  "verificationChecks": {
+    "coreRegression": [
+      "Project score does not drop after an approved build round.",
+      "No protected production path is edited without an explicit approved plan.",
+      "All generated objects live under Codex-owned roots by default."
+    ]
+  },
+  "systemHarnessRules": {
+    "ownedRoots": [
+      "ReplicatedStorage.CodexSystemHarness",
+      "ServerScriptService.CodexSystemHarness",
+      "Workspace.CodexSystemHarness"
+    ]
+  },
+  "protectedPaths": [
+    "ServerScriptService",
+    "ReplicatedStorage.Remotes"
+  ],
+  "codeSystems": [
+    {
+      "id": "server",
+      "name": "Server Scripts",
+      "root": "ServerScriptService"
+    },
+    {
+      "id": "shared",
+      "name": "Shared Modules",
+      "root": "ReplicatedStorage"
+    },
+    {
+      "id": "client",
+      "name": "Client Scripts",
+      "root": "StarterPlayer"
+    },
+    {
+      "id": "ui",
+      "name": "UI Scripts",
+      "root": "StarterGui"
+    }
+  ],
+  "criticalScripts": [],
+  "remoteExpectations": [],
+  "codeRiskRules": {
+    "oversizedScriptLineWarning": 900,
+    "requireResolution": "warn",
+    "missingRemoteGuard": "info",
+    "disabledScripts": "info",
+    "stalePatchProtection": "required"
+  },
+  "moduleResolutionRules": {
+    "resolveWaitForChildChains": true,
+    "dynamicRequiresAreInfo": true,
+    "assetIdRequiresAreInfo": true
+  },
+  "clientServerRules": {
+    "clientForbiddenServices": [
+      "ServerStorage",
+      "ServerScriptService",
+      "DataStoreService",
+      "MessagingService"
+    ],
+    "serverForbiddenApis": [
+      "Players.LocalPlayer",
+      "UserInputService",
+      "ContextActionService",
+      "RunService.RenderStepped",
+      "workspace.CurrentCamera"
+    ]
+  },
+  "remoteContractRules": {
+    "criticalRemotes": [],
+    "oneWayRemotesAllowed": true
+  },
+  "codeDoctorPriorities": [
+    "explain target scripts before patching",
+    "prefer small hash-verified patch sets",
+    "treat dynamic requires as review items"
+  ],
+  "productionRefactorRules": {
+    "defaultAllowDeletes": false,
+    "requireBackups": true,
+    "requireSourceHashes": true,
+    "allowProtectedPathsByDefault": false,
+    "safeRewriteModes": [
+      "quoted WaitForChild references",
+      "quoted FindFirstChild references",
+      "quoted require references",
+      "quoted remote helper references"
+    ]
+  },
+  "gameLoop": {
+    "pieces": [
+      "lobby",
+      "spawn",
+      "start",
+      "objective",
+      "failWin",
+      "reward",
+      "replay",
+      "playerFeedback"
+    ],
+    "remotes": [
+      "LoopStateChanged",
+      "ObjectiveChanged",
+      "RewardGranted"
+    ]
+  },
+  "uiForge": {
+    "root": "StarterGui.CodexDirectorHUD",
+    "required": [
+      "status HUD",
+      "objective text",
+      "primary action button",
+      "mobile-friendly controls"
+    ]
+  },
+  "cameraBookmarks": [
+    {
+      "name": "DefaultOverview",
+      "purpose": "General scene review"
+    }
+  ],
+  "styleGuide": {
+    "tone": "clear readable Roblox prototype",
+    "uiDensity": "compact",
+    "feedback": "visible state changes before polish"
+  },
+  "assetNeeds": [
+    {
+      "category": "Audio",
+      "classes": [
+        "Sound"
+      ],
+      "purpose": "basic success/failure feedback"
+    },
+    {
+      "category": "VFX",
+      "classes": [
+        "ParticleEmitter",
+        "Beam",
+        "Trail"
+      ],
+      "purpose": "readable player feedback"
+    }
+  ],
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawn", "title": "Spawn" },
+    { "id": "understandObjective", "title": "Understand Objective" },
+    { "id": "interactPlay", "title": "Interact / Play" },
+    { "id": "receiveFeedback", "title": "Receive Feedback" },
+    { "id": "failWin", "title": "Fail / Win" },
+    { "id": "reward", "title": "Reward" },
+    { "id": "replayReturn", "title": "Replay / Return" }
+  ],
+  "objectivePaths": [
+    "Workspace.CodexWorldForge.ObjectiveMarker",
+    "Workspace.Objective",
+    "Workspace.Objectives"
+  ],
+  "qaSignals": [
+    "objective",
+    "interact",
+    "checkpoint",
+    "reward",
+    "replay",
+    "win",
+    "lose"
+  ],
+  "failureSignals": [
+    "died",
+    "failed",
+    "defeat",
+    "error"
+  ],
+  "successSignals": [
+    "completed",
+    "success",
+    "reward",
+    "victory"
+  ],
+  "bugReportPriorities": [
+    "Output errors",
+    "missing spawn",
+    "missing objective clarity",
+    "missing feedback",
+    "missing reward/replay"
+  ],
+  "uiScreens": [
+    "MainMenu",
+    "HUD",
+    "EndScreen"
+  ],
+  "uiActions": [
+    {
+      "id": "play",
+      "keywords": [
+        "play",
+        "start",
+        "queue"
+      ]
+    },
+    {
+      "id": "settings",
+      "keywords": [
+        "settings",
+        "options"
+      ]
+    },
+    {
+      "id": "replay",
+      "keywords": [
+        "replay",
+        "again",
+        "return"
+      ]
+    }
+  ],
+  "responsiveRules": {
+    "requireSafeArea": true,
+    "preferUiScale": true,
+    "minimumTextSize": 12
+  },
+  "flowStates": [
+    {
+      "id": "menu",
+      "screens": [
+        "Menu"
+      ],
+      "actions": [
+        "play"
+      ]
+    },
+    {
+      "id": "inGameHud",
+      "screens": [
+        "HUD"
+      ],
+      "patterns": [
+        "objective",
+        "status"
+      ]
+    },
+    {
+      "id": "end",
+      "screens": [
+        "End"
+      ],
+      "actions": [
+        "replay"
+      ]
+    }
+  ],
+  "directorPriorities": [
+    "ui",
+    "loop",
+    "assets",
+    "autonomous"
+  ]
+}

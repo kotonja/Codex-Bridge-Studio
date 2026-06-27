@@ -1,0 +1,37 @@
+{
+  "name": "Ruleforge V6 Vote Smoke",
+  "mode": "supervised",
+  "description": "Safe vote/rules smoke scenario remotes and inert diagnostics.",
+  "steps": [
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.StartVote"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.CastVote"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.VoteTally"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.VoteResult"
+    },
+    {
+      "type": "ensureRemoteEvent",
+      "path": "ReplicatedStorage.Remotes.ActiveRulesUpdated"
+    },
+    {
+      "type": "ensureFolder",
+      "path": "ReplicatedStorage.CodexDiagnostics"
+    },
+    {
+      "type": "writeScript",
+      "path": "ReplicatedStorage.CodexDiagnostics.VoteSmokeNotes",
+      "className": "ModuleScript",
+      "source": "return {\n\tname = \"VoteSmoke\",\n\tpurpose = \"Inspect vote/rule remotes and rule UI during a supervised playtest.\",\n\tcreatedBy = \"Codex Studio Bridge V7\"\n}\n"
+    }
+  ]
+}

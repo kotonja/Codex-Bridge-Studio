@@ -1,0 +1,52 @@
+{
+  "name": "Arena Combat Starter",
+  "mode": "supervised",
+  "description": "Creates a small arena foundation with combat remotes and spawn markers.",
+  "templateId": "arena-combat-starter",
+  "steps": [
+    { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.CombatRequest" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.RoundState" },
+    { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.DamageNumber" },
+    { "type": "ensureFolder", "path": "Workspace.Arena" },
+    { "type": "ensureFolder", "path": "Workspace.Spawns" },
+    { "type": "ensureFolder", "path": "Workspace.WeaponPads" },
+    {
+      "type": "createPart",
+      "path": "Workspace.Arena.Floor",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 80, "y": 1, "z": 80 },
+        "Position": { "__type": "Vector3", "x": 0, "y": 0, "z": 0 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 84, "b": 92 },
+        "Material": "Concrete"
+      }
+    },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.Spawns.BlueSpawn",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 8, "y": 1, "z": 8 },
+        "Position": { "__type": "Vector3", "x": -24, "y": 3, "z": 0 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 140, "b": 255 }
+      }
+    },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.Spawns.RedSpawn",
+      "properties": {
+        "Anchored": true,
+        "Size": { "__type": "Vector3", "x": 8, "y": 1, "z": 8 },
+        "Position": { "__type": "Vector3", "x": 24, "y": 3, "z": 0 },
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 255, "g": 96, "b": 96 }
+      }
+    },
+    {
+      "type": "writeScript",
+      "path": "ServerScriptService.RoundService",
+      "className": "Script",
+      "source": "print(\"[RoundService] arena combat starter loaded.\")\n"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "name": "Arena Combat Blockout Kit",
+  "mode": "supervised",
+  "steps": [
+    { "type": "ensureFolder", "path": "Workspace.CodexWorldForge" },
+    { "type": "ensureFolder", "path": "Workspace.CodexWorldForge.ArenaCombatBlockout" },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.ArenaCombatBlockout.ArenaFloor",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 0, "z": 0 },
+        "Size": { "__type": "Vector3", "x": 140, "y": 1, "z": 140 },
+        "Material": "Concrete",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 75, "g": 82, "b": 92 }
+      }
+    },
+    {
+      "type": "createPart",
+      "path": "Workspace.CodexWorldForge.ArenaCombatBlockout.CenterObjective",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 0, "y": 2, "z": 0 },
+        "Size": { "__type": "Vector3", "x": 24, "y": 3, "z": 24 },
+        "Material": "Neon",
+        "Color": { "__type": "Color3", "mode": "rgb", "r": 80, "g": 210, "b": 255 },
+        "Transparency": 0.45
+      }
+    },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.CodexWorldForge.ArenaCombatBlockout.SpawnA",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": -48, "y": 2, "z": -48 },
+        "Size": { "__type": "Vector3", "x": 14, "y": 1, "z": 14 },
+        "Neutral": true
+      }
+    },
+    {
+      "type": "createSpawnLocation",
+      "path": "Workspace.CodexWorldForge.ArenaCombatBlockout.SpawnB",
+      "properties": {
+        "Anchored": true,
+        "Position": { "__type": "Vector3", "x": 48, "y": 2, "z": 48 },
+        "Size": { "__type": "Vector3", "x": 14, "y": 1, "z": 14 },
+        "Neutral": true
+      }
+    }
+  ]
+}

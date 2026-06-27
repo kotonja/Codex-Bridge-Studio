@@ -1,0 +1,37 @@
+{
+  "id": "enemy-wave",
+  "title": "Enemy Wave",
+  "genre": "arena-combat",
+  "description": "Wave state, spawn folders, and combat feedback contract.",
+  "profileIds": ["universal", "arena-combat", "ruleforge"],
+  "loopStages": ["start", "objective", "fail", "reward"],
+  "ownedRoots": ["ReplicatedStorage.CodexSystems.EnemyWave", "ServerScriptService.CodexSystems.EnemyWave"],
+  "contract": {
+    "folders": ["ReplicatedStorage.CodexSystems.EnemyWave", "ServerScriptService.CodexSystems.EnemyWave", "Workspace.LiveEnemies"],
+    "remotes": [
+      { "name": "EnemyWaveState", "className": "RemoteEvent", "direction": "serverToClient" },
+      { "name": "EnemyWaveAction", "className": "RemoteEvent", "direction": "clientToServer" }
+    ],
+    "world": ["Workspace.EnemySpawns", "Workspace.LiveEnemies"],
+    "scripts": ["ReplicatedStorage.CodexSystems.EnemyWave.Contract"],
+    "tests": ["Enemy wave remotes exist", "Enemy spawn folder exists", "Contract module exists"]
+  },
+  "blueprint": {
+    "name": "Enemy Wave Feature Plan",
+    "mode": "supervised",
+    "steps": [
+      { "type": "ensureFolder", "path": "ReplicatedStorage.Remotes" },
+      { "type": "ensureFolder", "path": "ReplicatedStorage.CodexSystems.EnemyWave" },
+      { "type": "ensureFolder", "path": "ServerScriptService.CodexSystems.EnemyWave" },
+      { "type": "ensureFolder", "path": "Workspace.LiveEnemies" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.EnemyWaveState" },
+      { "type": "ensureRemoteEvent", "path": "ReplicatedStorage.Remotes.EnemyWaveAction" },
+      {
+        "type": "writeScript",
+        "className": "ModuleScript",
+        "path": "ReplicatedStorage.CodexSystems.EnemyWave.Contract",
+        "source": "local Contract = {}\n\nContract.id = \"enemy-wave\"\nContract.remotes = { \"EnemyWaveState\", \"EnemyWaveAction\" }\nContract.generatedBy = \"Codex Studio Bridge V15\"\n\nreturn Contract\n"
+      }
+    ]
+  }
+}

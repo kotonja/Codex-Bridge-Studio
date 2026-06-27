@@ -1,0 +1,55 @@
+{
+  "id": "survival",
+  "name": "Survival Roblox Project",
+  "genre": "survival",
+  "description": "Universal survival profile for resources, crafting, hunger/health, enemies, bases, waves, objectives, and extraction/escape loops.",
+  "detection": {
+    "paths": ["Workspace", "ReplicatedStorage", "ServerScriptService", "StarterGui"],
+    "scriptNames": ["Survival", "Resource", "Craft", "Wave", "Enemy", "Base", "Hunger", "Stamina"],
+    "remoteNames": ["CraftRequest", "ResourceCollected", "WaveStarted", "BaseDamaged"],
+    "uiRoots": ["StarterGui"],
+    "workspaceNames": ["Resources", "Enemies", "Bases", "SafeZones", "Objectives"]
+  },
+  "expected": {
+    "paths": [
+      { "path": "Workspace", "className": "Workspace", "severity": "error" },
+      { "path": "ReplicatedStorage", "className": "ReplicatedStorage", "severity": "error" },
+      { "path": "StarterGui", "className": "StarterGui", "severity": "warning" }
+    ],
+    "scripts": [],
+    "remotes": [],
+    "uiRoots": ["StarterGui"],
+    "workspace": ["Resources"]
+  },
+  "expectedLoop": [
+    { "id": "join", "title": "Join" },
+    { "id": "spawn", "title": "Spawn" },
+    { "id": "gather", "title": "Gather Resources" },
+    { "id": "craft", "title": "Craft / Upgrade" },
+    { "id": "survive", "title": "Survive Threat" },
+    { "id": "feedback", "title": "Receive Feedback" },
+    { "id": "escapeOrReplay", "title": "Escape / Replay" }
+  ],
+  "qaSignals": ["survive", "resource", "craft", "enemy", "wave", "base", "hunger", "stamina"],
+  "successSignals": ["collected", "crafted", "survived", "wave", "reward", "escaped"],
+  "failureSignals": ["died", "failed", "missing", "starved", "error"],
+  "uiActions": [
+    { "id": "craft", "keywords": ["craft", "build"] },
+    { "id": "inventory", "keywords": ["inventory", "items"] },
+    { "id": "startWave", "keywords": ["start", "wave", "ready"] }
+  ],
+  "worldArchetypes": ["resource field", "safe zone", "enemy spawns", "craft station", "escape/extraction"],
+  "landmarkExpectations": [
+    { "path": "Workspace.Resources", "purpose": "collectable resource objects" },
+    { "path": "Workspace.Enemies", "purpose": "enemy or threat spawns" }
+  ],
+  "featurePriorities": ["inventory-items", "enemy-wave", "reward-replay"],
+  "bugReportPriorities": [
+    "Resource pickup gives no feedback",
+    "Crafting consumes items incorrectly",
+    "Enemy wave never starts or ends",
+    "Death/respawn flow is unclear",
+    "Survival UI unreadable on mobile"
+  ],
+  "protectedPaths": ["ServerScriptService", "ReplicatedStorage.Remotes"]
+}

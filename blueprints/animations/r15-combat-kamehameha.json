@@ -1,0 +1,89 @@
+{
+  "animationName": "Kamehameha_Fire_R15",
+  "rigType": "R15",
+  "length": 1.35,
+  "looped": false,
+  "priority": "Action4",
+  "keyframes": [
+    {
+      "time": 0,
+      "poses": {
+        "UpperTorso": { "rotation": [0, 0, 0], "position": [0, 0, 0] },
+        "RightUpperArm": { "rotation": [-12, 10, 28] },
+        "LeftUpperArm": { "rotation": [-12, -10, -28] }
+      },
+      "easingStyle": "Quad",
+      "easingDirection": "Out"
+    },
+    {
+      "time": 0.12,
+      "poses": {
+        "UpperTorso": { "rotation": [-5, 0, 0] },
+        "RightUpperArm": { "rotation": [-32, 18, 42] },
+        "LeftUpperArm": { "rotation": [-32, -18, -42] },
+        "RightLowerArm": { "rotation": [-24, 0, 0] },
+        "LeftLowerArm": { "rotation": [-24, 0, 0] }
+      },
+      "easingStyle": "Sine",
+      "easingDirection": "Out"
+    },
+    {
+      "time": 0.62,
+      "poses": {
+        "UpperTorso": { "rotation": [-10, 0, 0] },
+        "RightUpperArm": { "rotation": [-78, 6, 20] },
+        "LeftUpperArm": { "rotation": [-78, -6, -20] },
+        "RightLowerArm": { "rotation": [-8, 0, 0] },
+        "LeftLowerArm": { "rotation": [-8, 0, 0] }
+      },
+      "easingStyle": "Cubic",
+      "easingDirection": "Out"
+    },
+    {
+      "time": 0.78,
+      "poses": {
+        "UpperTorso": { "rotation": [-14, 0, 0] },
+        "RightUpperArm": { "rotation": [-82, 4, 18] },
+        "LeftUpperArm": { "rotation": [-82, -4, -18] }
+      },
+      "easingStyle": "Quad",
+      "easingDirection": "InOut"
+    },
+    {
+      "time": 1.05,
+      "poses": {
+        "UpperTorso": { "rotation": [-4, 0, 0] },
+        "RightUpperArm": { "rotation": [-32, 12, 28] },
+        "LeftUpperArm": { "rotation": [-32, -12, -28] }
+      },
+      "easingStyle": "Sine",
+      "easingDirection": "In"
+    },
+    {
+      "time": 1.35,
+      "poses": {
+        "UpperTorso": { "rotation": [0, 0, 0] },
+        "RightUpperArm": { "rotation": [-12, 10, 28] },
+        "LeftUpperArm": { "rotation": [-12, -10, -28] }
+      },
+      "easingStyle": "Quad",
+      "easingDirection": "In"
+    }
+  ],
+  "markers": [
+    { "name": "ChargeStart", "time": 0.12 },
+    { "name": "Fire", "time": 0.62 },
+    { "name": "ImpactWindow", "time": 0.78 },
+    { "name": "Recovery", "time": 1.05 },
+    { "name": "VFXBurst", "time": 0.62 },
+    { "name": "SoundCue", "time": 0.62 }
+  ],
+  "soundCues": {
+    "Kame_Charge_Start": 0.12,
+    "Kame_Fire": 0.62
+  },
+  "vfxCues": {
+    "PlayKamehamehaCharge": 0.12,
+    "PlayKamehameha": 0.62
+  }
+}

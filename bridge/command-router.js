@@ -1,0 +1,355 @@
+'use strict';
+
+function normalizeQuery(query = '') {
+  return String(query || '').trim().replace(/\s+/g, ' ');
+}
+
+function stripNoise(query = '') {
+  return normalizeQuery(query)
+    .replace(/^please\s+/i, '')
+    .replace(/^can\s+you\s+/i, '')
+    .replace(/^codex\s+/i, '')
+    .trim();
+}
+
+function quoteForCommand(value) {
+  return `"${String(value || '').replace(/"/g, '\\"')}"`;
+}
+
+function extractQuotedText(query = '') {
+  const match = String(query || '').match(/"([^"]+)"/);
+  return match ? match[1].trim() : null;
+}
+
+function hasPlaceholder(command = '') {
+  return /<[^>]+>/.test(String(command || ''));
+}
+
+function createRoute(rawQuery = '', options = {}) {
+  const query = stripNoise(rawQuery);
+  const q = query.toLowerCase();
+  const quoted = extractQuotedText(query);
+  const intent = quoted || query;
+  const has = (...words) => words.some((word) => q.includes(word));
+  const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
+    || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
+  const brainSignal = has('roblox brain', 'game creator', 'creator os', 'whole game', 'everything together', 'unified', 'orchestrate', 'make game', 'build game', 'improve game', 'polish game', 'premium game', 'top dev', 'full creator')
+    || ((has('make', 'create', 'build', 'improve', 'polish') && has('game', 'experience', 'roblox')));
+  const buildSignal = has('build', 'model', 'scene', 'prop', 'parts', 'part', 'structure', 'building', 'lobby', 'arena', 'map', 'portal', 'crate', 'shop stand', 'decorate', 'blockout', 'procedural')
+    || ((has('make', 'create', 'generate') && has('lobby', 'arena', 'map', 'prop', 'model', 'building', 'room', 'scene')));
+  const commands = [];
+  let category = 'start';
+  let title = 'StudioBridge Orientation';
+  let confidence = 0.58;
+  let safety = 'readOnlyRouter';
+  let reason = 'General request; start with compact live context and tool discovery.';
+  let canRunDirectly = true;
+
+  function setRoute(next) {
+    category = next.category || category;
+    title = next.title || title;
+    confidence = next.confidence ?? confidence;
+    safety = next.safety || safety;
+    reason = next.reason || reason;
+    canRunDirectly = next.canRunDirectly ?? canRunDirectly;
+    commands.splice(0, commands.length, ...(next.commands || commands));
+  }
+
+  if (!query) {
+    setRoute({
+      category: 'do',
+      title: 'MCP-Free Router Help',
+      confidence: 1,
+      reason: 'No request was provided.',
+      commands: ['tools\\bridge.cmd do "check now"', 'tools\\bridge.cmd do-tools', 'tools\\bridge.cmd tools'],
+    });
+  } else if (has('clean reset', 'hard reset', 'fresh bridge', 'refresh bridge', 'clean pairing', 'phantom place', 'stale place', 'connected before')) {
+    setRoute({
+      category: 'recovery',
+      title: 'Clean Bridge / Pairing Refresh',
+      confidence: 0.97,
+      safety: 'localBridgeStateReset',
+      reason: 'Clean reset language detected. Clear stale remembered places/tokens before reconnecting Studio.',
+      commands: ['tools\\bridge.cmd pair clean-reset', 'tools\\bridge.cmd connect', 'tools\\bridge.cmd places'],
+    });
+  } else if (has('transport closed', 'mcp', 'proxy', 'recover', 'reconnect', 'connection broken', 'bridge broken')) {
+    setRoute({
+      category: 'recovery',
+      title: 'Bridge / MCP Recovery',
+      confidence: 0.95,
+      reason: 'Transport or recovery language detected. Use the MCP-free helper path first.',
+      commands: ['tools\\bridge.cmd mcp-proxy status', 'tools\\bridge.cmd connect', 'tools\\bridge.cmd watchdog', 'tools\\bridge.cmd mcp-proxy smoke'],
+    });
+  } else if (has('new pairing', 'pairing code', 'pair code', 'reset pair')) {
+    setRoute({
+      category: 'pairing',
+      title: 'Pairing Code',
+      confidence: 0.94,
+      safety: has('reset', 'new') ? 'localPairReset' : 'readOnly',
+      reason: has('reset', 'new') ? 'The request asks for a fresh pairing code.' : 'The request asks to view the current pairing code.',
+      commands: [has('reset', 'new') ? 'tools\\bridge.cmd pair reset' : 'tools\\bridge.cmd pair code', 'tools\\bridge.cmd pair guide'],
+    });
+  } else if (has('check now', 'status', 'what is happening', 'what\'s happening', 'look now', 'live context')) {
+    setRoute({
+      category: 'context',
+      title: 'Check Now',
+      confidence: 0.96,
+      reason: 'Fast live context request.',
+      commands: ['tools\\bridge.cmd codex-context', 'tools\\bridge.cmd watch now', 'tools\\bridge.cmd watch errors'],
+    });
+  } else if (has('place', 'places', 'universe', 'riftarena', 'hub', 'switch')) {
+    const placeTarget = q.includes('riftarena') ? 'RiftArena' : (q.includes('hub') ? 'Hub' : '<place>');
+    setRoute({
+      category: 'places',
+      title: 'Multi-Place Routing',
+      confidence: q.includes('switch') || q.includes('use ') ? 0.9 : 0.82,
+      reason: 'Place/universe routing language detected.',
+      commands: q.includes('switch') || q.includes('use ')
+        ? ['tools\\bridge.cmd places', `tools\\bridge.cmd place use ${placeTarget}`, `tools\\bridge.cmd --place ${placeTarget} codex-context`]
+        : ['tools\\bridge.cmd places', 'tools\\bridge.cmd universe status', 'tools\\bridge.cmd universe links'],
+    });
+  } else if (has('tool', 'what can', 'capabilit', 'manual', 'command')) {
+    const search = query
+      .replace(/\b(?:tools?|commands?|capabilit(?:y|ies)|manual|codex|bridge|search)\b/ig, '')
+      .replace(/\bwhat\s+can\b/ig, '')
+      .trim();
+    setRoute({
+      category: 'tools',
+      title: 'Tool Discovery',
+      confidence: 0.9,
+      reason: 'Tool/capability discovery request.',
+      commands: search ? [`tools\\bridge.cmd tools search ${quoteForCommand(search)}`, 'tools\\bridge.cmd tools'] : ['tools\\bridge.cmd tools', 'tools\\bridge.cmd command-index', 'tools\\bridge.cmd manual'],
+    });
+  } else if (brainSignal) {
+    const action = has('test', 'qa') ? 'test' : has('polish') ? 'polish' : has('improve') ? 'improve' : 'build';
+    setRoute({
+      category: 'robloxBrain',
+      title: 'Roblox Brain Core',
+      confidence: 0.94,
+      safety: 'fullTrustOrchestratedLocalActions',
+      reason: 'Whole-game or unified creator language detected. Route through the central Roblox Brain before specialist tools.',
+      commands: [`tools\\bridge.cmd brain plan ${quoteForCommand(intent)}`, `tools\\bridge.cmd brain ${action} ${quoteForCommand(intent)}`, 'tools\\bridge.cmd brain director'],
+    });
+  } else if (buildSignal) {
+    const generateCommand = has('scene', 'lobby', 'arena', 'map', 'room', 'world')
+      ? `tools\\bridge.cmd generate_scene ${quoteForCommand(intent)}`
+      : `tools\\bridge.cmd generate_model ${quoteForCommand(intent)}`;
+    setRoute({
+      category: 'build',
+      title: 'Universal Build Director',
+      confidence: 0.9,
+      safety: 'fullTrustCodexOwnedGeneratedContent',
+      reason: 'Build/model/scene/prop language detected.',
+      commands: [`tools\\bridge.cmd build plan ${quoteForCommand(intent)}`, generateCommand, 'tools\\bridge.cmd build director'],
+    });
+  } else if (audioSignal) {
+    setRoute({
+      category: 'audio',
+      title: 'Audio Director / Mix QA',
+      confidence: 0.9,
+      safety: has('mix', 'apply', 'balance') ? 'fullTrustSoundPropertyAudit' : 'readOnlyAudioAudit',
+      reason: 'Audio, loudness, sound, or mix language detected.',
+      commands: ['tools\\bridge.cmd audio live', 'tools\\bridge.cmd audio audit Workspace', `tools\\bridge.cmd audio plan ${quoteForCommand(intent)}`, `tools\\bridge.cmd audio mix ${quoteForCommand(intent)}`],
+    });
+  } else if (has('motion vfx', 'animation and vfx', 'vfx and animation', 'cinematic', 'muzzle flash')) {
+    setRoute({
+      category: 'motionVfx',
+      title: 'Motion + VFX Fusion',
+      confidence: 0.92,
+      safety: 'fullTrustCodexOwnedGeneratedContent',
+      reason: 'Request combines motion/animation and VFX details.',
+      commands: [`tools\\bridge.cmd motion-vfx plan ${quoteForCommand(intent)}`, `tools\\bridge.cmd motion-vfx generate ${quoteForCommand(intent)}`],
+    });
+  } else if (has('ability', 'skill', 'power', 'attack package')) {
+    setRoute({
+      category: 'ability',
+      title: 'Ability Forge',
+      confidence: 0.88,
+      safety: 'fullTrustCodexOwnedGeneratedContent',
+      reason: 'Ability/skill package request detected.',
+      commands: [`tools\\bridge.cmd ability plan ${quoteForCommand(intent)}`, `tools\\bridge.cmd generate_ability ${quoteForCommand(intent)}`],
+    });
+  } else if (has('vfx', 'effect', 'aura', 'projectile', 'beam', 'slash', 'impact', 'explosion', 'wind', 'lightning', 'smoke', 'portal')) {
+    const planCommand = has('kit', 'texture', 'asset') ? `tools\\bridge.cmd vfx kit-recommend ${quoteForCommand(intent)}` : `tools\\bridge.cmd vfx pro-plan ${quoteForCommand(intent)}`;
+    const generateCommand = `tools\\bridge.cmd generate_pro_vfx ${quoteForCommand(intent)}`;
+    setRoute({
+      category: 'vfx',
+      title: 'Pro VFX',
+      confidence: 0.9,
+      safety: 'fullTrustCodexOwnedGeneratedContent',
+      reason: 'VFX/effect intent detected.',
+      commands: [planCommand, generateCommand, 'tools\\bridge.cmd vfx director'],
+    });
+  } else if (has('animation', 'animate', 'pose', 'rig', 'keyframe', 'choreograph')) {
+    const rig = q.includes('workspace.rig') ? 'Workspace.Rig' : '<rigPath>';
+    setRoute({
+      category: 'animation',
+      title: 'Animation Choreographer',
+      confidence: 0.86,
+      safety: 'fullTrustCodexOwnedGeneratedContent',
+      reason: 'Animation/rig/choreography request detected.',
+      commands: [`tools\\bridge.cmd animation choreograph ${rig} ${quoteForCommand(intent)}`, `tools\\bridge.cmd animation motion-audit ${rig} <animationPath>`, `tools\\bridge.cmd preview_animation ${rig} <animationPath>`],
+    });
+  } else if (has('test', 'qa', 'move player', 'move character', 'jump', 'teleport', 'click ui', 'prompt')) {
+    if (has('move player', 'move character')) {
+      setRoute({ category: 'testPilot', title: 'Test Character Movement', confidence: 0.86, safety: 'fullTrustLocalRuntimeAction', reason: 'Player movement test request.', commands: ['tools\\bridge.cmd test snapshot', 'tools\\bridge.cmd test move 0 0 20', 'tools\\bridge.cmd test diff'] });
+    } else if (has('click', 'ui', 'button')) {
+      setRoute({ category: 'actions', title: 'UI Action Test', confidence: 0.84, safety: 'fullTrustLocalRuntimeAction', reason: 'UI/action test request.', commands: ['tools\\bridge.cmd action ui list', 'tools\\bridge.cmd action ui click --id <target-id>', 'tools\\bridge.cmd action ui watch-after-click'] });
+    } else if (has('prompt', 'interact')) {
+      setRoute({ category: 'actions', title: 'Prompt / Interactable Test', confidence: 0.84, safety: 'fullTrustLocalRuntimeAction', reason: 'Prompt/interactable request.', commands: ['tools\\bridge.cmd action prompt list', 'tools\\bridge.cmd action prompt trigger --id <target-id>', 'tools\\bridge.cmd test snapshot'] });
+    } else {
+      setRoute({ category: 'testPilot', title: 'Universal Game Test', confidence: 0.82, safety: 'fullTrustLocalRuntimeAction', reason: 'QA/test request detected.', commands: ['tools\\bridge.cmd test snapshot', 'tools\\bridge.cmd test plan full', 'tools\\bridge.cmd test run full', 'tools\\bridge.cmd test report'] });
+    }
+  } else if (has('play', 'stop play', 'start play', 'restart play')) {
+    setRoute({
+      category: 'playtest',
+      title: 'Play Control',
+      confidence: 0.88,
+      safety: 'fullTrustLocalRuntimeAction',
+      reason: 'Play control request detected.',
+      commands: q.includes('stop') ? ['tools\\bridge.cmd play stop', 'tools\\bridge.cmd watch now'] : q.includes('restart') ? ['tools\\bridge.cmd play restart', 'tools\\bridge.cmd watch now'] : ['tools\\bridge.cmd play status', 'tools\\bridge.cmd play start', 'tools\\bridge.cmd watch now'],
+    });
+  } else if (has('script', 'code', 'bug', 'error', 'patch', 'refactor')) {
+    setRoute({
+      category: 'code',
+      title: 'Code / Error Work',
+      confidence: 0.82,
+      safety: has('patch', 'refactor') ? 'hashBackedFullTrustWithExternalRiskBlockers' : 'readOnly',
+      reason: 'Code/script/error language detected.',
+      commands: ['tools\\bridge.cmd baseline mark', 'tools\\bridge.cmd watch errors', 'tools\\bridge.cmd code doctor', 'tools\\bridge.cmd grep <query>'],
+    });
+  } else if (has('camera', 'screen', 'view', 'look around', 'map')) {
+    setRoute({
+      category: 'cameraScreen',
+      title: 'Camera / Screen Control',
+      confidence: 0.82,
+      safety: 'fullTrustCodexOwned',
+      reason: 'Camera/screen/view request detected.',
+      commands: ['tools\\bridge.cmd camera director', 'tools\\bridge.cmd camera path', 'tools\\bridge.cmd camera path-run', 'tools\\bridge.cmd screen status'],
+    });
+  }
+
+  const primaryCommand = commands[0] || 'tools\\bridge.cmd codex-context';
+  return {
+    ok: true,
+    version: options.version || null,
+    at: new Date().toISOString(),
+    mode: options.mode || 'mcpFreeCommandRouter',
+    query,
+    category,
+    title,
+    confidence,
+    safety,
+    reason,
+    canRunDirectly,
+    primaryCommand,
+    exactCommands: commands,
+    nextCommand: primaryCommand,
+    jsonCommand: `tools\\bridge.cmd do --json ${quoteForCommand(query || 'check now')}`,
+    containsPlaceholders: commands.some(hasPlaceholder),
+    note: options.note || 'This is the MCP-free command layer. It routes to StudioBridge helper commands and does not depend on mcp__Roblox_Studio.',
+  };
+}
+
+function catalog(version = null) {
+  const examples = [
+    ['check now', 'tools\\bridge.cmd codex-context'],
+    ['recover bridge', 'tools\\bridge.cmd mcp-proxy status'],
+    ['new pairing code', 'tools\\bridge.cmd pair reset'],
+    ['show places', 'tools\\bridge.cmd places'],
+    ['switch to RiftArena', 'tools\\bridge.cmd place use RiftArena'],
+    ['what animation tools do I have', 'tools\\bridge.cmd tools search animation'],
+    ['generate purple sword slash vfx', 'tools\\bridge.cmd generate_pro_vfx "purple sword slash vfx"'],
+    ['make animation for heavy beam attack', 'tools\\bridge.cmd animation choreograph <rigPath> "heavy beam attack"'],
+    ['make animation and vfx package', 'tools\\bridge.cmd motion-vfx generate "<intent>"'],
+    ['balance game audio', 'tools\\bridge.cmd audio plan "balanced"'],
+    ['check loud sounds', 'tools\\bridge.cmd audio live'],
+    ['generate detailed sci-fi crate model', 'tools\\bridge.cmd generate_model "detailed sci-fi crate with vents and warning trims"'],
+    ['build portal lobby scene', 'tools\\bridge.cmd generate_scene "anime portal lobby with shop stands and VFX sockets"'],
+    ['test game movement', 'tools\\bridge.cmd test snapshot'],
+    ['click shop button', 'tools\\bridge.cmd action ui list'],
+    ['start play', 'tools\\bridge.cmd play start'],
+  ];
+  return {
+    ok: true,
+    version,
+    at: new Date().toISOString(),
+    mode: 'mcpFreeRouterCatalog',
+    command: 'tools\\bridge.cmd do "<request>"',
+    runCommand: 'tools\\bridge.cmd run "<request>"',
+    examples: examples.map(([request, command]) => ({ request, command })),
+    endpoints: ['/codex/do?query=check%20now', '/codex/run', '/codex/live', '/codex/nohang/status', '/codex/command-index'],
+  };
+}
+
+function splitCommandLine(input = '') {
+  const text = String(input || '').trim();
+  const tokens = [];
+  let current = '';
+  let quote = null;
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    if (quote) {
+      if (char === quote) {
+        quote = null;
+      } else if (char === '\\' && text[i + 1] === quote) {
+        current += quote;
+        i += 1;
+      } else {
+        current += char;
+      }
+    } else if (char === '"' || char === "'") {
+      quote = char;
+    } else if (/\s/.test(char)) {
+      if (current) {
+        tokens.push(current);
+        current = '';
+      }
+    } else {
+      current += char;
+    }
+  }
+  if (current) tokens.push(current);
+  return tokens;
+}
+
+function helperArgvFromCommand(command = '') {
+  let tokens = splitCommandLine(command);
+  if (!tokens.length) return [];
+  const first = tokens[0].replace(/^\.\//, '').replace(/^\.\\/, '').toLowerCase();
+  const second = tokens[1] ? tokens[1].replace(/^\.\//, '').replace(/^\.\\/, '').toLowerCase() : '';
+  if (first === 'node' && /(^|[\\/])tools[\\/]bridge\.js$/.test(second)) {
+    tokens = tokens.slice(2);
+  } else if (/(^|[\\/])tools[\\/]bridge\.(cmd|ps1|js)$/.test(first) || first === 'tools\\bridge.cmd' || first === 'tools/bridge.cmd') {
+    tokens = tokens.slice(1);
+  } else if (first.endsWith('bridge.cmd') || first.endsWith('bridge.ps1') || first.endsWith('bridge.js')) {
+    tokens = tokens.slice(1);
+  }
+  return tokens;
+}
+
+function chooseRunCommand(route, options = {}) {
+  const commands = Array.isArray(route && route.exactCommands) ? route.exactCommands : [];
+  const query = String((route && route.query) || '').toLowerCase();
+  const wantsGeneration = /\b(generate|create|make|build|forge)\b/.test(query);
+  let command = commands[0] || (route && route.primaryCommand) || '';
+  if (wantsGeneration && route && route.safety === 'fullTrustCodexOwnedGeneratedContent') {
+    const generated = commands.find((candidate) => /\b(generate|create|choreograph|motion-vfx generate|ability generate|generate_)/i.test(candidate) && !hasPlaceholder(candidate));
+    if (generated) command = generated;
+  }
+  if (options.preferPlan) {
+    const plan = commands.find((candidate) => /\b(plan|audit|status|styles|director)\b/i.test(candidate) && !hasPlaceholder(candidate));
+    if (plan) command = plan;
+  }
+  return command;
+}
+
+module.exports = {
+  catalog,
+  chooseRunCommand,
+  createRoute,
+  hasPlaceholder,
+  helperArgvFromCommand,
+  quoteForCommand,
+  splitCommandLine,
+};
