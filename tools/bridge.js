@@ -6070,7 +6070,18 @@ async function runPremium(subcommand = 'status', args = []) {
     } else {
       manifest = localManifest(target);
     }
-    print({ ok: true, version: HELPER_VERSION, target, qualityScore: Premium.scoreFromManifest(manifest), manifestPath: manifest.manifestPath || Premium.manifestPath(manifest.goal || target) });
+    const goal = manifest.goal || target;
+    const qualityScore = Premium.scoreFromManifest(manifest);
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      goal,
+      warnings: qualityScore.warnings || [],
+      blockers: qualityScore.blockers || [],
+      nextCommand: `tools\\bridge.cmd premium polish "${goal}"`,
+      qualityScore,
+      manifestPath: manifest.manifestPath || Premium.manifestPath(goal),
+    });
     return;
   }
 
