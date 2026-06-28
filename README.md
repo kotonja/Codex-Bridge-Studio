@@ -1,4 +1,4 @@
-﻿# Codex Studio Bridge V70.0
+﻿# Codex Studio Bridge V71.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -240,6 +240,32 @@ V70 adds the bounded production loop that ties the specialist stack together: Pr
 Autopilot policies are bounded by `maxRounds`, `maxMutationsPerRound`, `maxRuntimeMs`, evidence requirements, stop conditions, and mutation scopes. The default loop stops for manualRequired blockers, stale Studio, version mismatch, target score reached, safety violations, no improvement after two rounds, or max budget. Missing screenshots, QA, output, worldgen, assetforge, cinematic, premium, or plugin evidence is marked unavailable with a next command; it is never fabricated.
 
 Safe apply is Codex-owned only. It may write versioned/manifests/markers under `ReplicatedStorage.CodexAutopilot` and `Workspace.CodexAutopilot`, and it may route to existing Codex-owned specialist outputs. Publishing, uploading, marketplace purchases, monetization changes, DataStore/save/economy mutation, broad deletes, and unsupported non-Codex production edits remain `manualRequired` or blocked.
+
+## V71 Production Memory + Reference Style Intelligence
+
+V71 adds a local, redacted production memory layer so future Codex chats can reuse style decisions, score history, issue patterns, asset/layout lessons, QA lessons, and autopilot report summaries instead of starting cold. The primary storage lives under `.codex-studio/memory-v71`; Roblox mirrors are manifest-only under `ReplicatedStorage.CodexProductionMemory` when requested. Memory does not store raw script source, session tokens, pairing codes, or mutation payloads.
+
+```powershell
+.\tools\bridge.cmd memory status
+.\tools\bridge.cmd memory profile
+.\tools\bridge.cmd memory learn "premium anime dungeon hub"
+.\tools\bridge.cmd memory remember "Prefer bright readable anime VFX with mobile-safe overdraw."
+.\tools\bridge.cmd memory recall "anime hub visual polish"
+.\tools\bridge.cmd memory style "premium anime boss lobby"
+.\tools\bridge.cmd memory references "premium anime dungeon"
+.\tools\bridge.cmd memory lessons "premium anime dungeon"
+.\tools\bridge.cmd memory scores "premium anime dungeon"
+.\tools\bridge.cmd memory issues "premium anime dungeon"
+.\tools\bridge.cmd memory recommend "premium anime dungeon"
+.\tools\bridge.cmd memory apply "premium anime dungeon"
+.\tools\bridge.cmd memory export
+.\tools\bridge.cmd memory clear --dry-run
+.\tools\bridge.cmd memory self-check
+.\tools\bridge.cmd premium memory "premium anime dungeon"
+.\tools\bridge.cmd premium learn "premium anime dungeon"
+```
+
+`memory apply` is advisory by default: it returns exact next commands and recommended style/QA/score gates, but it does not silently rewrite Roblox gameplay, assets, scripts, economy, or saves.
 
 For day-to-day connection and pairing help:
 

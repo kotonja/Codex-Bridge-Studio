@@ -1,6 +1,6 @@
 ﻿'use strict';
 
-const VERSION = '0.70.0';
+const VERSION = '0.71.0';
 
 const ROOTS = {
   replicatedStorage: 'ReplicatedStorage.CodexQaSwarm',

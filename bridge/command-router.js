@@ -48,6 +48,8 @@ function createRoute(rawQuery = '', options = {}) {
   const vfxOnlySignal = vfxSignal && !cinematicSignal && !has('animation', 'audio', 'camera', 'timing', 'sync', 'game feel', 'gamefeel', 'cinematic');
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
+  const memorySignal = has('production memory', 'project memory', 'style memory', 'remember this', 'remember that', 'recall', 'learn from report', 'learn this report', 'what did we learn', 'did we learn', 'lessons learned', 'use previous style', 'previous style', 'reuse previous style', 'save this style', 'what worked best', 'what failed before', 'best previous score', 'score history', 'issue patterns', 'reference memory', 'memory recommend', 'premium memory')
+    || ((has('memory', 'remember', 'recall', 'lessons', 'reference', 'references', 'previous') && has('production', 'project', 'style', 'premium', 'report', 'score', 'issue', 'recommend', 'learn', 'worked', 'failed')));
   const premiumBuildSignal = has('build premium roblox game', 'premium anime boss lobby', 'premium simulator lobby', 'premium hub', 'premium lobby', 'premium game', 'premium world', 'premium scene')
     || ((has('premium', 'top dev', 'expensive', 'reference quality', 'high quality') && has('build', 'scene', 'hub', 'game', 'world', 'lobby', 'roblox')));
   const premiumSignal = has('premium director', 'make this premium', 'build premium roblox game', 'top dev quality', 'fix cheap looking build', 'upgrade everything')
@@ -140,6 +142,29 @@ function createRoute(rawQuery = '', options = {}) {
       confidence: 0.9,
       reason: 'Tool/capability discovery request.',
       commands: search ? [`tools\\bridge.cmd tools search ${quoteForCommand(search)}`, 'tools\\bridge.cmd tools'] : ['tools\\bridge.cmd tools', 'tools\\bridge.cmd command-index', 'tools\\bridge.cmd manual'],
+    });
+  } else if (memorySignal) {
+    const action = has('learn from report', 'learn this report', 'premium learn') ? 'learn'
+      : has('remember this', 'remember that') ? 'remember'
+        : has('recall') ? 'recall'
+          : has('style memory') ? 'style'
+            : has('reference', 'references') ? 'references'
+              : has('lessons') ? 'lessons'
+                : has('score history') ? 'scores'
+                  : has('issue patterns') ? 'issues'
+                    : has('recommend') ? 'recommend'
+                      : 'status';
+    setRoute({
+      category: 'memory',
+      title: 'V71 Production Memory + Reference Style Intelligence',
+      confidence: 0.94,
+      safety: action === 'remember' || action === 'learn' ? 'localRedactedMemoryWrite' : 'readOnlyMemoryRecall',
+      reason: 'Production memory, recall, lessons, references, or score-history language detected.',
+      commands: [
+        action === 'status' ? 'tools\\bridge.cmd memory status' : `tools\\bridge.cmd memory ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd memory recommend ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd premium memory ${quoteForCommand(intent)}`,
+      ],
     });
   } else if (visualSignal && !premiumBuildSignal) {
     const action = has('score') ? 'score'
@@ -442,6 +467,11 @@ function catalog(version = null) {
     ['show places', 'tools\\bridge.cmd places'],
     ['switch to RiftArena', 'tools\\bridge.cmd place use RiftArena'],
     ['what animation tools do I have', 'tools\\bridge.cmd tools search animation'],
+    ['remember this polish lesson', 'tools\\bridge.cmd memory remember "<note>"'],
+    ['recall premium anime hub lessons', 'tools\\bridge.cmd memory recall "premium anime hub"'],
+    ['learn from premium report', 'tools\\bridge.cmd memory learn "<goal-or-report>"'],
+    ['show project memory', 'tools\\bridge.cmd memory profile'],
+    ['recommend from memory', 'tools\\bridge.cmd memory recommend "<goal>"'],
     ['generate purple sword slash vfx', 'tools\\bridge.cmd generate_pro_vfx "purple sword slash vfx"'],
     ['make animation for heavy beam attack', 'tools\\bridge.cmd animation choreograph <rigPath> "heavy beam attack"'],
     ['make animation and vfx package', 'tools\\bridge.cmd motion-vfx generate "<intent>"'],

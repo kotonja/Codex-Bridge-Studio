@@ -5,8 +5,9 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
+const Memory = require('./memory');
 
-const VERSION = '0.70.0';
+const VERSION = '0.71.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -518,6 +519,19 @@ const toolHandlers = {
   generate_pro_vfx: async (args) => mutationCommand('generateProVfxFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', targetPath: args.targetPath, assetRoot: args.assetRoot }),
   motion_vfx_generate: async (args) => mutationCommand('generateMotionVfxPackage', { ...basePayload(args), intent: args.intent || args.text || '', rigPath: args.rigPath, targetPath: args.targetPath, assetRoot: args.assetRoot }),
   ability_generate: async (args) => mutationCommand('generateAbilityFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', rigPath: args.rigPath, targetPath: args.targetPath }),
+  memory_status: async () => Memory.getProductionMemoryStatus(),
+  memory_profile: async () => Memory.getProjectMemoryProfile(),
+  memory_learn: async (args) => Memory.learnFromProductionReport(args.goal || args.intent || args.text || args.report || 'premium Roblox production goal', args),
+  memory_remember: async (args) => Memory.rememberProductionNote(args.note || args.text || args.goal || '', args),
+  memory_recall: async (args) => Memory.getProductionMemoryRecall(args.query || args.goal || args.intent || args.text || ''),
+  memory_style: async (args) => Memory.getProductionStyleMemory(args.goal || args.intent || args.text || 'premium Roblox production goal'),
+  memory_references: async (args) => Memory.getReferenceStyleProfiles(args.goal || args.intent || args.text || 'premium Roblox production goal'),
+  memory_lessons: async (args) => Memory.getBuildLessons(args.goal || args.intent || args.text || 'premium Roblox production goal'),
+  memory_scores: async (args) => Memory.getScoreHistory(args.goal || args.intent || args.text || 'premium Roblox production goal'),
+  memory_issues: async (args) => Memory.getIssuePatterns(args.goal || args.intent || args.text || 'premium Roblox production goal'),
+  memory_recommend: async (args) => Memory.getMemoryRecommendations(args.goal || args.intent || args.text || 'premium Roblox production goal'),
+  memory_apply: async (args) => Memory.getMemoryApplyPlan(args.goal || args.intent || args.text || 'premium Roblox production goal'),
+  memory_export: async () => Memory.exportProductionMemory(),
   audio_inventory: async (args) => readCommand('getAudioInventory', { ...basePayload(args), path: args.path || args.root || 'SoundService' }),
   audio_audit: async (args) => readCommand('getAudioQualityAudit', { ...basePayload(args), path: args.path || args.root || 'Workspace' }),
   audio_plan: async (args) => readCommand('getAudioMixPlan', { ...basePayload(args), intent: args.intent || args.text || args.profile || 'balanced', profile: args.profile }),
@@ -671,6 +685,19 @@ const toolDefinitions = [
   ['generate_pro_vfx', 'Generate a pro VFX preset from intent and available asset kits.', { intent: { type: 'string' }, targetPath: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['motion_vfx_generate', 'Generate a synchronized motion/VFX package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
   ['ability_generate', 'Generate a Codex-owned ability package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
+  ['memory_status', 'Return V71 Production Memory readiness, local storage, and redaction policy.', {}],
+  ['memory_profile', 'Return the local project memory profile and user taste profile.', {}],
+  ['memory_learn', 'Learn redacted production memory from a goal or report summary.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, report: { type: 'object' } }],
+  ['memory_remember', 'Remember a redacted production note in local memory.', { note: { type: 'string' }, text: { type: 'string' }, goal: { type: 'string' } }],
+  ['memory_recall', 'Recall matching production memory items.', { query: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['memory_style', 'Return style memory and user taste for a goal.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['memory_references', 'Return learned reference style profiles for a goal.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['memory_lessons', 'Return learned build, QA, and production-loop lessons.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['memory_scores', 'Return remembered score history for a goal.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['memory_issues', 'Return remembered issue patterns and next fix commands.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['memory_recommend', 'Return recommendations from local Production Memory.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['memory_apply', 'Return an advisory memory apply plan; does not mutate Roblox content.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['memory_export', 'Export redacted Production Memory to a local JSON pack.', {}],
   ['audio_inventory', 'Inspect Roblox Sound/SoundGroup/audio objects and classify their roles.', { path: { type: 'string' }, root: { type: 'string' } }],
   ['audio_audit', 'Audit game audio for loudness, grouping, spam, rolloff, and sync risks.', { path: { type: 'string' }, root: { type: 'string' } }],
   ['audio_plan', 'Create a safe audio mix plan for a profile or plain-language intent.', { intent: { type: 'string' }, profile: { type: 'string' } }],

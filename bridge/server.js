@@ -13,8 +13,9 @@ const AssetForge = require('./assetforge');
 const Cinematic = require('./cinematic');
 const QaSwarm = require('./qa-swarm');
 const Autopilot = require('./autopilot');
+const Memory = require('./memory');
 
-const VERSION = '0.70.0';
+const VERSION = '0.71.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -511,6 +512,21 @@ const supportedCommands = new Set([
   'autopilot_score',
   'autopilot_report',
   'autopilot_manifest',
+  'getProductionMemoryStatus',
+  'getProjectMemoryProfile',
+  'getProductionMemoryRecall',
+  'getProductionStyleMemory',
+  'getReferenceStyleProfiles',
+  'getBuildLessons',
+  'getScoreHistory',
+  'getIssuePatterns',
+  'getMemoryRecommendations',
+  'getMemoryApplyPlan',
+  'exportProductionMemory',
+  'clearProductionMemoryPlan',
+  'rememberProductionNote',
+  'learnFromProductionReport',
+  'bakeProductionMemoryManifest',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -3908,6 +3924,29 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'memory',
+    title: 'V71 Production Memory + Reference Style Intelligence',
+    safety: 'localRedactedMemoryOrReadOnlyRecall',
+    readiness: ['bridge'],
+    commands: [
+      { command: 'tools\\bridge.cmd memory status', example: 'tools\\bridge.cmd memory status', bestFor: 'Check local Production Memory readiness, root, redaction policy, and item counts.' },
+      { command: 'tools\\bridge.cmd memory profile', example: 'tools\\bridge.cmd memory profile', bestFor: 'Read the project profile and user taste profile used by future planning.' },
+      { command: 'tools\\bridge.cmd memory learn <goal-or-report>', example: 'tools\\bridge.cmd memory learn "premium anime dungeon hub"', bestFor: 'Extract redacted style, score, issue, QA, worldgen, assetforge, cinematic, and autopilot lessons from existing reports.' },
+      { command: 'tools\\bridge.cmd memory remember <note>', example: 'tools\\bridge.cmd memory remember "Prefer bright readable anime VFX with mobile-safe overdraw."', bestFor: 'Store a redacted manual production note.' },
+      { command: 'tools\\bridge.cmd memory recall <query>', example: 'tools\\bridge.cmd memory recall "anime hub visual polish"', bestFor: 'Recall matching memories before planning new work.' },
+      { command: 'tools\\bridge.cmd memory style <goal>', example: 'tools\\bridge.cmd memory style "premium anime boss lobby"', bestFor: 'Load remembered style bibles and taste guidance.' },
+      { command: 'tools\\bridge.cmd memory references <goal>', example: 'tools\\bridge.cmd memory references "premium anime dungeon"', bestFor: 'Load learned reference style profiles.' },
+      { command: 'tools\\bridge.cmd memory lessons <goal>', example: 'tools\\bridge.cmd memory lessons "premium anime dungeon"', bestFor: 'Load remembered build/QA/autopilot lessons.' },
+      { command: 'tools\\bridge.cmd memory scores <goal>', example: 'tools\\bridge.cmd memory scores "premium anime dungeon"', bestFor: 'Inspect score history across premium, visual, worldgen, assetforge, cinematic, QA, and autopilot.' },
+      { command: 'tools\\bridge.cmd memory issues <goal>', example: 'tools\\bridge.cmd memory issues "premium anime dungeon"', bestFor: 'Recall repeated visual/QA issue patterns.' },
+      { command: 'tools\\bridge.cmd memory recommend <goal>', example: 'tools\\bridge.cmd memory recommend "premium anime dungeon"', bestFor: 'Get exact next commands based on remembered context.' },
+      { command: 'tools\\bridge.cmd memory apply <goal>', example: 'tools\\bridge.cmd memory apply "premium anime dungeon"', bestFor: 'Return an advisory apply plan; does not mutate Roblox content.' },
+      { command: 'tools\\bridge.cmd memory export', example: 'tools\\bridge.cmd memory export', bestFor: 'Export a redacted local memory pack.' },
+      { command: 'tools\\bridge.cmd premium memory <goal>', example: 'tools\\bridge.cmd premium memory "premium anime dungeon"', bestFor: 'Use memory recommendations from the Premium Director surface.' },
+      { command: 'tools\\bridge.cmd premium learn <goal>', example: 'tools\\bridge.cmd premium learn "premium anime dungeon"', bestFor: 'Learn memory from premium-specialist reports.' },
+    ],
+  },
+  {
     id: 'health',
     title: 'Health / Trust / Recovery',
     safety: 'readOnly',
@@ -6240,6 +6279,53 @@ async function route(req, res) {
       places: includeContext ? placeListSummary() : undefined,
     });
     return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/memory/status') {
+    sendJson(res, 200, Memory.getProductionMemoryStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/memory/profile') {
+    sendJson(res, 200, Memory.getProjectMemoryProfile());
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/memory/')) {
+    const endpoint = path.replace('/codex/memory/', '');
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('query') || requestUrl.searchParams.get('q') || requestUrl.searchParams.get('text') || 'premium Roblox production goal';
+    const map = {
+      recall: () => Memory.getProductionMemoryRecall(goal),
+      style: () => Memory.getProductionStyleMemory(goal),
+      references: () => Memory.getReferenceStyleProfiles(goal),
+      lessons: () => Memory.getBuildLessons(goal),
+      scores: () => Memory.getScoreHistory(goal),
+      issues: () => Memory.getIssuePatterns(goal),
+      recommend: () => Memory.getMemoryRecommendations(goal),
+      apply: () => Memory.getMemoryApplyPlan(goal),
+      manifest: () => Memory.bakeProductionMemoryManifest(goal),
+      export: () => Memory.exportProductionMemory(),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, map[endpoint]());
+      return;
+    }
+  }
+
+  if (req.method === 'POST' && path.startsWith('/codex/memory/')) {
+    const body = await readBody(req);
+    const endpoint = path.replace('/codex/memory/', '');
+    const goal = body.goal || body.intent || body.query || body.text || body.note || 'premium Roblox production goal';
+    const map = {
+      remember: () => Memory.rememberProductionNote(body.note || body.text || goal, body),
+      learn: () => Memory.learnFromProductionReport(goal, body),
+      clear: () => Memory.clearProductionMemoryPlan({ confirm: body.confirm === true }),
+      manifest: () => Memory.bakeProductionMemoryManifest(goal, body),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, map[endpoint]());
+      return;
+    }
   }
 
   if (req.method === 'GET' && path === '/codex/premium/status') {

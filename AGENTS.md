@@ -354,6 +354,29 @@ V70 Closed-Loop Production Autopilot is the preferred route when the user wants 
 
 V70 coordinates Premium Director, Visual Critic, Worldgen, Asset Forge, Cinematic, QA Swarm, Build Director, VFX, Animation, Audio, Camera/Screen, Test Pilot, Output diagnostics, and plugin health. Every loop has `maxRounds`, `maxMutationsPerRound`, `maxRuntimeMs`, stop conditions, evidence requirements, and a safety budget. Missing evidence must be marked unavailable with a `nextCommand`; never fake screenshots, QA, profiler, asset IDs, audio IDs, animation IDs, or mesh generation. Safe apply is Codex-owned only under `ReplicatedStorage.CodexAutopilot` / `Workspace.CodexAutopilot` or existing generated specialist roots. Publishing/uploading, marketplace, monetization, DataStore/save/economy mutation, broad deletes, and unsafe non-Codex production edits remain `manualRequired` or blocked.
 
+V71 Production Memory + Reference Style Intelligence is the preferred way to keep future chats from starting cold. It stores only redacted local summaries under `.codex-studio/memory-v71`, with optional manifest-only Roblox mirror paths under `ReplicatedStorage.CodexProductionMemory`. It must not store raw script source, session tokens, pairing codes, patch payloads, or private mutation payloads.
+
+```powershell
+.\tools\bridge.cmd memory status
+.\tools\bridge.cmd memory profile
+.\tools\bridge.cmd memory learn "premium anime dungeon hub"
+.\tools\bridge.cmd memory remember "Prefer bright readable anime VFX with mobile-safe overdraw."
+.\tools\bridge.cmd memory recall "anime hub visual polish"
+.\tools\bridge.cmd memory style "premium anime boss lobby"
+.\tools\bridge.cmd memory references "premium anime dungeon"
+.\tools\bridge.cmd memory lessons "premium anime dungeon"
+.\tools\bridge.cmd memory scores "premium anime dungeon"
+.\tools\bridge.cmd memory issues "premium anime dungeon"
+.\tools\bridge.cmd memory recommend "premium anime dungeon"
+.\tools\bridge.cmd memory apply "premium anime dungeon"
+.\tools\bridge.cmd memory export
+.\tools\bridge.cmd memory self-check
+.\tools\bridge.cmd premium memory "premium anime dungeon"
+.\tools\bridge.cmd premium learn "premium anime dungeon"
+```
+
+Routing priority for V71: pairing/recovery still wins, explicit VFX/visual/worldgen/assetforge/cinematic/QA/premium routes stay with their specialists, and memory/remember/recall/lessons/score-history/reference-profile language goes to Production Memory. `memory apply` is advisory and returns exact commands; it must not silently mutate Roblox gameplay, scripts, saves, economy, or assets.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

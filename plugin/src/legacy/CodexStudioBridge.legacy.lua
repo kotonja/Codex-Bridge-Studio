@@ -1,7 +1,7 @@
--- Codex Studio Bridge V70.0
+-- Codex Studio Bridge V71.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.70.0"
+local VERSION = "0.71.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0
@@ -20604,8 +20604,68 @@ local function executeCommand(command)
 		return V70.getAutopilotManifest(payload)
 	end
 
-	if commandType == "runAutopilotProductionLoop" then
+if commandType == "runAutopilotProductionLoop" then
 		return V70.runAutopilotProductionLoop(payload)
+	end
+
+	if commandType == "getProductionMemoryStatus" then
+		return V71.getProductionMemoryStatus(payload)
+	end
+
+	if commandType == "getProjectMemoryProfile" then
+		return V71.getProjectMemoryProfile(payload)
+	end
+
+	if commandType == "getProductionMemoryRecall" then
+		return V71.getProductionMemoryRecall(payload)
+	end
+
+	if commandType == "getProductionStyleMemory" then
+		return V71.getProductionStyleMemory(payload)
+	end
+
+	if commandType == "getReferenceStyleProfiles" then
+		return V71.getReferenceStyleProfiles(payload)
+	end
+
+	if commandType == "getBuildLessons" then
+		return V71.getBuildLessons(payload)
+	end
+
+	if commandType == "getScoreHistory" then
+		return V71.getScoreHistory(payload)
+	end
+
+	if commandType == "getIssuePatterns" then
+		return V71.getIssuePatterns(payload)
+	end
+
+	if commandType == "getMemoryRecommendations" then
+		return V71.getMemoryRecommendations(payload)
+	end
+
+	if commandType == "getMemoryApplyPlan" then
+		return V71.getMemoryApplyPlan(payload)
+	end
+
+	if commandType == "exportProductionMemory" then
+		return V71.exportProductionMemory(payload)
+	end
+
+	if commandType == "clearProductionMemoryPlan" then
+		return V71.clearProductionMemoryPlan(payload)
+	end
+
+	if commandType == "rememberProductionNote" then
+		return V71.rememberProductionNote(payload)
+	end
+
+	if commandType == "learnFromProductionReport" then
+		return V71.learnFromProductionReport(payload)
+	end
+
+	if commandType == "bakeProductionMemoryManifest" then
+		return V71.bakeProductionMemoryManifest(payload)
 	end
 
 	if commandType == "getCreatorOsStatus" then
@@ -35461,6 +35521,202 @@ function V70.runAutopilotProductionLoop(payload)
 		{ type = "setStringValue", path = manifest.manifestPath, value = "V70 Autopilot manifest for " .. goal },
 	} } })
 	return { ok = true, version = VERSION, at = isoNow(), status = "codexOwnedAutopilotRunPlan", goal = goal, manifest = manifest, loopPlan = V70.getAutopilotLoopPlan(payload), score = V70.getAutopilotScoreReport(payload), applyResult = result, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot report \"" .. goal .. "\"" }
+end
+
+V71 = {}
+V71.capabilities = { "localRedactedMemory", "projectProfile", "styleMemory", "referenceProfiles", "buildLessons", "scoreHistory", "issuePatterns", "memoryRecommendations", "exports", "robloxMirrorManifest" }
+V71.root = "ReplicatedStorage.CodexProductionMemory"
+
+function V71.goal(payload)
+	return tostring((payload and (payload.goal or payload.intent or payload.query or payload.text or payload.note)) or "premium Roblox production goal")
+end
+
+function V71.goalId(goal)
+	local text = string.lower(tostring(goal or "memory"))
+	text = string.gsub(text, "[^%w]+", "_")
+	text = string.gsub(text, "^_+", "")
+	text = string.gsub(text, "_+$", "")
+	if text == "" then
+		text = "memory"
+	end
+	return string.sub(text, 1, 64)
+end
+
+function V71.base(payload)
+	local goal = V71.goal(payload)
+	return {
+		ok = true,
+		version = VERSION,
+		at = isoNow(),
+		goal = goal,
+		localMemoryRoot = ".codex-studio/memory-v71",
+		robloxMirrorRoot = V71.root,
+		localOnlyByDefault = true,
+		storesRawSource = false,
+		storesTokens = false,
+		storesPatchPayloads = false,
+		warnings = {},
+		blockers = {},
+	}
+end
+
+function V71.getProductionMemoryStatus(payload)
+	local result = V71.base(payload)
+	result.status = "ready"
+	result.name = "V71 Production Memory + Reference Style Intelligence"
+	result.capabilities = V71.capabilities
+	result.commands = {
+		"tools\\bridge.cmd memory status",
+		"tools\\bridge.cmd memory learn \"<goal-or-report>\"",
+		"tools\\bridge.cmd memory recall \"<query>\"",
+		"tools\\bridge.cmd memory recommend \"<goal>\"",
+		"tools\\bridge.cmd premium memory \"<goal>\"",
+	}
+	result.nextCommand = "tools\\bridge.cmd memory learn \"premium anime dungeon hub\""
+	return result
+end
+
+function V71.getProjectMemoryProfile(payload)
+	local result = V71.base(payload)
+	result.profile = {
+		projectName = tostring(game.Name or "Roblox Studio place"),
+		placeId = tostring(game.PlaceId or ""),
+		preferredQualityBar = "premium Roblox production",
+		memoryPolicy = {
+			storesRawSource = false,
+			storesTokens = false,
+			storesMutationPayloads = false,
+			localOnlyByDefault = true,
+		},
+	}
+	result.taste = {
+		"premium visual finish",
+		"organized reusable assets",
+		"clear player readability",
+		"cinematic motion with strong VFX/audio sync",
+	}
+	result.nextCommand = "tools\\bridge.cmd memory recall \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.getProductionMemoryRecall(payload)
+	local result = V71.base(payload)
+	result.query = result.goal
+	result.source = "Studio plugin memory contract"
+	result.matches = {}
+	result.note = "Local memory recall is served by the Node helper; plugin returns the mirror contract to keep Studio dispatch parity."
+	result.nextCommand = "tools\\bridge.cmd memory recall \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.getProductionStyleMemory(payload)
+	local result = V71.getProductionMemoryRecall(payload)
+	result.styleBibles = {}
+	result.nextCommand = "tools\\bridge.cmd memory style \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.getReferenceStyleProfiles(payload)
+	local result = V71.getProductionMemoryRecall(payload)
+	result.references = {}
+	result.nextCommand = "tools\\bridge.cmd memory references \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.getBuildLessons(payload)
+	local result = V71.getProductionMemoryRecall(payload)
+	result.lessons = {}
+	result.nextCommand = "tools\\bridge.cmd memory lessons \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.getScoreHistory(payload)
+	local result = V71.getProductionMemoryRecall(payload)
+	result.scores = {}
+	result.nextCommand = "tools\\bridge.cmd memory scores \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.getIssuePatterns(payload)
+	local result = V71.getProductionMemoryRecall(payload)
+	result.issues = {}
+	result.nextCommand = "tools\\bridge.cmd memory issues \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.getMemoryRecommendations(payload)
+	local result = V71.base(payload)
+	result.recommendations = {
+		"Recall local Production Memory before generating a new premium plan.",
+		"Use remembered style and issue patterns as acceptance gates.",
+		"Run premium score and autopilot report after each polish loop.",
+	}
+	result.exactNextCommands = {
+		"tools\\bridge.cmd memory recall \"" .. result.goal .. "\"",
+		"tools\\bridge.cmd premium score \"" .. result.goal .. "\"",
+		"tools\\bridge.cmd autopilot report \"" .. result.goal .. "\"",
+	}
+	result.nextCommand = "tools\\bridge.cmd memory recall \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.getMemoryApplyPlan(payload)
+	local result = V71.base(payload)
+	result.status = "planOnly"
+	result.autoApplyAllowed = false
+	result.reason = "Production Memory is advisory; it does not rewrite gameplay, scripts, assets, or live economy by itself."
+	result.plan = {
+		{ command = "tools\\bridge.cmd memory recall \"" .. result.goal .. "\"", purpose = "Load relevant memory." },
+		{ command = "tools\\bridge.cmd premium plan \"" .. result.goal .. "\"", purpose = "Use memory-informed production planning." },
+	}
+	result.nextCommand = "tools\\bridge.cmd memory recall \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.exportProductionMemory(payload)
+	local result = V71.base(payload)
+	result.status = "helperRequired"
+	result.reason = "Export writes local JSON files, so it runs through the Node helper instead of Roblox Studio."
+	result.nextCommand = "tools\\bridge.cmd memory export"
+	return result
+end
+
+function V71.clearProductionMemoryPlan(payload)
+	local result = V71.base(payload)
+	result.status = "dryRun"
+	result.requiresConfirm = true
+	result.nextCommand = "tools\\bridge.cmd memory clear --confirm"
+	return result
+end
+
+function V71.rememberProductionNote(payload)
+	local result = V71.base(payload)
+	result.status = "helperRequired"
+	result.noteSummary = tostring((payload and (payload.note or payload.text)) or result.goal)
+	result.nextCommand = "tools\\bridge.cmd memory remember \"" .. result.noteSummary .. "\""
+	return result
+end
+
+function V71.learnFromProductionReport(payload)
+	local result = V71.base(payload)
+	result.status = "helperRequired"
+	result.reason = "Learning stores local redacted memory through Node so raw Studio source/tokens never enter Roblox mirrors."
+	result.nextCommand = "tools\\bridge.cmd memory learn \"" .. result.goal .. "\""
+	return result
+end
+
+function V71.bakeProductionMemoryManifest(payload)
+	local result = V71.base(payload)
+	result.status = "manifestPlanned"
+	result.manifestPath = V71.root .. ".Manifests." .. V71.goalId(result.goal) .. "_v001"
+	result.attributes = {
+		CodexGenerated = true,
+		CodexSystem = "ProductionMemory",
+		CodexVersion = VERSION,
+		CodexGoal = result.goal,
+	}
+	result.nextCommand = "tools\\bridge.cmd memory export"
+	return result
 end
 
 mutatingTypes = {

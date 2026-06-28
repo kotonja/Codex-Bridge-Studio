@@ -13,9 +13,10 @@ const AssetForge = require('../bridge/assetforge');
 const Cinematic = require('../bridge/cinematic');
 const QaSwarm = require('../bridge/qa-swarm');
 const Autopilot = require('../bridge/autopilot');
+const Memory = require('../bridge/memory');
 
-const HELPER_VERSION = '0.70.0';
-const MCP_PROXY_VERSION = '0.70.0';
+const HELPER_VERSION = '0.71.0';
+const MCP_PROXY_VERSION = '0.71.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -160,6 +161,19 @@ const MCP_PROXY_TOOLS = [
   'autopilot_score',
   'autopilot_report',
   'autopilot_manifest',
+  'memory_status',
+  'memory_profile',
+  'memory_learn',
+  'memory_remember',
+  'memory_recall',
+  'memory_style',
+  'memory_references',
+  'memory_lessons',
+  'memory_scores',
+  'memory_issues',
+  'memory_recommend',
+  'memory_apply',
+  'memory_export',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -386,6 +400,23 @@ Usage:
   node tools/bridge.js run "<request>"
   node tools/bridge.js run --json "<request>"
   node tools/bridge.js nohang status
+  node tools/bridge.js memory status
+  node tools/bridge.js memory profile
+  node tools/bridge.js memory learn "<goal-or-report>"
+  node tools/bridge.js memory remember "<note>"
+  node tools/bridge.js memory recall "<query>"
+  node tools/bridge.js memory style "<goal>"
+  node tools/bridge.js memory references "<goal>"
+  node tools/bridge.js memory lessons "<goal>"
+  node tools/bridge.js memory scores "<goal>"
+  node tools/bridge.js memory issues "<goal>"
+  node tools/bridge.js memory recommend "<goal>"
+  node tools/bridge.js memory apply "<goal>"
+  node tools/bridge.js memory export
+  node tools/bridge.js memory clear --dry-run|--confirm
+  node tools/bridge.js memory self-check
+  node tools/bridge.js remember "<note>"
+  node tools/bridge.js recall "<query>"
   node tools/bridge.js premium status
   node tools/bridge.js premium plan "<goal>"
   node tools/bridge.js premium style "<goal>"
@@ -397,6 +428,8 @@ Usage:
   node tools/bridge.js premium polish "<goal>"
   node tools/bridge.js premium director
   node tools/bridge.js premium score <manifestPath-or-goal>
+  node tools/bridge.js premium memory "<goal>"
+  node tools/bridge.js premium learn "<goal>"
   node tools/bridge.js premium self-check
   node tools/bridge.js visual status
   node tools/bridge.js visual evidence
@@ -6207,6 +6240,78 @@ async function runCreator(subcommand, args) {
   throw new Error('creator command must be status, capabilities, style, assets, pipeline, blueprint, generate, critique, polish, bake-style, or director.');
 }
 
+async function runMemory(subcommand = 'status', args = []) {
+  const mode = String(subcommand || 'status').toLowerCase();
+  const text = args.join(' ').trim();
+  const goal = text || 'premium anime dungeon hub';
+  if (mode === 'status') {
+    print(Memory.getProductionMemoryStatus());
+    return;
+  }
+  if (mode === 'profile' || mode === 'project') {
+    print(Memory.getProjectMemoryProfile());
+    return;
+  }
+  if (mode === 'learn' || mode === 'learn-from-report' || mode === 'learn_from_report') {
+    print(Memory.learnFromProductionReport(goal));
+    return;
+  }
+  if (mode === 'remember' || mode === 'note') {
+    if (!text) throw new Error('memory remember requires a note.');
+    print(Memory.rememberProductionNote(text));
+    return;
+  }
+  if (mode === 'recall' || mode === 'search') {
+    print(Memory.getProductionMemoryRecall(text));
+    return;
+  }
+  if (mode === 'style' || mode === 'style-memory') {
+    print(Memory.getProductionStyleMemory(goal));
+    return;
+  }
+  if (mode === 'references' || mode === 'reference' || mode === 'refs') {
+    print(Memory.getReferenceStyleProfiles(goal));
+    return;
+  }
+  if (mode === 'lessons' || mode === 'lesson') {
+    print(Memory.getBuildLessons(goal));
+    return;
+  }
+  if (mode === 'scores' || mode === 'score-history') {
+    print(Memory.getScoreHistory(goal));
+    return;
+  }
+  if (mode === 'issues' || mode === 'issue-patterns') {
+    print(Memory.getIssuePatterns(goal));
+    return;
+  }
+  if (mode === 'recommend' || mode === 'recommendations') {
+    print(Memory.getMemoryRecommendations(goal));
+    return;
+  }
+  if (mode === 'apply' || mode === 'apply-plan') {
+    print(Memory.getMemoryApplyPlan(goal));
+    return;
+  }
+  if (mode === 'export') {
+    print(Memory.exportProductionMemory());
+    return;
+  }
+  if (mode === 'clear') {
+    print(Memory.clearProductionMemoryPlan({ confirm: args.includes('--confirm') }));
+    return;
+  }
+  if (mode === 'manifest' || mode === 'bake') {
+    print(Memory.bakeProductionMemoryManifest(goal));
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-memory.js'));
+    return;
+  }
+  throw new Error('memory command must be status, profile, learn, remember, recall, style, references, lessons, scores, issues, recommend, apply, export, clear, manifest, or self-check.');
+}
+
 async function runPremium(subcommand = 'status', args = []) {
   const cleanIntent = () => args.join(' ').trim() || 'premium Roblox game slice';
   const localManifest = (intent = cleanIntent()) => Premium.createPremiumManifest(intent, {
@@ -6369,6 +6474,18 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
+  if (subcommand === 'memory') {
+    const intent = cleanIntent();
+    print(Memory.getMemoryRecommendations(intent));
+    return;
+  }
+
+  if (subcommand === 'learn') {
+    const intent = cleanIntent();
+    print(Memory.learnFromProductionReport(intent));
+    return;
+  }
+
   if (subcommand === 'score') {
     const target = cleanIntent();
     let manifest = null;
@@ -6472,7 +6589,7 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
-  throw new Error('premium command must be status, plan, style, assets, world, motion, build, critique, qa, launch, autopilot, loop, auto, polish, director, score, bake, or self-check.');
+  throw new Error('premium command must be status, plan, style, assets, world, motion, build, critique, qa, launch, autopilot, loop, auto, memory, learn, polish, director, score, bake, or self-check.');
 }
 
 async function visualEvidenceOptions(extra = {}) {
@@ -11355,6 +11472,36 @@ async function main(argv) {
 
   if (command === 'nohang' || command === 'no-hang') {
     await runNoHang(args[0] || 'status');
+    return;
+  }
+
+  if (command === 'memory') {
+    await runMemory(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'remember') {
+    await runMemory('remember', args);
+    return;
+  }
+
+  if (command === 'recall') {
+    await runMemory('recall', args);
+    return;
+  }
+
+  if (command === 'learn_from_report' || command === 'learn-from-report') {
+    await runMemory('learn', args);
+    return;
+  }
+
+  if (command === 'project' && (args[0] || '').toLowerCase() === 'memory') {
+    await runMemory(args[1] || 'profile', args.slice(2));
+    return;
+  }
+
+  if (command === 'style' && (args[0] || '').toLowerCase() === 'memory') {
+    await runMemory('style', args.slice(1));
     return;
   }
 
