@@ -1,10 +1,10 @@
-'use strict';
+﻿'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
 const childProcess = require('node:child_process');
 
-const VERSION = '0.69.0';
+const VERSION = '0.70.0';
 const ROOT = path.resolve(__dirname, '..');
 const HOST = process.env.CODEX_STUDIO_BRIDGE_HOST || '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);

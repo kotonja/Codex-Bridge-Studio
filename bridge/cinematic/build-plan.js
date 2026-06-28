@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 function createBuildPlan(parsed, manifestPath) {
   return {
@@ -16,7 +16,7 @@ function createBuildPlan(parsed, manifestPath) {
     attributes: {
       CodexGenerated: true,
       CodexSystem: 'CinematicDirector',
-      CodexVersion: '0.69.0',
+      CodexVersion: '0.70.0',
       CodexGoal: parsed.goal,
       CodexMomentType: parsed.momentType,
     },

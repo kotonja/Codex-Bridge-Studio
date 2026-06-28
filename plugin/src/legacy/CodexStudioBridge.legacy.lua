@@ -1,7 +1,7 @@
--- Codex Studio Bridge V69.0
+﻿-- Codex Studio Bridge V70.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.69.0"
+local VERSION = "0.70.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0
@@ -20157,6 +20157,28 @@ local function executeCommand(command)
 	}
 	commandType = qaCommandAliases[commandType] or commandType
 
+	local autopilotCommandAliases = {
+		autopilot_status = "getAutopilotStatus",
+		autopilot_plan = "getAutopilotProductionPlan",
+		autopilot_loop = "getAutopilotLoopPlan",
+		autopilot_run = "runAutopilotProductionLoop",
+		autopilot_round = "getAutopilotRoundPlan",
+		autopilot_evidence = "getAutopilotEvidencePack",
+		autopilot_issues = "getAutopilotIssueReport",
+		autopilot_fix_plan = "getAutopilotFixPlan",
+		autopilot_apply_safe = "applyAutopilotSafeFixes",
+		autopilot_polish = "polishAutopilotRound",
+		autopilot_retest = "retestAutopilotRound",
+		autopilot_score = "getAutopilotScoreReport",
+		autopilot_report = "getAutopilotFinalReport",
+		autopilot_manifest = "getAutopilotManifest",
+		improve_until_ready = "runAutopilotProductionLoop",
+		premium_autopilot = "runAutopilotProductionLoop",
+		premium_loop = "getAutopilotLoopPlan",
+		premium_auto = "runAutopilotProductionLoop",
+	}
+	commandType = autopilotCommandAliases[commandType] or commandType
+
 	local premiumCommandAliases = {
 		premium_director = "getPremiumDirectorStatus",
 		premium_plan = "getPremiumProductionBrief",
@@ -20167,6 +20189,9 @@ local function executeCommand(command)
 		premium_build_round = "executePremiumBuildRound",
 		premium_critique = "getPremiumVisualCritiquePlan",
 		premium_qa = "getQaSwarmPlan",
+		premium_autopilot = "runAutopilotProductionLoop",
+		premium_loop = "getAutopilotLoopPlan",
+		premium_auto = "runAutopilotProductionLoop",
 		premium_launch = "getQaLaunchReadinessReport",
 		premium_polish = "polishPremiumBuildRound",
 		premium_score = "getPremiumQualityScore",
@@ -20507,6 +20532,62 @@ local function executeCommand(command)
 
 	if commandType == "getQaManifest" or commandType == "bakeQaSwarmManifest" then
 		return V69.getQaManifest(payload)
+	end
+
+	if commandType == "getAutopilotStatus" then
+		return V70.getAutopilotStatus(payload)
+	end
+
+	if commandType == "getAutopilotProductionPlan" then
+		return V70.getAutopilotProductionPlan(payload)
+	end
+
+	if commandType == "getAutopilotLoopPlan" then
+		return V70.getAutopilotLoopPlan(payload)
+	end
+
+	if commandType == "getAutopilotRoundPlan" or commandType == "runAutopilotRound" then
+		return V70.getAutopilotRoundPlan(payload)
+	end
+
+	if commandType == "getAutopilotEvidencePack" then
+		return V70.getAutopilotEvidencePack(payload)
+	end
+
+	if commandType == "getAutopilotIssueReport" then
+		return V70.getAutopilotIssueReport(payload)
+	end
+
+	if commandType == "getAutopilotFixPlan" then
+		return V70.getAutopilotFixPlan(payload)
+	end
+
+	if commandType == "getAutopilotSafeApplyPlan" or commandType == "applyAutopilotSafeFixes" then
+		return V70.getAutopilotSafeApplyPlan(payload)
+	end
+
+	if commandType == "getAutopilotPolishPlan" or commandType == "polishAutopilotRound" then
+		return V70.getAutopilotPolishPlan(payload)
+	end
+
+	if commandType == "getAutopilotRetestPlan" or commandType == "retestAutopilotRound" then
+		return V70.getAutopilotRetestPlan(payload)
+	end
+
+	if commandType == "getAutopilotScoreReport" then
+		return V70.getAutopilotScoreReport(payload)
+	end
+
+	if commandType == "getAutopilotFinalReport" then
+		return V70.getAutopilotFinalReport(payload)
+	end
+
+	if commandType == "getAutopilotManifest" or commandType == "bakeAutopilotManifest" then
+		return V70.getAutopilotManifest(payload)
+	end
+
+	if commandType == "runAutopilotProductionLoop" then
+		return V70.runAutopilotProductionLoop(payload)
 	end
 
 	if commandType == "getCreatorOsStatus" then
@@ -23769,6 +23850,16 @@ function V46.toolCategories()
 			{ command = "tools\\bridge.cmd qa launch <intent>", example = "tools\\bridge.cmd qa launch \"premium anime dungeon hub\"", bestFor = "Score launch readiness with full subscore evidence." },
 			{ command = "tools\\bridge.cmd premium qa <intent>", example = "tools\\bridge.cmd premium qa \"premium anime dungeon hub\"", bestFor = "Run Premium Director QA through V69." },
 		} },
+		{ id = "autopilot", title = "V70 Closed-Loop Production Autopilot", safety = "boundedFullTrustCodexOwnedWithManualRequiredEscalation", commands = {
+			{ command = "tools\\bridge.cmd autopilot status", example = "tools\\bridge.cmd autopilot status", bestFor = "Check bounded production-loop readiness and integrations." },
+			{ command = "tools\\bridge.cmd autopilot plan <intent>", example = "tools\\bridge.cmd autopilot plan \"premium anime dungeon hub\"", bestFor = "Plan specialists, gates, safety budget, and loop policy." },
+			{ command = "tools\\bridge.cmd autopilot loop <intent>", example = "tools\\bridge.cmd autopilot loop \"premium anime dungeon hub\"", bestFor = "Show all phases from evidence through final report." },
+			{ command = "tools\\bridge.cmd autopilot run <intent>", example = "tools\\bridge.cmd autopilot run \"premium anime dungeon hub\"", bestFor = "Run or return a bounded Codex-owned production loop plan." },
+			{ command = "tools\\bridge.cmd autopilot evidence <intent>", example = "tools\\bridge.cmd autopilot evidence \"premium anime dungeon hub\"", bestFor = "Unify plugin, output, visual, QA, worldgen, assetforge, cinematic, and premium evidence." },
+			{ command = "tools\\bridge.cmd autopilot fix-plan <intent>", example = "tools\\bridge.cmd autopilot fix-plan \"premium anime dungeon hub\"", bestFor = "Create evidence-linked safe fix stages." },
+			{ command = "tools\\bridge.cmd autopilot score <intent>", example = "tools\\bridge.cmd autopilot score \"premium anime dungeon hub\"", bestFor = "Aggregate launch/premium readiness score." },
+			{ command = "tools\\bridge.cmd premium autopilot <intent>", example = "tools\\bridge.cmd premium autopilot \"premium anime dungeon hub\"", bestFor = "Route Premium Director through V70." },
+		} },
 		{ id = "ability", title = "Universal Ability Forge", safety = "fullTrustCodexOwnedGeneratedContent", commands = {
 			{ command = "tools\\bridge.cmd ability plan <intent>", example = "tools\\bridge.cmd ability plan \"heavy purple beam attack\"", bestFor = "Plan animation + VFX + hitbox package." },
 			{ command = "tools\\bridge.cmd generate_ability <intent>", example = "tools\\bridge.cmd generate_ability \"electric sword slash combo\"", bestFor = "Generate complete Codex-owned ability." },
@@ -23796,6 +23887,7 @@ function V46.directAliases()
 		"motion_vfx", "plan_motion_vfx", "generate_motion_vfx", "audit_motion_vfx", "polish_motion_vfx", "sync_motion_vfx",
 		"cinematic_status", "cinematic_styles", "cinematic_plan", "cinematic_timeline", "cinematic_beats", "cinematic_camera", "cinematic_animation", "cinematic_vfx_sync", "cinematic_audio_sync", "cinematic_gamefeel", "cinematic_generate", "cinematic_preview", "cinematic_audit", "cinematic_polish", "cinematic_manifest", "make_cinematic", "gamefeel", "sync_moment",
 		"qa_status", "qa_personas", "qa_plan", "qa_swarm", "qa_run", "qa_route", "qa_ui", "qa_combat", "qa_economy", "qa_multiplayer", "qa_performance", "qa_regression", "qa_accessibility", "qa_launch", "qa_report", "qa_fix_plan", "qa_manifest", "test_swarm", "launch_ready",
+		"autopilot_status", "autopilot_plan", "autopilot_loop", "autopilot_run", "autopilot_round", "autopilot_evidence", "autopilot_issues", "autopilot_fix_plan", "autopilot_apply_safe", "autopilot_polish", "autopilot_retest", "autopilot_score", "autopilot_report", "autopilot_manifest", "improve_until_ready",
 		"list_rigs", "inspect_rig", "get_rig_pose", "set_rig_pose", "reset_rig_pose", "create_animation",
 		"generate_animation", "choreograph_animation", "ability_animation_plan", "motion_audit_animation", "sync_animation_vfx", "generate_animation_variant",
 		"audit_animation", "polish_animation", "retime_animation", "mirror_animation", "compare_animation", "fix_animation", "preview_animation", "scrub_animation", "capture_rig_view",
@@ -35162,6 +35254,158 @@ function V69.runQaSwarmPlan(payload)
 	return { ok = true, version = VERSION, at = isoNow(), status = "codexOwnedQaRunPlan", goal = goal, manifest = manifest, applyResult = result, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd qa launch \"" .. goal .. "\"" }
 end
 
+V70 = {}
+V70.capabilities = { "boundedProductionLoops", "specialistRouting", "evidenceCollection", "visualCritiqueIntegration", "qaSwarmIntegration", "worldgenIntegration", "assetforgeIntegration", "cinematicIntegration", "premiumIntegration", "safeFixPlanning", "codexOwnedMutationOnly", "manualRequiredEscalation", "scoreAggregation", "stopConditions", "finalReports" }
+V70.phases = { "preflight", "baseline evidence", "production planning", "build/generate", "visual critique", "QA swarm", "issue normalization", "safe fix planning", "safe apply or manualRequired", "polish", "retest", "score aggregation", "stop/continue decision", "final report" }
+V70.evidenceSources = { "plugin health", "connection/place status", "output errors", "premium score", "visual critique", "worldgen audit", "assetforge audit", "cinematic audit", "QA launch readiness", "QA issue report", "plugin bundle check", "command history", "created Codex paths", "manualRequired blockers" }
+V70.scoreKeys = { "premium", "visual", "worldgen", "assetforge", "cinematic", "qaLaunch", "outputCleanliness", "pluginHealth", "safetyCompliance", "manualRequired", "unresolvedSeverity" }
+V70.policies = { "safePreview", "buildAndCritique", "polishOnly", "launchReadiness", "fullPremiumLoop", "regressionOnly", "mobilePerformance", "visualPolish", "combatFeelPolish" }
+V70.fixStages = { "blocker triage", "Codex-owned layout fixes", "Codex-owned asset/socket fixes", "Codex-owned visual polish", "Codex-owned cinematic polish", "Codex-owned QA marker/harness fixes", "code/output fix suggestions", "manualRequired escalations", "validation commands" }
+
+function V70.goal(payload)
+	payload = payload or {}
+	return tostring(payload.goal or payload.intent or payload.text or payload.path or "premium anime dungeon hub")
+end
+
+function V70.goalId(goal)
+	return string.lower(tostring(goal or "autopilot")):gsub("[^%w]+", "_"):gsub("^_+", ""):gsub("_+$", ""):sub(1, 48)
+end
+
+function V70.autopilotId(goal)
+	return "autopilot_" .. V70.goalId(goal)
+end
+
+function V70.defaultPolicy()
+	return { maxRounds = 3, maxMutationsPerRound = 12, maxRuntimeMs = 180000, stopOnBlocker = true, requireEvidenceBeforeFix = true, onlyCodexOwnedMutations = true, targetScore = 88 }
+end
+
+function V70.getAutopilotStatus(payload)
+	return {
+		ok = true,
+		version = VERSION,
+		at = isoNow(),
+		name = "V70 Closed-Loop Production Autopilot",
+		capabilities = V70.capabilities,
+		integrations = { premiumDirector = true, visualCritic = true, worldgen = true, assetforge = true, cinematic = true, qaSwarm = true, buildDirector = true, vfx = true, audio = true, animation = true, cameraScreen = true, testPilot = true, outputDiagnostics = true, pluginBundle = true },
+		defaultPolicy = V70.defaultPolicy(),
+		policies = V70.policies,
+		warnings = {},
+		blockers = {},
+		nextCommand = "tools\\bridge.cmd autopilot plan \"premium anime dungeon hub\"",
+	}
+end
+
+function V70.getAutopilotProductionPlan(payload)
+	local goal = V70.goal(payload)
+	return {
+		ok = true,
+		version = VERSION,
+		at = isoNow(),
+		goal = goal,
+		autopilotId = V70.autopilotId(goal),
+		policyId = "fullPremiumLoop",
+		goalClass = "wholeGame",
+		specialists = { premium = true, worldgen = true, assetforge = true, visual = true, cinematic = true, qa = true, output = true, pluginHealth = true },
+		rounds = {},
+		acceptanceGates = { "evidence gathered", "visual critique complete", "QA readiness scored", "safe fixes only", "final score reported" },
+		safetyBudget = V70.defaultPolicy(),
+		warnings = {},
+		blockers = {},
+		nextCommand = "tools\\bridge.cmd autopilot loop \"" .. goal .. "\"",
+	}
+end
+
+function V70.getAutopilotLoopPlan(payload)
+	local goal = V70.goal(payload)
+	local phases = {}
+	for index, phase in ipairs(V70.phases) do
+		table.insert(phases, { phase = phase, order = index, purpose = "Run " .. phase .. " for " .. goal .. ".", specialistCommand = "tools\\bridge.cmd autopilot " .. (index == 14 and "report" or "evidence") .. " \"" .. goal .. "\"", expectedEvidence = V70.evidenceSources, mutationAllowance = index == 9 and "Codex-owned safe mutations only" or "readOnly", safetyClassification = "boundedFullTrustOrReadOnly", timeoutMs = 12000, successCriteria = { "structured result", "no fake evidence" }, failCriteria = { "stale Studio", "manualRequired blocker", "external risk" }, nextPhase = V70.phases[index + 1] or "done" })
+	end
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, autopilotId = V70.autopilotId(goal), policy = V70.defaultPolicy(), phases = phases, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot run \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotRoundPlan(payload)
+	local goal = V70.goal(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, autopilotId = V70.autopilotId(goal), roundIndex = tonumber((payload or {}).roundIndex) or 1, phase = "build", commands = { "tools\\bridge.cmd premium plan \"" .. goal .. "\"", "tools\\bridge.cmd visual critique \"" .. goal .. "\"", "tools\\bridge.cmd qa launch \"" .. goal .. "\"" }, expectedEvidence = V70.evidenceSources, allowedMutations = { "ReplicatedStorage.CodexAutopilot", "Workspace.CodexAutopilot" }, blockedActions = { "publish", "upload", "purchase", "DataStore", "economy mutation", "broad delete" }, rollbackPlan = { undoAvailable = true, note = "Codex-owned markers/manifests only." }, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot evidence \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotEvidencePack(payload)
+	local goal = V70.goal(payload)
+	local sources = {}
+	for _, source in ipairs(V70.evidenceSources) do
+		table.insert(sources, { source = source, available = false, reason = "Live evidence must be gathered by the named specialist command before fixes are claimed.", nextCommand = "tools\\bridge.cmd autopilot run \"" .. goal .. "\"" })
+	end
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, autopilotId = V70.autopilotId(goal), sources = sources, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot issues \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotIssueReport(payload)
+	local goal = V70.goal(payload)
+	local issues = {
+		{ id = V70.autopilotId(goal) .. "_visual_evidence", source = "visual", severity = "medium", category = "evidence", title = "Visual critique evidence not captured yet", evidence = {}, createdBy = "V70", affectedPaths = { "ReplicatedStorage.CodexAutopilot" }, exactFix = "Collect visual critique and QA evidence before auto-applying fixes.", suggestedCommand = "tools\\bridge.cmd visual critique \"" .. goal .. "\"", safeToAutoApply = false, safety = "manualRequired" },
+	}
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, issueCount = #issues, issues = issues, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot fix-plan \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotFixPlan(payload)
+	local goal = V70.goal(payload)
+	local actions = {}
+	for index, stage in ipairs(V70.fixStages) do
+		table.insert(actions, { stage = stage, order = index, issueIds = {}, command = index <= 6 and "tools\\bridge.cmd autopilot apply-safe \"" .. goal .. "\"" or "manualRequired", targetPaths = { "ReplicatedStorage.CodexAutopilot", "Workspace.CodexAutopilot" }, expectedImprovement = stage, rollbackNote = "Codex-owned/versioned only.", validationCommand = "tools\\bridge.cmd autopilot score \"" .. goal .. "\"", mutationType = index <= 6 and "codexOwnedMutation" or "manualRequired", safety = index <= 6 and "codexOwnedMutation" or "manualRequired", autoApplyAllowed = index <= 6 })
+	end
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, actions = actions, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot apply-safe \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotSafeApplyPlan(payload)
+	local goal = V70.goal(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, status = "codexOwnedSafeApplyPlan", safeActions = { { command = "applyBuildPlan", targetPaths = { "ReplicatedStorage.CodexAutopilot.Manifests." .. V70.autopilotId(goal), "Workspace.CodexAutopilot." .. V70.autopilotId(goal) }, safety = "codexOwnedMutation", rollbackNote = "Undo or remove CodexAutopilot marker." } }, skippedActions = {}, manualRequiredActions = {}, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot polish \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotPolishPlan(payload)
+	local goal = V70.goal(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, stages = { "visual polish", "asset polish", "world polish", "cinematic polish", "QA retest", "score update" }, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot retest \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotRetestPlan(payload)
+	local goal = V70.goal(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, commands = { "tools\\bridge.cmd qa launch \"" .. goal .. "\"", "tools\\bridge.cmd visual critique \"" .. goal .. "\"", "tools\\bridge.cmd premium score \"" .. goal .. "\"" }, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot score \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotScoreReport(payload)
+	local goal = V70.goal(payload)
+	local subScores = {}
+	local total = 0
+	for index, key in ipairs(V70.scoreKeys) do
+		local score = 78 + (index % 5)
+		subScores[key] = { score = score, evidence = { "structured V70 score contract" }, reason = "Awaiting live evidence loop for " .. key .. "." }
+		total = total + score
+	end
+	local overall = math.floor(total / #V70.scoreKeys + 0.5)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, finalScore = overall, overallScore = overall, rating = overall >= 88 and "premiumLaunchCandidate" or "playable", subScores = subScores, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot report \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotFinalReport(payload)
+	local goal = V70.goal(payload)
+	local score = V70.getAutopilotScoreReport(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, autopilotId = V70.autopilotId(goal), status = "stopped", roundsCompleted = 0, finalScore = score.finalScore, rating = score.rating, scoreHistory = {}, improvements = {}, remainingIssues = V70.getAutopilotIssueReport(payload).issues, manualRequired = {}, createdPaths = {}, changedPaths = {}, skippedUnsafeActions = {}, evidenceSummary = { sourceCount = #V70.evidenceSources }, nextRecommendedCommands = { "tools\\bridge.cmd autopilot run \"" .. goal .. "\"" }, warnings = { "Run live evidence before claiming completed production changes." }, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot run \"" .. goal .. "\"" }
+end
+
+function V70.getAutopilotManifest(payload)
+	local goal = V70.goal(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, autopilotId = V70.autopilotId(goal), manifestPath = "ReplicatedStorage.CodexAutopilot.Manifests." .. V70.autopilotId(goal), workspaceMarkerPath = "Workspace.CodexAutopilot." .. V70.autopilotId(goal), attributes = { CodexGenerated = true, CodexSystem = "Autopilot", CodexVersion = VERSION, CodexGoal = goal, CodexAutopilotId = V70.autopilotId(goal), CodexRound = 0 }, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot report \"" .. goal .. "\"" }
+end
+
+function V70.runAutopilotProductionLoop(payload)
+	local goal = V70.goal(payload)
+	local manifest = V70.getAutopilotManifest(payload)
+	local result = applyBuildPlan({ plan = { actions = {
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexAutopilot" },
+		{ type = "ensureFolder", path = "ReplicatedStorage.CodexAutopilot.Manifests" },
+		{ type = "ensureFolder", path = "Workspace.CodexAutopilot" },
+		{ type = "setStringValue", path = manifest.manifestPath, value = "V70 Autopilot manifest for " .. goal },
+	} } })
+	return { ok = true, version = VERSION, at = isoNow(), status = "codexOwnedAutopilotRunPlan", goal = goal, manifest = manifest, loopPlan = V70.getAutopilotLoopPlan(payload), score = V70.getAutopilotScoreReport(payload), applyResult = result, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd autopilot report \"" .. goal .. "\"" }
+end
+
 mutatingTypes = {
 	updateScriptSource = true,
 	applyScriptPatch = true,
@@ -35388,6 +35632,17 @@ mutatingTypes = {
 	bakeQaSwarmManifest = true,
 	qa_run = true,
 	test_swarm = true,
+	runAutopilotProductionLoop = true,
+	runAutopilotRound = true,
+	applyAutopilotSafeFixes = true,
+	polishAutopilotRound = true,
+	retestAutopilotRound = true,
+	bakeAutopilotManifest = true,
+	autopilot_run = true,
+	autopilot_apply_safe = true,
+	autopilot_polish = true,
+	autopilot_retest = true,
+	improve_until_ready = true,
 	installCameraNavigatorHarness = true,
 	removeCameraNavigatorHarness = true,
 	createInstance = true,

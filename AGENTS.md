@@ -1,4 +1,4 @@
-# Codex StudioBridge Workspace Notes
+﻿# Codex StudioBridge Workspace Notes
 
 This workspace contains the local Codex StudioBridge for Roblox Studio.
 
@@ -326,6 +326,33 @@ V69 Autonomous QA Swarm is the preferred route when the user says `test everythi
 ```
 
 Routing priority for V69: pairing/recovery still wins, explicit VFX-only stays VFX, explicit asset/mesh/material stays Asset Forge, explicit map/layout stays Worldgen, explicit visual critique stays Visual, whole premium game/lobby stays Premium Director, combat feel/cinematic/sync language stays Cinematic, and broad QA/launch-readiness language goes to QA Swarm. Generated QA work is Codex-owned under `ReplicatedStorage.CodexQaSwarm` and `Workspace.CodexQaSwarm`. Economy/save/monetization-looking actions and unsupported multiplayer/performance execution remain `manualRequired`; QA reports should expose evidence gaps instead of pretending a live test happened.
+
+V70 Closed-Loop Production Autopilot is the preferred route when the user wants Codex to build, critique, QA, fix, polish, retest, score, and repeat in one bounded production loop. Use it for phrases like `build and test everything`, `make it premium automatically`, `keep improving until ready`, `full production loop`, `auto polish and retest`, `fix all issues safely`, `run the whole pipeline`, `make this launch ready`, `closed loop`, or `build critique qa fix repeat`:
+
+```powershell
+.\tools\bridge.cmd autopilot status
+.\tools\bridge.cmd autopilot plan "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot loop "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot run "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot evidence "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot issues "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot fix-plan "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot apply-safe "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot polish "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot retest "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot score "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot report "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot manifest "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot self-check
+.\tools\bridge.cmd auto build "premium anime dungeon hub"
+.\tools\bridge.cmd production loop "premium anime dungeon hub"
+.\tools\bridge.cmd improve_until_ready "premium anime dungeon hub"
+.\tools\bridge.cmd premium autopilot "premium anime dungeon hub"
+.\tools\bridge.cmd premium loop "premium anime dungeon hub"
+.\tools\bridge.cmd premium auto "premium anime dungeon hub"
+```
+
+V70 coordinates Premium Director, Visual Critic, Worldgen, Asset Forge, Cinematic, QA Swarm, Build Director, VFX, Animation, Audio, Camera/Screen, Test Pilot, Output diagnostics, and plugin health. Every loop has `maxRounds`, `maxMutationsPerRound`, `maxRuntimeMs`, stop conditions, evidence requirements, and a safety budget. Missing evidence must be marked unavailable with a `nextCommand`; never fake screenshots, QA, profiler, asset IDs, audio IDs, animation IDs, or mesh generation. Safe apply is Codex-owned only under `ReplicatedStorage.CodexAutopilot` / `Workspace.CodexAutopilot` or existing generated specialist roots. Publishing/uploading, marketplace, monetization, DataStore/save/economy mutation, broad deletes, and unsafe non-Codex production edits remain `manualRequired` or blocked.
 
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 

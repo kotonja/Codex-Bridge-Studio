@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const http = require('node:http');
 const crypto = require('node:crypto');
@@ -12,8 +12,9 @@ const Worldgen = require('./worldgen');
 const AssetForge = require('./assetforge');
 const Cinematic = require('./cinematic');
 const QaSwarm = require('./qa-swarm');
+const Autopilot = require('./autopilot');
 
-const VERSION = '0.69.0';
+const VERSION = '0.70.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -477,6 +478,40 @@ const supportedCommands = new Set([
   'qa_manifest',
   'test_swarm',
   'launch_ready',
+  'getAutopilotStatus',
+  'getAutopilotProductionPlan',
+  'getAutopilotLoopPlan',
+  'getAutopilotRoundPlan',
+  'getAutopilotEvidencePack',
+  'getAutopilotIssueReport',
+  'getAutopilotFixPlan',
+  'getAutopilotSafeApplyPlan',
+  'getAutopilotPolishPlan',
+  'getAutopilotRetestPlan',
+  'getAutopilotScoreReport',
+  'getAutopilotFinalReport',
+  'getAutopilotManifest',
+  'runAutopilotProductionLoop',
+  'runAutopilotRound',
+  'applyAutopilotSafeFixes',
+  'polishAutopilotRound',
+  'retestAutopilotRound',
+  'bakeAutopilotManifest',
+  'autopilot_status',
+  'autopilot_plan',
+  'autopilot_loop',
+  'autopilot_run',
+  'autopilot_round',
+  'autopilot_evidence',
+  'autopilot_issues',
+  'autopilot_fix_plan',
+  'autopilot_apply_safe',
+  'autopilot_polish',
+  'autopilot_retest',
+  'autopilot_score',
+  'autopilot_report',
+  'autopilot_manifest',
+  'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
   'bakePremiumDirectorManifest',
@@ -1188,6 +1223,17 @@ const mutatingCommands = new Set([
   'bakeQaSwarmManifest',
   'qa_run',
   'test_swarm',
+  'runAutopilotProductionLoop',
+  'runAutopilotRound',
+  'applyAutopilotSafeFixes',
+  'polishAutopilotRound',
+  'retestAutopilotRound',
+  'bakeAutopilotManifest',
+  'autopilot_run',
+  'autopilot_apply_safe',
+  'autopilot_polish',
+  'autopilot_retest',
+  'improve_until_ready',
   'premium_build_round',
   'premium_polish',
 ]);
@@ -2136,7 +2182,7 @@ function requireStudioToken(req, res) {
     sendError(res, 409, 'token_place_mismatch', 'Studio token belongs to a different place. Clear pairing in this Studio window and pair again.', {
       ...mismatch,
       recovery: [
-        'Open this Studio window’s Codex Studio Bridge panel.',
+        'Open this Studio windowâ€™s Codex Studio Bridge panel.',
         'Click Clear Pairing, then enter tools\\bridge.cmd pair code.',
         'Run tools\\bridge.cmd places and confirm this place has connected=true.',
       ],
@@ -3968,6 +4014,23 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'autopilot',
+    title: 'V70 Closed-Loop Production Autopilot',
+    safety: 'boundedFullTrustCodexOwnedWithManualRequiredEscalation',
+    readiness: ['bridge', 'plugin', 'codexReady', 'premiumDirector', 'visualCritic', 'qaSwarm'],
+    commands: [
+      { command: 'tools\\bridge.cmd autopilot status', example: 'tools\\bridge.cmd autopilot status', bestFor: 'Check bounded production-loop readiness and integrations.' },
+      { command: 'tools\\bridge.cmd autopilot plan <goal>', example: 'tools\\bridge.cmd autopilot plan "premium anime dungeon hub"', bestFor: 'Create the production plan, specialist routing, safety budget, and acceptance gates.' },
+      { command: 'tools\\bridge.cmd autopilot loop <goal>', example: 'tools\\bridge.cmd autopilot loop "premium anime dungeon hub"', bestFor: 'Show all 14 phases from preflight through final report.' },
+      { command: 'tools\\bridge.cmd autopilot run <goal>', example: 'tools\\bridge.cmd autopilot run "premium anime dungeon hub"', bestFor: 'Run or return the bounded run plan with Studio/evidence availability.' },
+      { command: 'tools\\bridge.cmd autopilot evidence <goal>', example: 'tools\\bridge.cmd autopilot evidence "premium anime dungeon hub"', bestFor: 'Unify plugin, output, visual, worldgen, assetforge, cinematic, QA, and premium evidence.' },
+      { command: 'tools\\bridge.cmd autopilot fix-plan <goal>', example: 'tools\\bridge.cmd autopilot fix-plan "premium anime dungeon hub"', bestFor: 'Generate evidence-linked safe fix stages with manualRequired escalation.' },
+      { command: 'tools\\bridge.cmd autopilot apply-safe <goal>', example: 'tools\\bridge.cmd autopilot apply-safe "premium anime dungeon hub"', bestFor: 'Apply or plan only Codex-owned safe mutations within the budget.' },
+      { command: 'tools\\bridge.cmd autopilot score <goal>', example: 'tools\\bridge.cmd autopilot score "premium anime dungeon hub"', bestFor: 'Aggregate premium, visual, worldgen, assetforge, cinematic, QA, output, plugin, and safety scores.' },
+      { command: 'tools\\bridge.cmd premium autopilot <goal>', example: 'tools\\bridge.cmd premium autopilot "premium anime dungeon hub"', bestFor: 'Use Premium Director through the V70 closed-loop system.' },
+    ],
+  },
+  {
     id: 'premiumDirector',
     title: 'V63 Premium Director Core',
     safety: 'readOnlyPlanOrFullTrustCodexOwnedPremiumRound',
@@ -4258,6 +4321,21 @@ const V46_DIRECT_ALIASES = [
   'qa_manifest',
   'test_swarm',
   'launch_ready',
+  'autopilot_status',
+  'autopilot_plan',
+  'autopilot_loop',
+  'autopilot_run',
+  'autopilot_round',
+  'autopilot_evidence',
+  'autopilot_issues',
+  'autopilot_fix_plan',
+  'autopilot_apply_safe',
+  'autopilot_polish',
+  'autopilot_retest',
+  'autopilot_score',
+  'autopilot_report',
+  'autopilot_manifest',
+  'improve_until_ready',
   'list_rigs',
   'inspect_rig',
   'get_rig_pose',
@@ -6451,6 +6529,37 @@ async function route(req, res) {
       report: () => QaSwarm.createReport(goal),
       'fix-plan': () => QaSwarm.createFixPlan(goal),
       manifest: () => QaSwarm.createManifest(goal),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, map[endpoint]());
+      return;
+    }
+  }
+
+  if (req.method === 'GET' && path === '/codex/autopilot/status') {
+    sendJson(res, 200, Autopilot.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/autopilot/')) {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium anime dungeon hub';
+    const endpoint = path.replace('/codex/autopilot/', '');
+    const active = getActiveStudioEntry();
+    const studioConnected = Boolean(active && isPlaceFresh(active));
+    const map = {
+      plan: () => Autopilot.createProductionPlan(goal),
+      loop: () => Autopilot.createLoopPlan(goal),
+      run: () => Autopilot.createRunPlan(goal, { source: 'bridge.http.autopilot.run', studioConnected }),
+      round: () => Autopilot.createRoundPlan(goal),
+      evidence: () => Autopilot.createEvidencePack(goal),
+      issues: () => Autopilot.createIssueReport(goal),
+      'fix-plan': () => Autopilot.createFixPlan(goal),
+      'apply-safe': () => Autopilot.createSafeApplyPlan(goal, { source: 'bridge.http.autopilot.apply-safe', studioConnected }),
+      polish: () => Autopilot.createPolishPlan(goal),
+      retest: () => Autopilot.createRetestPlan(goal),
+      score: () => Autopilot.createScoreReport(goal),
+      report: () => Autopilot.createFinalReport(goal),
+      manifest: () => Autopilot.createManifest(goal),
     };
     if (map[endpoint]) {
       sendJson(res, 200, map[endpoint]());

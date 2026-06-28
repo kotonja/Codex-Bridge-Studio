@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const childProcess = require('node:child_process');
 const crypto = require('node:crypto');
@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 
-const VERSION = '0.69.0';
+const VERSION = '0.70.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -612,6 +612,20 @@ const toolHandlers = {
   qa_report: async (args) => requestBridge('GET', `/codex/qa/report?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
   qa_fix_plan: async (args) => requestBridge('GET', `/codex/qa/fix-plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
   qa_manifest: async (args) => requestBridge('GET', `/codex/qa/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_status: async () => requestBridge('GET', '/codex/autopilot/status', undefined, 2500),
+  autopilot_plan: async (args) => requestBridge('GET', `/codex/autopilot/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_loop: async (args) => requestBridge('GET', `/codex/autopilot/loop?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_run: async (args) => requestBridge('GET', `/codex/autopilot/run?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_round: async (args) => requestBridge('GET', `/codex/autopilot/round?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_evidence: async (args) => requestBridge('GET', `/codex/autopilot/evidence?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_issues: async (args) => requestBridge('GET', `/codex/autopilot/issues?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_fix_plan: async (args) => requestBridge('GET', `/codex/autopilot/fix-plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_apply_safe: async (args) => requestBridge('GET', `/codex/autopilot/apply-safe?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_polish: async (args) => requestBridge('GET', `/codex/autopilot/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_retest: async (args) => requestBridge('GET', `/codex/autopilot/retest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_score: async (args) => requestBridge('GET', `/codex/autopilot/score?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_report: async (args) => requestBridge('GET', `/codex/autopilot/report?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
+  autopilot_manifest: async (args) => requestBridge('GET', `/codex/autopilot/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium anime dungeon hub')}`, undefined, 2500),
   style_bible: async (args) => readCommand('getCreatorStyleBible', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '' }),
   forge_assets: async (args) => readCommand('getCreatorAssetForgePlan', { ...basePayload(args), goal: args.goal || args.intent || args.text || '', intent: args.intent || args.goal || args.text || '', assetRoot: args.assetRoot }),
   execute_luau: async (args) => ({
@@ -751,6 +765,20 @@ const toolDefinitions = [
   ['qa_report', 'Return QA issue/evidence report.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['qa_fix_plan', 'Return staged QA fix plan from blockers through final premium pass.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['qa_manifest', 'Return V69 QA Swarm manifest shape.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_status', 'Return V70 Closed-Loop Production Autopilot readiness and integrations.', {}],
+  ['autopilot_plan', 'Create a V70 production plan with policy, specialists, acceptance gates, and safety budget.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_loop', 'Return the full bounded V70 loop plan from preflight through final report.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_run', 'Return/run a bounded V70 autopilot production loop when Studio evidence is available.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_round', 'Return a V70 round plan with rollback and mutation budget.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_evidence', 'Collect the V70 unified evidence-pack contract without faking unavailable evidence.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_issues', 'Normalize visual, QA, worldgen, assetforge, cinematic, output, premium, and plugin issues.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_fix_plan', 'Return evidence-linked V70 safe fix stages with manualRequired escalations.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_apply_safe', 'Apply or plan only Codex-owned V70 safe fixes within the current safety budget.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_polish', 'Return V70 polish plan across visuals, assets, world, cinematic, QA, output, and score.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_retest', 'Return V70 retest plan routed through QA Swarm and visual/premium score checks.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_score', 'Aggregate V70 launch/premium readiness into a 0-100 score and rating.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_report', 'Return the V70 final report shape with score history, remaining issues, and next commands.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['autopilot_manifest', 'Return the V70 manifest path and Codex-owned storage contract.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['style_bible', 'Return a V62 style bible for a Roblox game/build intent.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['forge_assets', 'Return a V62 asset forge plan for meshes, textures, materials, audio, animations, and reusable kits.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['execute_luau', 'Return safe StudioBridge alternatives for arbitrary Luau execution.', { code: { type: 'string' } }],

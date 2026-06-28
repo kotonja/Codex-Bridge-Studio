@@ -43,6 +43,8 @@ function createRoute(rawQuery = '', options = {}) {
   const qaSignal = has('test everything', 'full qa', 'launch qa', 'full launch qa', 'is this ready to publish', 'ready to publish', 'find bugs', 'test onboarding', 'test mobile', 'test performance', 'test combat', 'test ui', 'test economy', 'test multiplayer', 'run playtest swarm', 'playtest swarm', 'check regression', 'make sure nothing broke', 'game launch readiness', 'launch readiness', 'premium launch check', 'can a new player understand this', 'does the first 5 minutes work')
     || ((has('qa', 'quality assurance', 'launch ready', 'launch-readiness', 'regression', 'playtest', 'bugs') && has('test', 'check', 'run', 'full', 'premium', 'launch', 'ready', 'find', 'audit')))
     || ((has('test') && has('onboarding', 'mobile', 'performance', 'combat', 'ui', 'economy', 'multiplayer', 'everything', 'first 5 minutes', 'first ten minutes')));
+  const autopilotSignal = has('build and test everything', 'make it premium automatically', 'keep improving until ready', 'full production loop', 'auto polish and retest', 'fix all issues safely', 'run the whole pipeline', 'make this launch ready', 'autopilot build', 'closed loop', 'iterate until premium', 'build critique qa fix repeat', 'do everything end to end', 'one prompt premium game', 'production autopilot')
+    || ((has('autopilot', 'closed-loop', 'closed loop', 'end-to-end', 'end to end', 'iterate', 'repeat', 'until ready', 'whole pipeline') && has('build', 'premium', 'test', 'qa', 'fix', 'polish', 'launch', 'ready', 'production')));
   const vfxOnlySignal = vfxSignal && !cinematicSignal && !has('animation', 'audio', 'camera', 'timing', 'sync', 'game feel', 'gamefeel', 'cinematic');
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
@@ -219,6 +221,24 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd cinematic plan ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd cinematic ${action} ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd cinematic audit ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (autopilotSignal && !visualSignal && !worldgenSignal && !assetforgeSignal && !vfxOnlySignal && !cinematicSignal) {
+    const action = has('run', 'execute', 'do everything', 'whole pipeline', 'end to end', 'end-to-end') ? 'run'
+      : has('loop', 'repeat', 'iterate', 'until ready', 'closed loop', 'production loop') ? 'loop'
+        : has('polish') ? 'polish'
+          : has('launch', 'ready') ? 'score'
+            : 'plan';
+    setRoute({
+      category: 'autopilot',
+      title: 'V70 Closed-Loop Production Autopilot',
+      confidence: 0.96,
+      safety: action === 'run' || action === 'loop' ? 'boundedFullTrustCodexOwnedAutopilot' : 'readOnlyAutopilotPlan',
+      reason: 'Closed-loop, end-to-end, repeat, or autonomous production language detected.',
+      commands: [
+        `tools\\bridge.cmd autopilot plan ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd autopilot ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd autopilot report ${quoteForCommand(intent)}`,
       ],
     });
   } else if (qaSignal && !visualSignal && !worldgenSignal && !assetforgeSignal && !vfxOnlySignal && !cinematicSignal && !premiumBuildSignal) {
@@ -437,6 +457,10 @@ function catalog(version = null) {
     ['make premium props for anime dungeon', 'tools\\bridge.cmd assetforge kit "premium anime dungeon props"'],
     ['create material palette', 'tools\\bridge.cmd assetforge material-plan "<goal>"'],
     ['make it look premium', 'tools\\bridge.cmd visual polish "<goal>"'],
+    ['build and test everything', 'tools\\bridge.cmd autopilot plan "<goal>"'],
+    ['make it premium automatically', 'tools\\bridge.cmd autopilot loop "<goal>"'],
+    ['keep improving until ready', 'tools\\bridge.cmd autopilot loop "<goal>"'],
+    ['full production loop', 'tools\\bridge.cmd autopilot loop "<goal>"'],
     ['test everything', 'tools\\bridge.cmd qa plan "test everything"'],
     ['full launch QA', 'tools\\bridge.cmd qa launch "<goal>"'],
     ['is this ready to publish', 'tools\\bridge.cmd qa launch "<goal>"'],

@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -12,9 +12,10 @@ const Worldgen = require('../bridge/worldgen');
 const AssetForge = require('../bridge/assetforge');
 const Cinematic = require('../bridge/cinematic');
 const QaSwarm = require('../bridge/qa-swarm');
+const Autopilot = require('../bridge/autopilot');
 
-const HELPER_VERSION = '0.69.0';
-const MCP_PROXY_VERSION = '0.69.0';
+const HELPER_VERSION = '0.70.0';
+const MCP_PROXY_VERSION = '0.70.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -145,6 +146,20 @@ const MCP_PROXY_TOOLS = [
   'qa_report',
   'qa_fix_plan',
   'qa_manifest',
+  'autopilot_status',
+  'autopilot_plan',
+  'autopilot_loop',
+  'autopilot_run',
+  'autopilot_round',
+  'autopilot_evidence',
+  'autopilot_issues',
+  'autopilot_fix_plan',
+  'autopilot_apply_safe',
+  'autopilot_polish',
+  'autopilot_retest',
+  'autopilot_score',
+  'autopilot_report',
+  'autopilot_manifest',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -764,6 +779,27 @@ Usage:
   node tools/bridge.js swarm qa <goal>
   node tools/bridge.js test_swarm <goal>
   node tools/bridge.js launch_ready <goal>
+  node tools/bridge.js autopilot status
+  node tools/bridge.js autopilot plan <goal>
+  node tools/bridge.js autopilot loop <goal>
+  node tools/bridge.js autopilot run <goal>
+  node tools/bridge.js autopilot round <goal-or-manifest>
+  node tools/bridge.js autopilot evidence <goal-or-manifest>
+  node tools/bridge.js autopilot issues <goal-or-manifest>
+  node tools/bridge.js autopilot fix-plan <goal-or-manifest>
+  node tools/bridge.js autopilot apply-safe <goal-or-manifest>
+  node tools/bridge.js autopilot polish <goal-or-manifest>
+  node tools/bridge.js autopilot retest <goal-or-manifest>
+  node tools/bridge.js autopilot score <goal-or-manifest>
+  node tools/bridge.js autopilot report <goal-or-manifest>
+  node tools/bridge.js autopilot manifest <goal-or-manifest>
+  node tools/bridge.js autopilot self-check
+  node tools/bridge.js auto build|improve|polish|launch <goal>
+  node tools/bridge.js production loop <goal>
+  node tools/bridge.js improve_until_ready <goal>
+  node tools/bridge.js premium autopilot <goal>
+  node tools/bridge.js premium loop <goal>
+  node tools/bridge.js premium auto <goal>
   node tools/bridge.js animation rigs|list-rigs [path]
   node tools/bridge.js animation inspect-rig <rigPath>
   node tools/bridge.js animation pose <rigPath>
@@ -6316,6 +6352,23 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
+  if (subcommand === 'autopilot' || subcommand === 'loop' || subcommand === 'auto') {
+    const intent = cleanIntent();
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      goal: intent,
+      autopilotStatus: Autopilot.createStatus(),
+      productionPlan: Autopilot.createProductionPlan(intent),
+      loopPlan: Autopilot.createLoopPlan(intent),
+      scoreReport: Autopilot.createScoreReport(intent),
+      warnings: [],
+      blockers: [],
+      nextCommand: `tools\\bridge.cmd autopilot run "${intent}"`,
+    });
+    return;
+  }
+
   if (subcommand === 'score') {
     const target = cleanIntent();
     let manifest = null;
@@ -6347,6 +6400,11 @@ async function runPremium(subcommand = 'status', args = []) {
         overallScore: QaSwarm.createLaunchReadinessReport(goal).launchReadinessScore,
         rating: QaSwarm.createLaunchReadinessReport(goal).rating,
         nextCommand: `tools\\bridge.cmd qa launch "${goal}"`,
+      },
+      autopilotSummary: {
+        overallScore: Autopilot.createScoreReport(goal).finalScore,
+        rating: Autopilot.createScoreReport(goal).rating,
+        nextCommand: `tools\\bridge.cmd autopilot score "${goal}"`,
       },
       manifestPath: manifest.manifestPath || Premium.manifestPath(goal),
     });
@@ -6393,6 +6451,7 @@ async function runPremium(subcommand = 'status', args = []) {
       visualPolishPlan: visualCritiqueReport.polishPlan,
       worldgenPolishPlan: Worldgen.createPolishPlan(intent, manifest.worldgenAudit),
       assetForgePolishPlan: AssetForge.createPolishPlan(intent),
+      autopilotFixPlan: Autopilot.createFixPlan(intent),
       nextCommand: `tools\\bridge.cmd visual critique "${intent}"`,
       premiumNextCommand: `tools\\bridge.cmd premium qa "${intent}"`,
     });
@@ -6413,7 +6472,7 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
-  throw new Error('premium command must be status, plan, style, assets, world, motion, build, critique, qa, launch, polish, director, score, bake, or self-check.');
+  throw new Error('premium command must be status, plan, style, assets, world, motion, build, critique, qa, launch, autopilot, loop, auto, polish, director, score, bake, or self-check.');
 }
 
 async function visualEvidenceOptions(extra = {}) {
@@ -6771,6 +6830,84 @@ async function qaStudioOptions(extra = {}) {
     source: extra.source || 'tools.bridge.qa',
     ...extra,
   };
+}
+
+async function autopilotStudioOptions(extra = {}) {
+  const health = await requestSafe('/health', { timeoutMs: 1200, noAutoStart: true });
+  return {
+    studioConnected: health.ok && health.value && health.value.studioConnected === true,
+    source: extra.source || 'tools.bridge.autopilot',
+    ...extra,
+  };
+}
+
+async function runAutopilot(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'premium anime dungeon hub';
+  if (!subcommand || subcommand === 'status') {
+    print(Autopilot.createStatus());
+    return;
+  }
+  if (subcommand === 'self-check' || subcommand === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-autopilot.js'));
+    return;
+  }
+  if (subcommand === 'policies' || subcommand === 'policy') {
+    print({ ok: true, version: HELPER_VERSION, policies: Autopilot.listPolicies(), nextCommand: 'tools\\bridge.cmd autopilot plan "premium anime dungeon hub"' });
+    return;
+  }
+  if (subcommand === 'plan') {
+    print(Autopilot.createProductionPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'loop') {
+    print(Autopilot.createLoopPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'run') {
+    print(Autopilot.createRunPlan(cleanGoal(), await autopilotStudioOptions({ source: 'tools.bridge.autopilot.run' })));
+    return;
+  }
+  if (subcommand === 'round') {
+    print(Autopilot.createRoundPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'evidence') {
+    print(Autopilot.createEvidencePack(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'issues' || subcommand === 'issue-report') {
+    print(Autopilot.createIssueReport(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'fix-plan' || subcommand === 'fix') {
+    print(Autopilot.createFixPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'apply-safe' || subcommand === 'apply') {
+    print(Autopilot.createSafeApplyPlan(cleanGoal(), await autopilotStudioOptions({ source: 'tools.bridge.autopilot.apply-safe' })));
+    return;
+  }
+  if (subcommand === 'polish' || subcommand === 'improve') {
+    print(Autopilot.createPolishPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'retest') {
+    print(Autopilot.createRetestPlan(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'score') {
+    print(Autopilot.createScoreReport(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'report' || subcommand === 'final') {
+    print(Autopilot.createFinalReport(cleanGoal()));
+    return;
+  }
+  if (subcommand === 'manifest' || subcommand === 'bake') {
+    print(Autopilot.createManifest(cleanGoal()));
+    return;
+  }
+  throw new Error('autopilot command must be status, policies, plan, loop, run, round, evidence, issues, fix-plan, apply-safe, polish, retest, score, report, manifest, or self-check.');
 }
 
 async function runQaSwarm(subcommand = 'status', args = []) {
@@ -11700,6 +11837,40 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'autopilot') {
+    await runAutopilot(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'auto') {
+    const mode = args[0] || 'build';
+    const rest = args.slice(1);
+    if (mode === 'build' || mode === 'improve') {
+      await runAutopilot('loop', rest);
+      return;
+    }
+    if (mode === 'polish') {
+      await runAutopilot('polish', rest);
+      return;
+    }
+    if (mode === 'launch') {
+      await runAutopilot('score', rest);
+      return;
+    }
+    await runAutopilot(mode, rest);
+    return;
+  }
+
+  if (command === 'production' && (args[0] || '').toLowerCase() === 'loop') {
+    await runAutopilot('loop', args.slice(1));
+    return;
+  }
+
+  if (command === 'improve_until_ready') {
+    await runAutopilot('loop', args);
+    return;
+  }
+
   if (command === 'swarm' && (args[0] || '').toLowerCase() === 'qa') {
     await runQaSwarm('swarm', args.slice(1));
     return;
@@ -11729,6 +11900,9 @@ async function main(argv) {
     premium_qa: 'qa',
     premium_polish: 'polish',
     premium_score: 'score',
+    premium_autopilot: 'autopilot',
+    premium_loop: 'loop',
+    premium_auto: 'auto',
   };
   if (directPremiumCommands[command]) {
     await runPremium(directPremiumCommands[command], args);
@@ -11836,6 +12010,27 @@ async function main(argv) {
   };
   if (directQaCommands[command]) {
     await runQaSwarm(directQaCommands[command], args);
+    return;
+  }
+
+  const directAutopilotCommands = {
+    autopilot_status: 'status',
+    autopilot_plan: 'plan',
+    autopilot_loop: 'loop',
+    autopilot_run: 'run',
+    autopilot_round: 'round',
+    autopilot_evidence: 'evidence',
+    autopilot_issues: 'issues',
+    autopilot_fix_plan: 'fix-plan',
+    autopilot_apply_safe: 'apply-safe',
+    autopilot_polish: 'polish',
+    autopilot_retest: 'retest',
+    autopilot_score: 'score',
+    autopilot_report: 'report',
+    autopilot_manifest: 'manifest',
+  };
+  if (directAutopilotCommands[command]) {
+    await runAutopilot(directAutopilotCommands[command], args);
     return;
   }
 

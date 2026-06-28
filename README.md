@@ -1,4 +1,4 @@
-# Codex Studio Bridge V69.0
+﻿# Codex Studio Bridge V70.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -210,6 +210,36 @@ V69 adds the QA command center for whole-game testing. Use it when the goal is `
 ```
 
 QA Swarm generation is Codex-owned and manifest-backed under `ReplicatedStorage.CodexQaSwarm` and `Workspace.CodexQaSwarm`. Economy/save/monetization-looking actions remain `manualRequired`; multiplayer and performance reports are structured probe plans unless live evidence is present. Premium Director now includes QA summaries through `premium qa`, `premium launch`, and `premium score`.
+
+## V70 Closed-Loop Production Autopilot
+
+V70 adds the bounded production loop that ties the specialist stack together: Premium Director, Visual Critic, Worldgen, Asset Forge, Cinematic, QA Swarm, Build Director, VFX, Animation, Audio, Camera/Screen, Test Pilot, Output diagnostics, and plugin health. Use it when the request is end-to-end, closed-loop, repeat-until-ready, build/critique/QA/fix/polish/retest, or launch-readiness polish.
+
+```powershell
+.\tools\bridge.cmd autopilot status
+.\tools\bridge.cmd autopilot plan "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot loop "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot run "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot round "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot evidence "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot issues "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot fix-plan "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot apply-safe "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot polish "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot retest "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot score "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot report "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot manifest "premium anime dungeon hub"
+.\tools\bridge.cmd autopilot self-check
+.\tools\bridge.cmd production loop "premium anime dungeon hub"
+.\tools\bridge.cmd improve_until_ready "premium anime dungeon hub"
+.\tools\bridge.cmd premium autopilot "premium anime dungeon hub"
+.\tools\bridge.cmd premium loop "premium anime dungeon hub"
+```
+
+Autopilot policies are bounded by `maxRounds`, `maxMutationsPerRound`, `maxRuntimeMs`, evidence requirements, stop conditions, and mutation scopes. The default loop stops for manualRequired blockers, stale Studio, version mismatch, target score reached, safety violations, no improvement after two rounds, or max budget. Missing screenshots, QA, output, worldgen, assetforge, cinematic, premium, or plugin evidence is marked unavailable with a next command; it is never fabricated.
+
+Safe apply is Codex-owned only. It may write versioned/manifests/markers under `ReplicatedStorage.CodexAutopilot` and `Workspace.CodexAutopilot`, and it may route to existing Codex-owned specialist outputs. Publishing, uploading, marketplace purchases, monetization changes, DataStore/save/economy mutation, broad deletes, and unsupported non-Codex production edits remain `manualRequired` or blocked.
 
 For day-to-day connection and pairing help:
 
