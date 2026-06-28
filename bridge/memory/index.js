@@ -152,14 +152,15 @@ function learnFromProductionReport(input, options = {}) {
 function matchItems(query = '', options = {}) {
   const q = safeText(query).toLowerCase();
   const items = Storage.listItems(options);
-  if (!q) return items.slice(0, Number(options.limit || 25));
+  const hydrate = (entry) => Storage.readItem(entry, options) || entry;
+  if (!q) return items.slice(0, Number(options.limit || 25)).map(hydrate);
   const terms = q.split(/\s+/).filter(Boolean);
   const scored = items.map((item) => {
     const haystack = `${item.goal} ${item.summary} ${(item.tags || []).join(' ')} ${item.type}`.toLowerCase();
     const score = terms.reduce((acc, term) => acc + (haystack.includes(term) ? 1 : 0), 0);
     return { item, score };
   }).filter((entry) => entry.score > 0);
-  return scored.sort((a, b) => b.score - a.score).map((entry) => entry.item).slice(0, Number(options.limit || 25));
+  return scored.sort((a, b) => b.score - a.score).map((entry) => hydrate(entry.item)).slice(0, Number(options.limit || 25));
 }
 
 function getProductionMemoryRecall(query = '', options = {}) {

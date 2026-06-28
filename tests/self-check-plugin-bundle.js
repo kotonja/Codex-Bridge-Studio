@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -64,6 +64,7 @@ function main() {
 
   const bundle = runNode(['scripts/bundle-plugin.js']);
   const check = runNode(['scripts/check-plugin-bundle.js']);
+  const noBom = runNode(['scripts/check-no-bom.js']);
   const pluginPath = path.join(ROOT, 'plugin/CodexStudioBridge.plugin.lua');
   const plugin = read('plugin/CodexStudioBridge.plugin.lua');
   const infoPath = path.join(ROOT, 'plugin/src/generated/bundle-info.json');
@@ -86,6 +87,7 @@ function main() {
   assert(!plugin.includes('--#include'), 'Bundled plugin still contains include markers.');
   assert(info.sha256 && info.bytes && Array.isArray(info.includedFiles), 'bundle-info.json is missing sha256/bytes/includedFiles.');
   assert(check.ok === true && check.status === 'PASS', 'Bundle checker did not pass.');
+  assert(noBom.ok === true, 'Global BOM checker did not pass.');
   assert(bundle.sha256 === info.sha256, 'bundle-plugin output sha does not match bundle-info.');
 
   const premium = runNode(['tests/self-check-premium.js']);
@@ -97,6 +99,7 @@ function main() {
     bundleBytes: info.bytes,
     bundleSha256: info.sha256,
     includedFileCount: info.includedFiles.length,
+    noBom,
     premiumSelfCheck: premium,
   }, null, 2));
 }

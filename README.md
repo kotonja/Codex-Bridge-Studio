@@ -1,4 +1,4 @@
-﻿# Codex Studio Bridge V71.0
+# Codex Studio Bridge V71.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 

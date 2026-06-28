@@ -5,6 +5,7 @@ const { REDACTED_KEYS } = require('./schema');
 function shouldRedactKey(key = '') {
   const lower = String(key).toLowerCase();
   if (lower.startsWith('stores')) return false;
+  if (lower === 'payload') return false;
   return REDACTED_KEYS.some((needle) => lower.includes(String(needle).toLowerCase()));
 }
 

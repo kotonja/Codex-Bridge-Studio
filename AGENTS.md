@@ -1,4 +1,4 @@
-﻿# Codex StudioBridge Workspace Notes
+# Codex StudioBridge Workspace Notes
 
 This workspace contains the local Codex StudioBridge for Roblox Studio.
 

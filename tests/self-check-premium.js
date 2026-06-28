@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const assert = require('node:assert');
 const Premium = require('../bridge/premium');

@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const VERSION = '0.71.0';
 

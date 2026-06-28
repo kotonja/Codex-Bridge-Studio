@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const childProcess = require('node:child_process');
 const crypto = require('node:crypto');

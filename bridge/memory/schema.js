@@ -63,8 +63,9 @@ const REDACTED_KEYS = [
   'newSource',
   'patch',
   'patches',
-  'payload',
   'mutationPayload',
+  'patchPayload',
+  'commandPayload',
 ];
 
 function nowIso() {
