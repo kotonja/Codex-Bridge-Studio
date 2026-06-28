@@ -114,6 +114,7 @@ local outputBuffer = {}
 local pendingCommands = {}
 local commandOrder = {}
 local processedCommands = {}
+local enqueueCommand
 local State = {
 	commandSummary = "No commands yet.",
 	loopHealth = { loops = {}, restartCount = 0 },
@@ -260,7 +261,6 @@ local function request(method, path, body, includeToken)
 		headers["X-Codex-Studio-Id"] = tostring(studioId)
 		headers["X-Codex-Place-Id"] = tostring(game.PlaceId or 0)
 		headers["X-Codex-Game-Id"] = tostring(game.GameId or 0)
-		headers["X-Codex-Place-Name"] = sanitizeHeaderValue(game.Name or "Place")
 	end
 
 	local requestOptions = {
@@ -15386,9 +15386,13 @@ function V27.editPulse()
 		contextType = "edit",
 		at = isoNow(),
 		version = VERSION,
+		pluginVersion = VERSION,
+		studioId = studioId,
+		gameId = game.GameId,
 		placeId = game.PlaceId,
 		placeName = game.Name,
 		mode = RunService:IsRunning() and "play" or "edit",
+		runtimeMode = RunService:IsRunning() and "play" or "edit",
 		selection = V27.selectionSummary(),
 		output = V27.recentOutputSummary(8),
 		commands = {
@@ -15396,12 +15400,19 @@ function V27.editPulse()
 			lastSummary = State.commandSummary,
 			lastResult = State.lastCommandResult,
 			lastError = State.lastCommandError,
+			lastCommandPollAttemptAt = State.lastCommandPollAttemptAt,
+			lastCommandPollResponseAt = State.lastCommandPollResponseAt,
+			lastCommandPollError = State.lastCommandPollError,
+			lastCommandPollDeliveredCount = State.lastCommandPollDeliveredCount,
+			lastAwarenessDeliveredCommandAt = State.lastAwarenessDeliveredCommandAt,
+			lastAwarenessDeliveredCommandCount = State.lastAwarenessDeliveredCommandCount,
 		},
 		snapshot = {
 			stats = State.snapshotStats,
 			lastSentAt = State.lastSuccessfulSnapshotAt,
 			dirty = stateDirty,
 		},
+		loopHealth = State.loopHealth,
 	}
 	V27.last.editPulse = pulse
 	return pulse
@@ -15433,7 +15444,14 @@ function V27.sendEditPulse()
 		return
 	end
 	local pulse = V27.editPulse()
-	V27.bridgePostPulse(pulse)
+	local response = V27.bridgePostPulse(pulse)
+	if response and type(response.commands) == "table" and enqueueCommand then
+		State.lastAwarenessDeliveredCommandCount = #response.commands
+		State.lastAwarenessDeliveredCommandAt = isoNow()
+		for _, command in ipairs(response.commands) do
+			enqueueCommand(command)
+		end
+	end
 end
 
 function V27.getRealtimeAwarenessStatus(payload)
@@ -36549,7 +36567,7 @@ local function rebuildPending()
 	refreshCanvas(pendingFrame, pendingLayout)
 end
 
-local function enqueueCommand(command)
+function enqueueCommand(command)
 	if not command or not command.id or processedCommands[command.id] then
 		return
 	end
@@ -36880,13 +36898,18 @@ superviseLoop("commandPoll", function()
 		task.wait(waitSeconds)
 		markLoopBeat("commandPoll", { paired = paired, pendingCommands = #commandOrder })
 		if paired then
+			State.lastCommandPollAttemptAt = isoNow()
 			local response, err = request("GET", "/studio/commands", nil, true)
 			if response and type(response.commands) == "table" then
+				State.lastCommandPollResponseAt = isoNow()
+				State.lastCommandPollDeliveredCount = #response.commands
+				State.lastCommandPollError = nil
 				updateStatus("Connected to " .. bridgeUrl .. " | commands: " .. tostring(#commandOrder))
 				for _, command in ipairs(response.commands) do
 					enqueueCommand(command)
 				end
 			elseif err then
+				State.lastCommandPollError = tostring(err)
 				updateStatus("Bridge disconnected: " .. tostring(err))
 			end
 		end

@@ -3236,12 +3236,19 @@ function recordWatchPulse(pulse) {
   });
 }
 
-function recordAwareness(body) {
+function recordAwareness(body, options = {}) {
   const meta = body && typeof body === 'object' ? body : {};
+  const tokenEntry = options.studioEntry || null;
+  const mergedMeta = {
+    ...meta,
+    studioId: meta.studioId || (tokenEntry && tokenEntry.studioId) || undefined,
+    placeId: meta.placeId === undefined && tokenEntry ? tokenEntry.placeId : meta.placeId,
+    placeName: meta.placeName || (tokenEntry && tokenEntry.placeName) || undefined,
+  };
   const rawPulses = Array.isArray(meta.pulses) ? meta.pulses : [meta.pulse || meta];
   const accepted = [];
   for (const raw of rawPulses) {
-    const pulse = normalizeAwarenessPulse(raw, { source: meta.source, studioId: meta.studioId, placeId: meta.placeId, placeName: meta.placeName });
+    const pulse = normalizeAwarenessPulse(raw, { source: mergedMeta.source, studioId: mergedMeta.studioId, placeId: mergedMeta.placeId, placeName: mergedMeta.placeName });
     if (!pulse) {
       awarenessStats.dropped += 1;
       continue;
@@ -3252,6 +3259,18 @@ function recordAwareness(body) {
     awarenessStats.lastAt = pulse.receivedAt;
     if (!awarenessStats.firstAt) awarenessStats.firstAt = pulse.receivedAt;
     recordWatchPulse(pulse);
+  }
+  const livePulse = accepted[0] || null;
+  const liveEntry = tokenEntry || (livePulse && livePulse.studioId && studioConnections.get(livePulse.studioId)) || null;
+  if (liveEntry && livePulse) {
+    touchStudio({
+      pluginVersion: livePulse.pluginVersion || livePulse.version || liveEntry.pluginVersion,
+      placeId: livePulse.placeId === undefined ? liveEntry.placeId : livePulse.placeId,
+      gameId: livePulse.gameId === undefined ? liveEntry.gameId : livePulse.gameId,
+      placeName: livePulse.placeName || liveEntry.placeName,
+      runtimeMode: livePulse.runtimeMode || livePulse.mode || liveEntry.runtimeMode,
+      loopHealth: livePulse.loopHealth || liveEntry.pluginLoopHealth,
+    }, liveEntry);
   }
   while (awarenessBuffer.length > MAX_AWARENESS_PULSES) {
     awarenessBuffer.pop();
@@ -5523,6 +5542,54 @@ function queueBridgeCommand(input) {
   return command;
 }
 
+function collectCommandsForDelivery(entry) {
+  if (!entry) return [];
+  const now = Date.now();
+  const queued = [];
+  for (let index = commandQueue.length - 1; index >= 0; index -= 1) {
+    const id = commandQueue[index];
+    const command = commands.get(id);
+    if (!command || command.targetStudioId !== entry.studioId) continue;
+    queued.unshift(id);
+    commandQueue.splice(index, 1);
+  }
+  if (entry.commandQueue) entry.commandQueue = entry.commandQueue.filter((id) => !queued.includes(id));
+  for (const command of commands.values()) {
+    if (!command || !command.requiresApproval) continue;
+    if (command.targetStudioId !== entry.studioId) continue;
+    if (command.status !== 'pendingApproval' && command.status !== 'sentToStudio') continue;
+    if (queued.includes(command.id) || commandQueue.includes(command.id)) continue;
+    const deliveredMs = command.deliveredAt ? Date.parse(command.deliveredAt) : 0;
+    if (!deliveredMs || now - deliveredMs > 5000) {
+      queued.push(command.id);
+    }
+  }
+  return queued.map((id) => {
+    const command = commands.get(id);
+    if (!command) return null;
+    if (
+      command.type === 'applyCodexReadySetup'
+      && isPlayRuntimeMode(entry.runtimeMode)
+      && command.payload.allowPlaySetup !== true
+    ) {
+      markCodexReadySetupDeferredCommand(command, entry, 'playMode');
+      return null;
+    }
+    if (command.status !== 'pendingApproval') {
+      command.status = 'sentToStudio';
+    }
+    command.deliveredAt = nowIso();
+    command.updatedAt = command.deliveredAt;
+    entry.lastDeliveredCommandBeforeStale = {
+      id: command.id,
+      type: command.type,
+      status: command.status,
+      deliveredAt: command.deliveredAt,
+    };
+    return command;
+  }).filter(Boolean);
+}
+
 function deferCodexReadySetup(entry, reason = 'playMode') {
   if (!entry) return null;
   const state = entry.autoReady || createAutoReadyState();
@@ -6655,7 +6722,9 @@ async function route(req, res) {
 
   if (req.method === 'POST' && path === '/runtime/awareness') {
     const body = await readBody(req);
-    const accepted = recordAwareness(body);
+    const tokenEntry = findStudioByToken(req.headers[TOKEN_HEADER]);
+    const accepted = recordAwareness(body, { studioEntry: tokenEntry });
+    const delivered = tokenEntry ? collectCommandsForDelivery(tokenEntry) : [];
     sendJson(res, 200, {
       ok: true,
       version: VERSION,
@@ -6663,6 +6732,7 @@ async function route(req, res) {
       received: accepted.length,
       status: awarenessStatus(),
       latest: accepted[0] || awarenessBuffer[0] || null,
+      commands: delivered,
     });
     return;
   }
@@ -6765,50 +6835,7 @@ async function route(req, res) {
   if (req.method === 'GET' && path === '/studio/commands') {
     const entry = req.studioEntry;
     touchStudio(null, entry);
-    const now = Date.now();
-    const queued = [];
-    for (let index = commandQueue.length - 1; index >= 0; index -= 1) {
-      const id = commandQueue[index];
-      const command = commands.get(id);
-      if (!command || command.targetStudioId !== entry.studioId) continue;
-      queued.unshift(id);
-      commandQueue.splice(index, 1);
-    }
-    if (entry.commandQueue) entry.commandQueue = entry.commandQueue.filter((id) => !queued.includes(id));
-    for (const command of commands.values()) {
-      if (!command || !command.requiresApproval) continue;
-      if (command.targetStudioId !== entry.studioId) continue;
-      if (command.status !== 'pendingApproval' && command.status !== 'sentToStudio') continue;
-      if (queued.includes(command.id) || commandQueue.includes(command.id)) continue;
-      const deliveredMs = command.deliveredAt ? Date.parse(command.deliveredAt) : 0;
-      if (!deliveredMs || now - deliveredMs > 5000) {
-        queued.push(command.id);
-      }
-    }
-    const delivered = queued.map((id) => {
-      const command = commands.get(id);
-      if (!command) return null;
-      if (
-        command.type === 'applyCodexReadySetup'
-        && isPlayRuntimeMode(entry.runtimeMode)
-        && command.payload.allowPlaySetup !== true
-      ) {
-        markCodexReadySetupDeferredCommand(command, entry, 'playMode');
-        return null;
-      }
-      if (command.status !== 'pendingApproval') {
-        command.status = 'sentToStudio';
-      }
-      command.deliveredAt = nowIso();
-      command.updatedAt = command.deliveredAt;
-      entry.lastDeliveredCommandBeforeStale = {
-        id: command.id,
-        type: command.type,
-        status: command.status,
-        deliveredAt: command.deliveredAt,
-      };
-      return command;
-    }).filter(Boolean);
+    const delivered = collectCommandsForDelivery(entry);
 
     sendJson(res, 200, { ok: true, studioId: entry.studioId, active: entry.studioId === activeStudioId, commands: delivered });
     return;
