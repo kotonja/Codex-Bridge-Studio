@@ -6,7 +6,7 @@
 -- Codex Studio Bridge V70 modular source entrypoint.
 -- Final bundled output is generated into plugin/CodexStudioBridge.plugin.lua.
 -- Edit plugin/src files, then run tools\bridge.cmd plugin bundle.
-﻿-- Codex Studio Bridge V70.0
+-- Codex Studio Bridge V70.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
 local VERSION = "0.70.0"

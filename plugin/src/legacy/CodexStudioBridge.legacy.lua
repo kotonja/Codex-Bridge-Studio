@@ -1,4 +1,4 @@
-﻿-- Codex Studio Bridge V70.0
+-- Codex Studio Bridge V70.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
 local VERSION = "0.70.0"

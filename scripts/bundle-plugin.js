@@ -11,6 +11,7 @@ const ENTRY = path.join(SRC_DIR, 'main.lua');
 const OUTPUT = path.join(ROOT, 'plugin', 'CodexStudioBridge.plugin.lua');
 const INFO = path.join(SRC_DIR, 'generated', 'bundle-info.json');
 const MIN_BUNDLE_BYTES = 500000;
+const BOM_ERROR = 'BOM/U+FEFF detected; Roblox Lua will fail to parse this plugin.';
 
 function toPosix(value) {
   return value.replace(/\\/g, '/');
@@ -24,8 +25,31 @@ function sha256(textOrBuffer) {
   return crypto.createHash('sha256').update(textOrBuffer).digest('hex');
 }
 
+function locateIndex(text, index) {
+  const before = text.slice(0, index);
+  const lines = before.split('\n');
+  return {
+    line: lines.length,
+    column: lines[lines.length - 1].length + 1,
+  };
+}
+
+function assertNoFeff(text, filePath) {
+  const index = text.indexOf('\ufeff');
+  if (index === -1) {
+    return;
+  }
+  const location = locateIndex(text, index);
+  throw new Error(`${BOM_ERROR} ${relativeFromRoot(filePath)}:${location.line}:${location.column}`);
+}
+
 function readFile(filePath) {
-  return fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n');
+  let text = fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n');
+  if (text.charCodeAt(0) === 0xfeff) {
+    text = text.slice(1);
+  }
+  assertNoFeff(text, filePath);
+  return text;
 }
 
 function fileInfo(filePath, content) {
@@ -97,6 +121,7 @@ function buildBundle() {
   const state = { stack: [], seen: new Set(), includedFiles: [] };
   const body = expandFile(ENTRY, state).replace(/\s*$/, '\n');
   const bundle = generatedHeader() + body;
+  assertNoFeff(bundle, OUTPUT);
   if (Buffer.byteLength(bundle, 'utf8') < MIN_BUNDLE_BYTES) {
     throw new Error(`Generated bundle is suspiciously small: ${Buffer.byteLength(bundle, 'utf8')} bytes`);
   }

@@ -5,6 +5,32 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Test-NoBomOrFeff {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    $bytes = [System.IO.File]::ReadAllBytes($Path)
+    if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+        throw "BOM/U+FEFF detected; Roblox Lua will fail to parse this plugin. File starts with EF BB BF: $Path"
+    }
+
+    $text = [System.Text.Encoding]::UTF8.GetString($bytes)
+    $index = $text.IndexOf([char]0xFEFF)
+    if ($index -ge 0) {
+        $before = $text.Substring(0, $index)
+        $line = ($before -split "`n", -1).Count
+        $lastNewline = $before.LastIndexOf("`n")
+        if ($lastNewline -lt 0) {
+            $column = $before.Length + 1
+        } else {
+            $column = $before.Length - $lastNewline
+        }
+        throw "BOM/U+FEFF detected; Roblox Lua will fail to parse this plugin. ${Path}:${line}:${column}"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($PluginSource)) {
     $PluginSource = Join-Path $PSScriptRoot "..\plugin\CodexStudioBridge.plugin.lua"
 }
@@ -34,6 +60,10 @@ if (Test-Path -LiteralPath $checkScript) {
             if ($LASTEXITCODE -ne 0) {
                 throw "Plugin bundle rebuild failed. Run: node scripts\bundle-plugin.js"
             }
+            & $nodeCommand.Source $checkScript
+            if ($LASTEXITCODE -ne 0) {
+                throw "Plugin bundle verification failed after rebuild. Run: node scripts\check-plugin-bundle.js"
+            }
         }
     } finally {
         Pop-Location
@@ -53,6 +83,7 @@ if (Test-Path -LiteralPath $destination) {
     Copy-Item -LiteralPath $destination -Destination $backupPath -Force
 }
 Copy-Item -LiteralPath $resolvedSource -Destination $destination -Force
+Test-NoBomOrFeff -Path $destination
 
 $version = "unknown"
 $versionMatch = Select-String -LiteralPath $destination -Pattern 'local\s+VERSION\s*=\s*["'']([^"'']+)["'']' | Select-Object -First 1
