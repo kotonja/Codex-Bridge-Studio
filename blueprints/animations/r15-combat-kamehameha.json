@@ -12,7 +12,7 @@
         "RightUpperArm": { "rotation": [-12, 10, 28] },
         "LeftUpperArm": { "rotation": [-12, -10, -28] }
       },
-      "easingStyle": "Quad",
+      "easingStyle": "Cubic",
       "easingDirection": "Out"
     },
     {
@@ -24,7 +24,7 @@
         "RightLowerArm": { "rotation": [-24, 0, 0] },
         "LeftLowerArm": { "rotation": [-24, 0, 0] }
       },
-      "easingStyle": "Sine",
+      "easingStyle": "Cubic",
       "easingDirection": "Out"
     },
     {
@@ -46,7 +46,7 @@
         "RightUpperArm": { "rotation": [-82, 4, 18] },
         "LeftUpperArm": { "rotation": [-82, -4, -18] }
       },
-      "easingStyle": "Quad",
+      "easingStyle": "Cubic",
       "easingDirection": "InOut"
     },
     {
@@ -56,7 +56,7 @@
         "RightUpperArm": { "rotation": [-32, 12, 28] },
         "LeftUpperArm": { "rotation": [-32, -12, -28] }
       },
-      "easingStyle": "Sine",
+      "easingStyle": "Cubic",
       "easingDirection": "In"
     },
     {
@@ -66,7 +66,7 @@
         "RightUpperArm": { "rotation": [-12, 10, 28] },
         "LeftUpperArm": { "rotation": [-12, -10, -28] }
       },
-      "easingStyle": "Quad",
+      "easingStyle": "Cubic",
       "easingDirection": "In"
     }
   ],

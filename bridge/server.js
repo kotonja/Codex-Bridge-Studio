@@ -5667,6 +5667,26 @@ function queuePairBootstrapStatus(entry = getActiveStudioEntry()) {
     requiresApproval: false,
   });
   state.statusCommandId = command.id;
+  if (isPlayRuntimeMode(entry.runtimeMode)) {
+    deferCodexReadySetup(entry, 'playMode');
+  } else {
+    const setup = queueBridgeCommand({
+      type: 'applyCodexReadySetup',
+      targetStudioId: entry.studioId,
+      payload: {
+        source: 'pairAutoSync',
+        pairId,
+        expectedVersion: VERSION,
+        statusCommandId: command.id,
+        forceUpdate: true,
+        syncBundle: 'fullToolkit',
+        runImmediatelyAfterPair: true,
+        reason: 'Automatically update all Codex-owned StudioBridge toolkit objects immediately after pairing.',
+      },
+      requiresApproval: true,
+    });
+    state.setupCommandId = setup.id;
+  }
   const start = queueBridgeCommand({
     type: 'getProjectStartStatus',
     targetStudioId: entry.studioId,

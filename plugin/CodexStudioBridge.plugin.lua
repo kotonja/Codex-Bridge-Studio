@@ -26063,10 +26063,25 @@ function V39.fireWorkbench(command)
 	if #players == 0 then
 		return false, "No Play-mode players are available for VFX client preview."
 	end
+	local failures = {}
+	local sent = 0
 	for _, player in ipairs(players) do
-		remote:FireClient(player, command)
+		local okFire, fireErr = pcall(function()
+			remote:FireClient(player, command)
+		end)
+		if okFire then
+			sent += 1
+		else
+			table.insert(failures, tostring(fireErr or "unknown FireClient failure"))
+		end
 	end
-	return true, "Sent VFX command to " .. tostring(#players) .. " client(s)."
+	if sent == 0 then
+		return false, "VFX client playback is unavailable from this Studio context: " .. tostring(failures[1] or "FireClient failed") .. ". Use vfx stage/capture or run Play with the VFX relay active."
+	end
+	if #failures > 0 then
+		return true, "Sent VFX command to " .. tostring(sent) .. " client(s); " .. tostring(#failures) .. " client(s) failed."
+	end
+	return true, "Sent VFX command to " .. tostring(sent) .. " client(s)."
 end
 
 function V39.requestVfxPlayback(payload)
@@ -29986,9 +30001,33 @@ end
 function V40.poseEnum(enumRoot, value, fallback)
 	if not enumRoot then return fallback end
 	value = tostring(value or "")
-	if enumRoot[value] then return enumRoot[value] end
+	local function lookup(key)
+		local ok, item = pcall(function()
+			return enumRoot[key]
+		end)
+		if ok and item then
+			return item
+		end
+		return nil
+	end
+	local item = lookup(value)
+	if item then return item end
 	value = value:gsub("^Enum%.%w+%.", "")
-	if enumRoot[value] then return enumRoot[value] end
+	item = lookup(value)
+	if item then return item end
+	if tostring(enumRoot):find("PoseEasingStyle", 1, true) then
+		local aliases = {
+			Sine = "Cubic",
+			Quad = "Cubic",
+			Quart = "Cubic",
+			Quint = "Cubic",
+			Expo = "Cubic",
+			Circ = "Cubic",
+			Back = "Cubic",
+		}
+		item = lookup(aliases[value])
+		if item then return item end
+	end
 	return fallback
 end
 
@@ -36704,6 +36743,8 @@ pairButton.MouseButton1Click:Connect(function()
 		placeId = game.PlaceId,
 		gameId = game.GameId,
 		placeName = game.Name,
+		runtimeMode = RunService:IsRunning() and "play" or "edit",
+		loopHealth = State.loopHealth,
 	}, false)
 
 	if response and response.sessionToken then
