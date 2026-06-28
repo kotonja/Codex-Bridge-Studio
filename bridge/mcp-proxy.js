@@ -5,9 +5,10 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
+const Execution = require('./execution');
 const Memory = require('./memory');
 
-const VERSION = '0.71.0';
+const VERSION = '0.72.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -519,6 +520,21 @@ const toolHandlers = {
   generate_pro_vfx: async (args) => mutationCommand('generateProVfxFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', targetPath: args.targetPath, assetRoot: args.assetRoot }),
   motion_vfx_generate: async (args) => mutationCommand('generateMotionVfxPackage', { ...basePayload(args), intent: args.intent || args.text || '', rigPath: args.rigPath, targetPath: args.targetPath, assetRoot: args.assetRoot }),
   ability_generate: async (args) => mutationCommand('generateAbilityFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', rigPath: args.rigPath, targetPath: args.targetPath }),
+  execute_status: async () => requestBridge('GET', '/codex/execution/status', undefined, 2500),
+  execute_roots: async () => requestBridge('GET', '/codex/execution/roots', undefined, 2500),
+  execute_preview: async (args) => requestBridge('GET', `/codex/execution/preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox production build')}`, undefined, 3500),
+  execute_apply: async (args) => requestBridge('POST', '/codex/execution/apply', { goal: args.goal || args.intent || args.text || 'premium Roblox production build' }, DEFAULT_COMMAND_TIMEOUT_MS),
+  execute_worldgen: async (args) => requestBridge('GET', `/codex/execution/worldgen?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox world build')}`, undefined, 3500),
+  execute_assetkit: async (args) => requestBridge('GET', `/codex/execution/assetkit?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 3500),
+  execute_cinematic: async (args) => requestBridge('GET', `/codex/execution/cinematic?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox cinematic moment')}`, undefined, 3500),
+  execute_qa_markers: async (args) => requestBridge('GET', `/codex/execution/qa-markers?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox QA markers')}`, undefined, 3500),
+  execute_polish: async (args) => requestBridge('GET', `/codex/execution/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox polish pass')}`, undefined, 3500),
+  execute_safe_fix: async (args) => requestBridge('GET', `/codex/execution/safe-fix?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox safe fix')}`, undefined, 3500),
+  execute_verify: async (args) => requestBridge('GET', `/codex/execution/verify?transactionId=${encodeURIComponent(args.transactionId || args.id || args.goal || args.intent || args.text || '')}`, undefined, 3500),
+  execute_transactions: async (args) => requestBridge('GET', `/codex/execution/transactions?limit=${encodeURIComponent(args.limit || 50)}`, undefined, 3500),
+  execute_receipt: async (args) => requestBridge('GET', `/codex/execution/receipt?transactionId=${encodeURIComponent(args.transactionId || args.id || '')}`, undefined, 3500),
+  execute_rollback: async (args) => requestBridge('POST', '/codex/execution/rollback', { transactionId: args.transactionId || args.id }, DEFAULT_COMMAND_TIMEOUT_MS),
+  execute_manifest: async (args) => requestBridge('GET', `/codex/execution/manifest?transactionId=${encodeURIComponent(args.transactionId || args.id || args.goal || args.intent || args.text || '')}`, undefined, 3500),
   memory_status: async () => Memory.getProductionMemoryStatus(),
   memory_profile: async () => Memory.getProjectMemoryProfile(),
   memory_learn: async (args) => Memory.learnFromProductionReport(args.goal || args.intent || args.text || args.report || 'premium Roblox production goal', args),
@@ -685,6 +701,21 @@ const toolDefinitions = [
   ['generate_pro_vfx', 'Generate a pro VFX preset from intent and available asset kits.', { intent: { type: 'string' }, targetPath: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['motion_vfx_generate', 'Generate a synchronized motion/VFX package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
   ['ability_generate', 'Generate a Codex-owned ability package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
+  ['execute_status', 'Return V72 Production Execution Kernel readiness, roots, capabilities, and safety policy.', {}],
+  ['execute_roots', 'Return V72 Codex-owned execution roots and rollback-safe path policy.', {}],
+  ['execute_preview', 'Preview a V72 transaction-backed real Studio build plan without mutating Studio.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['execute_apply', 'Apply a V72 transaction-backed Codex-owned build plan through StudioBridge Full Trust when safe.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['execute_worldgen', 'Compile a V66 worldgen graph into V72 Codex-owned Studio build actions.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['execute_assetkit', 'Compile a V67 asset kit plan into V72 Codex-owned placeholder/socket/manifest actions.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['execute_cinematic', 'Compile a V68 cinematic moment into V72 beat/camera/VFX/audio marker actions.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['execute_qa_markers', 'Compile V69 QA swarm probes into V72 route/UI/performance marker actions.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['execute_polish', 'Compile premium/autopilot polish guidance into V72 Codex-owned marker/manifests.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['execute_safe_fix', 'Compile evidence-linked safe fixes into V72 Codex-owned manifests without touching production scripts.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['execute_verify', 'Verify a V72 transaction receipt or return preview verification guidance for a goal.', { transactionId: { type: 'string' }, id: { type: 'string' }, goal: { type: 'string' } }],
+  ['execute_transactions', 'List recent V72 execution transactions.', { limit: { type: 'number' } }],
+  ['execute_receipt', 'Return the V72 receipt for a transaction.', { transactionId: { type: 'string' }, id: { type: 'string' } }],
+  ['execute_rollback', 'Rollback a V72 transaction using receipt-scoped Codex-owned targets only.', { transactionId: { type: 'string' }, id: { type: 'string' } }],
+  ['execute_manifest', 'Return a V72 execution manifest for a transaction or preview a goal manifest.', { transactionId: { type: 'string' }, id: { type: 'string' }, goal: { type: 'string' } }],
   ['memory_status', 'Return V71 Production Memory readiness, local storage, and redaction policy.', {}],
   ['memory_profile', 'Return the local project memory profile and user taste profile.', {}],
   ['memory_learn', 'Learn redacted production memory from a goal or report summary.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, report: { type: 'object' } }],

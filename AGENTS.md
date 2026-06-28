@@ -377,6 +377,31 @@ V71 Production Memory + Reference Style Intelligence is the preferred way to kee
 
 Routing priority for V71: pairing/recovery still wins, explicit VFX/visual/worldgen/assetforge/cinematic/QA/premium routes stay with their specialists, and memory/remember/recall/lessons/score-history/reference-profile language goes to Production Memory. `memory apply` is advisory and returns exact commands; it must not silently mutate Roblox gameplay, scripts, saves, economy, or assets.
 
+V72 Production Execution Kernel is the preferred route when Codex needs to turn a plan into real Studio objects. Use it when the user says actually build/create/apply in Studio, execute the plan, make a real build, safe build, apply safe fixes, rollback, verify, or show transaction receipts. V72 compiles Worldgen, Asset Forge, Cinematic, QA marker, polish, and safe-fix plans into Codex-owned transaction blueprints with receipts, rollback plans, manifests, and verification reports:
+
+```powershell
+.\tools\bridge.cmd execute status
+.\tools\bridge.cmd execute roots
+.\tools\bridge.cmd execute preview "premium anime dungeon hub"
+.\tools\bridge.cmd execute apply "premium anime dungeon hub"
+.\tools\bridge.cmd execute worldgen "premium anime dungeon hub"
+.\tools\bridge.cmd execute assetkit "premium anime dungeon hub asset kit"
+.\tools\bridge.cmd execute cinematic "anime boss intro attack"
+.\tools\bridge.cmd execute qa-markers "premium anime dungeon hub"
+.\tools\bridge.cmd execute polish "premium anime dungeon hub"
+.\tools\bridge.cmd execute safe-fix "premium anime dungeon hub"
+.\tools\bridge.cmd execute verify <transactionId>
+.\tools\bridge.cmd execute rollback <transactionId>
+.\tools\bridge.cmd execute transactions
+.\tools\bridge.cmd execute self-check
+.\tools\bridge.cmd build_real "premium anime dungeon hub"
+.\tools\bridge.cmd apply_plan "premium anime dungeon hub"
+.\tools\bridge.cmd safe_build "premium anime dungeon hub"
+.\tools\bridge.cmd real_build "premium anime dungeon hub"
+```
+
+Routing priority for V72: pairing/recovery still wins; explicit VFX/visual/worldgen/assetforge/cinematic/QA/premium/memory planning stays with specialists until the user asks to actually apply/build/execute. Execution writes only Codex-owned/generated roots by default, including `Workspace.CodexProduction`, `Workspace.CodexWorldgen`, `Workspace.CodexAssetForge`, `Workspace.CodexCinematicDirector`, `Workspace.CodexQaSwarm`, `Workspace.CodexAutopilot`, `Workspace.CodexExecutionKernel`, and `ReplicatedStorage.CodexExecutionKernel`. Rollback is receipt-scoped and must not delete shared Codex root folders. Publishing/uploading, marketplace insertion, monetization, DataStore/save/economy mutation, broad deletes, and unsafe production edits remain blocked or `manualRequired`.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

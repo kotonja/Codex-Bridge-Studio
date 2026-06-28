@@ -1,4 +1,4 @@
-# Codex Studio Bridge V71.0
+# Codex Studio Bridge V72.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -266,6 +266,33 @@ V71 adds a local, redacted production memory layer so future Codex chats can reu
 ```
 
 `memory apply` is advisory by default: it returns exact next commands and recommended style/QA/score gates, but it does not silently rewrite Roblox gameplay, assets, scripts, economy, or saves.
+
+## V72 Production Execution Kernel
+
+V72 turns specialist plans into real, receipt-backed Studio builds under Codex-owned roots. Use it when the request says to actually create/apply/build in Studio, execute a plan, make a real build, or safely apply an autopilot/premium fix. It compiles Worldgen, Asset Forge, Cinematic, QA markers, polish, and safe-fix plans into transaction receipts, rollback plans, manifests, and verification reports.
+
+```powershell
+.\tools\bridge.cmd execute status
+.\tools\bridge.cmd execute roots
+.\tools\bridge.cmd execute preview "premium anime dungeon hub"
+.\tools\bridge.cmd execute apply "premium anime dungeon hub"
+.\tools\bridge.cmd execute worldgen "premium anime dungeon hub"
+.\tools\bridge.cmd execute assetkit "premium anime dungeon hub asset kit"
+.\tools\bridge.cmd execute cinematic "anime boss intro attack"
+.\tools\bridge.cmd execute qa-markers "premium anime dungeon hub"
+.\tools\bridge.cmd execute polish "premium anime dungeon hub"
+.\tools\bridge.cmd execute safe-fix "premium anime dungeon hub"
+.\tools\bridge.cmd execute verify <transactionId>
+.\tools\bridge.cmd execute rollback <transactionId>
+.\tools\bridge.cmd execute transactions
+.\tools\bridge.cmd execute self-check
+.\tools\bridge.cmd build_real "premium anime dungeon hub"
+.\tools\bridge.cmd apply_plan "premium anime dungeon hub"
+.\tools\bridge.cmd safe_build "premium anime dungeon hub"
+.\tools\bridge.cmd real_build "premium anime dungeon hub"
+```
+
+V72 only writes Codex-owned/generated paths by default, such as `Workspace.CodexProduction`, `Workspace.CodexWorldgen`, `Workspace.CodexAssetForge`, `Workspace.CodexCinematicDirector`, `Workspace.CodexQaSwarm`, `Workspace.CodexAutopilot`, `Workspace.CodexExecutionKernel`, and `ReplicatedStorage.CodexExecutionKernel`. Rollback is receipt-scoped and does not delete shared Codex root folders. Publishing, uploads, marketplace insertion, monetization, DataStore/save/economy mutation, broad deletes, and unsafe production edits remain blocked or `manualRequired`.
 
 For day-to-day connection and pairing help:
 

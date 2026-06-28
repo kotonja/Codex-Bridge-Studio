@@ -14,9 +14,10 @@ const Cinematic = require('../bridge/cinematic');
 const QaSwarm = require('../bridge/qa-swarm');
 const Autopilot = require('../bridge/autopilot');
 const Memory = require('../bridge/memory');
+const Execution = require('../bridge/execution');
 
-const HELPER_VERSION = '0.71.0';
-const MCP_PROXY_VERSION = '0.71.0';
+const HELPER_VERSION = '0.72.0';
+const MCP_PROXY_VERSION = '0.72.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -174,6 +175,21 @@ const MCP_PROXY_TOOLS = [
   'memory_recommend',
   'memory_apply',
   'memory_export',
+  'execute_status',
+  'execute_roots',
+  'execute_preview',
+  'execute_apply',
+  'execute_worldgen',
+  'execute_assetkit',
+  'execute_cinematic',
+  'execute_qa_markers',
+  'execute_polish',
+  'execute_safe_fix',
+  'execute_verify',
+  'execute_transactions',
+  'execute_receipt',
+  'execute_rollback',
+  'execute_manifest',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -417,6 +433,26 @@ Usage:
   node tools/bridge.js memory self-check
   node tools/bridge.js remember "<note>"
   node tools/bridge.js recall "<query>"
+  node tools/bridge.js execute status
+  node tools/bridge.js execute roots
+  node tools/bridge.js execute preview "<goal>"
+  node tools/bridge.js execute apply "<goal>"
+  node tools/bridge.js execute worldgen "<goal>"
+  node tools/bridge.js execute assetkit "<goal>"
+  node tools/bridge.js execute cinematic "<goal>"
+  node tools/bridge.js execute qa-markers "<goal>"
+  node tools/bridge.js execute polish "<goal>"
+  node tools/bridge.js execute safe-fix "<goal>"
+  node tools/bridge.js execute verify <transactionId>
+  node tools/bridge.js execute transactions
+  node tools/bridge.js execute receipt <transactionId>
+  node tools/bridge.js execute rollback <transactionId>
+  node tools/bridge.js execute manifest <transactionId-or-goal>
+  node tools/bridge.js execute self-check
+  node tools/bridge.js build_real "<goal>"
+  node tools/bridge.js apply_plan "<goal>"
+  node tools/bridge.js safe_build "<goal>"
+  node tools/bridge.js real_build "<goal>"
   node tools/bridge.js premium status
   node tools/bridge.js premium plan "<goal>"
   node tools/bridge.js premium style "<goal>"
@@ -3750,9 +3786,13 @@ async function runPluginHealth() {
   const connected = health.ok && health.value && health.value.studioConnected === true;
   const installStatus = readInstalledPluginStatus();
   const sourceAudit = localSourceAudit(installStatus);
-  const pluginReport = connected
-    ? await requestSafeRead('getPluginCodeHealthReport', { helperVersion: HELPER_VERSION, expectedVersion: HELPER_VERSION })
-    : { ok: false, error: 'Studio is not connected yet.' };
+  const loadedPluginVersion = health.ok && health.value && health.value.activePlace && health.value.activePlace.pluginVersion;
+  const pluginVersionAligned = !connected || !loadedPluginVersion || loadedPluginVersion === HELPER_VERSION;
+  const pluginReport = !connected
+    ? { ok: false, error: 'Studio is not connected yet.' }
+    : (!pluginVersionAligned
+      ? { ok: false, error: `Loaded Studio plugin is ${loadedPluginVersion}, expected ${HELPER_VERSION}. Reload/reopen the Roblox Studio plugin window before live plugin checks.` }
+      : await requestSafeRead('getPluginCodeHealthReport', { helperVersion: HELPER_VERSION, expectedVersion: HELPER_VERSION }));
   const files = [
     localTextFileMetrics(path.join(process.cwd(), 'plugin', 'CodexStudioBridge.plugin.lua')),
     localTextFileMetrics(path.join(process.cwd(), 'bridge', 'server.js')),
@@ -3762,6 +3802,10 @@ async function runPluginHealth() {
     ok: pluginReport.ok && sourceAudit.status !== 'fail',
     version: HELPER_VERSION,
     plugin: pluginReport.ok ? pluginReport.value : { error: pluginReport.error },
+    loadedPluginVersion: loadedPluginVersion || null,
+    expectedPluginVersion: HELPER_VERSION,
+    pluginVersionAligned,
+    manualNextStep: pluginVersionAligned ? null : 'Reload/reopen the Roblox Studio plugin window, then run tools\\bridge.cmd plugin-health.',
     localFiles: files,
     sourceAudit,
     nextChecks: [
@@ -6312,6 +6356,171 @@ async function runMemory(subcommand = 'status', args = []) {
   throw new Error('memory command must be status, profile, learn, remember, recall, style, references, lessons, scores, issues, recommend, apply, export, clear, manifest, or self-check.');
 }
 
+async function queueExecutionBlueprint(applyPlan) {
+  if (!applyPlan || !applyPlan.blueprint) {
+    return {
+      ok: false,
+      status: 'manualRequired',
+      reason: 'No safe execution blueprint was produced.',
+      applyPlan,
+      nextCommand: 'tools\\bridge.cmd execute preview "<goal>"',
+    };
+  }
+  const health = await requestSafe('/health', { timeoutMs: 1500, noAutoStart: true });
+  if (!health.ok || !health.value || health.value.studioConnected !== true) {
+    return {
+      ...applyPlan,
+      ok: false,
+      status: 'manualRequired',
+      reason: 'studioNotConnected',
+      warnings: [...(applyPlan.warnings || []), 'Studio is not connected/fresh; no Studio objects were created.'],
+      nextCommand: 'tools\\bridge.cmd connect',
+    };
+  }
+  const activePlace = health.value.activePlace || {};
+  if (activePlace.pluginVersion && activePlace.pluginVersion !== HELPER_VERSION) {
+    return {
+      ...applyPlan,
+      ok: false,
+      status: 'manualRequired',
+      reason: 'versionMismatch',
+      expectedVersion: HELPER_VERSION,
+      loadedPluginVersion: activePlace.pluginVersion,
+      blockers: [`Plugin version mismatch: ${activePlace.pluginVersion} != ${HELPER_VERSION}`],
+      nextCommand: 'tools\\bridge.cmd plugin-health',
+    };
+  }
+  const command = await queueCommand('applyBuildPlan', {
+    blueprint: applyPlan.blueprint,
+    transactionId: applyPlan.transactionId,
+    source: 'tools.bridge.execution.apply',
+    expectedVersion: HELPER_VERSION,
+  }, { requiresApproval: true });
+  const status = await waitForCommandStatus(command.id, FINAL_COMMAND_STATUSES, DEFAULT_TIMEOUT_MS);
+  return Execution.recordExecutedApply(applyPlan, status);
+}
+
+async function queueExecutionRollback(transactionId) {
+  const plan = Execution.rollbackPlan(transactionId);
+  if (!plan.ok) return plan;
+  const health = await requestSafe('/health', { timeoutMs: 1500, noAutoStart: true });
+  if (!health.ok || !health.value || health.value.studioConnected !== true) {
+    return {
+      ...plan,
+      ok: false,
+      status: 'manualRequired',
+      reason: 'studioNotConnected',
+      warnings: [...(plan.warnings || []), 'Studio is not connected/fresh; rollback was not executed.'],
+      nextCommand: 'tools\\bridge.cmd connect',
+    };
+  }
+  const activePlace = health.value.activePlace || {};
+  if (activePlace.pluginVersion && activePlace.pluginVersion !== HELPER_VERSION) {
+    return {
+      ...plan,
+      ok: false,
+      status: 'manualRequired',
+      reason: 'versionMismatch',
+      expectedVersion: HELPER_VERSION,
+      loadedPluginVersion: activePlace.pluginVersion,
+      blockers: [`Plugin version mismatch: ${activePlace.pluginVersion} != ${HELPER_VERSION}`],
+      nextCommand: 'tools\\bridge.cmd plugin-health',
+    };
+  }
+  const command = await queueCommand('rollbackExecutionTransaction', {
+    transactionId,
+    rollbackPlan: plan.rollbackPlan || [],
+    source: 'tools.bridge.execution.rollback',
+    expectedVersion: HELPER_VERSION,
+  }, { requiresApproval: true });
+  const status = await waitForCommandStatus(command.id, FINAL_COMMAND_STATUSES, DEFAULT_TIMEOUT_MS);
+  const rolledBack = Execution.rollback(transactionId, { executed: status.status === 'executed', commandStatus: status });
+  return {
+    ...rolledBack,
+    ok: status.status === 'executed',
+    commandStatus: status.status,
+    commandId: status.id,
+    pluginResult: status.result || null,
+  };
+}
+
+async function runExecute(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'premium Roblox production build';
+  if (!subcommand || subcommand === 'status') {
+    print(Execution.createStatus());
+    return;
+  }
+  if (subcommand === 'self-check' || subcommand === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-execution.js'));
+    return;
+  }
+  if (subcommand === 'roots') {
+    print(Execution.createRootsReport());
+    return;
+  }
+  if (subcommand === 'preview' || subcommand === 'plan') {
+    print(Execution.preview(cleanGoal(), { source: 'tools.bridge.execution.preview' }));
+    return;
+  }
+  if (subcommand === 'apply' || subcommand === 'build' || subcommand === 'real-build') {
+    const applyPlan = Execution.apply(cleanGoal(), { source: 'tools.bridge.execution.apply' });
+    print(await queueExecutionBlueprint(applyPlan));
+    return;
+  }
+  if (subcommand === 'worldgen') {
+    print(Execution.worldgen(cleanGoal(), { source: 'tools.bridge.execution.worldgen' }));
+    return;
+  }
+  if (subcommand === 'assetkit' || subcommand === 'asset-kit') {
+    print(Execution.assetkit(cleanGoal(), { source: 'tools.bridge.execution.assetkit' }));
+    return;
+  }
+  if (subcommand === 'cinematic') {
+    print(Execution.cinematic(cleanGoal(), { source: 'tools.bridge.execution.cinematic' }));
+    return;
+  }
+  if (subcommand === 'qa-markers' || subcommand === 'qa') {
+    print(Execution.qaMarkers(cleanGoal(), { source: 'tools.bridge.execution.qaMarkers' }));
+    return;
+  }
+  if (subcommand === 'polish') {
+    print(Execution.polish(cleanGoal(), { source: 'tools.bridge.execution.polish' }));
+    return;
+  }
+  if (subcommand === 'safe-fix' || subcommand === 'safe-fixes') {
+    print(Execution.safeFix(cleanGoal(), { source: 'tools.bridge.execution.safeFix' }));
+    return;
+  }
+  if (subcommand === 'transactions' || subcommand === 'list') {
+    print(Execution.transactionList(Number(args[0] || 50)));
+    return;
+  }
+  if (subcommand === 'receipt') {
+    if (!args[0]) throw new Error('execute receipt requires <transactionId>.');
+    print(Execution.receipt(args[0]));
+    return;
+  }
+  if (subcommand === 'verify') {
+    print(Execution.verify(cleanGoal(), { source: 'tools.bridge.execution.verify' }));
+    return;
+  }
+  if (subcommand === 'rollback-plan') {
+    if (!args[0]) throw new Error('execute rollback-plan requires <transactionId>.');
+    print(Execution.rollbackPlan(args[0]));
+    return;
+  }
+  if (subcommand === 'rollback') {
+    if (!args[0]) throw new Error('execute rollback requires <transactionId>.');
+    print(await queueExecutionRollback(args[0]));
+    return;
+  }
+  if (subcommand === 'manifest') {
+    print(Execution.manifest(cleanGoal()));
+    return;
+  }
+  throw new Error('execute command must be status, roots, preview, apply, worldgen, assetkit, cinematic, qa-markers, polish, safe-fix, verify, transactions, receipt, rollback, manifest, or self-check.');
+}
+
 async function runPremium(subcommand = 'status', args = []) {
   const cleanIntent = () => args.join(' ').trim() || 'premium Roblox game slice';
   const localManifest = (intent = cleanIntent()) => Premium.createPremiumManifest(intent, {
@@ -6528,7 +6737,12 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
-  if (subcommand === 'build' || subcommand === 'execute') {
+  if (subcommand === 'execute') {
+    await runExecute('apply', args);
+    return;
+  }
+
+  if (subcommand === 'build') {
     const intent = cleanIntent();
     const manifest = localManifest(intent);
     const context = await resolveProjectProfile();
@@ -7001,7 +7215,7 @@ async function runAutopilot(subcommand = 'status', args = []) {
     return;
   }
   if (subcommand === 'apply-safe' || subcommand === 'apply') {
-    print(Autopilot.createSafeApplyPlan(cleanGoal(), await autopilotStudioOptions({ source: 'tools.bridge.autopilot.apply-safe' })));
+    await runExecute('safe-fix', args);
     return;
   }
   if (subcommand === 'polish' || subcommand === 'improve') {
@@ -11954,6 +12168,22 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'execute') {
+    await runExecute(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  const directExecutionCommands = {
+    build_real: 'apply',
+    apply_plan: 'apply',
+    safe_build: 'apply',
+    real_build: 'apply',
+  };
+  if (directExecutionCommands[command]) {
+    await runExecute(directExecutionCommands[command], args);
+    return;
+  }
+
   if (command === 'visual') {
     await runVisual(args[0] || 'status', args.slice(1));
     return;
@@ -12047,6 +12277,7 @@ async function main(argv) {
     premium_qa: 'qa',
     premium_polish: 'polish',
     premium_score: 'score',
+    premium_execute: 'execute',
     premium_autopilot: 'autopilot',
     premium_loop: 'loop',
     premium_auto: 'auto',

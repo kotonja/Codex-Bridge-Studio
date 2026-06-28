@@ -1,7 +1,7 @@
--- Codex Studio Bridge V71.0
+-- Codex Studio Bridge V72.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.71.0"
+local VERSION = "0.72.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0
@@ -20197,6 +20197,30 @@ local function executeCommand(command)
 	}
 	commandType = autopilotCommandAliases[commandType] or commandType
 
+	local executionCommandAliases = {
+		execute_status = "getExecutionKernelStatus",
+		execute_roots = "getExecutionRoots",
+		execute_preview = "getExecutionPreview",
+		execute_apply = "applyExecutionPlan",
+		execute_worldgen = "getExecutionWorldgenPlan",
+		execute_assetkit = "getExecutionAssetKitPlan",
+		execute_cinematic = "getExecutionCinematicPlan",
+		execute_qa_markers = "getExecutionQaMarkerPlan",
+		execute_polish = "getExecutionPolishPlan",
+		execute_safe_fix = "getExecutionSafeFixPlan",
+		execute_verify = "getExecutionVerificationReport",
+		execute_transactions = "getExecutionTransactionList",
+		execute_receipt = "getExecutionReceipt",
+		execute_rollback = "rollbackExecutionTransaction",
+		execute_manifest = "getExecutionManifest",
+		build_real = "applyExecutionPlan",
+		apply_plan = "applyExecutionPlan",
+		safe_build = "applyExecutionPlan",
+		real_build = "applyExecutionPlan",
+		premium_execute = "applyExecutionPlan",
+	}
+	commandType = executionCommandAliases[commandType] or commandType
+
 	local premiumCommandAliases = {
 		premium_director = "getPremiumDirectorStatus",
 		premium_plan = "getPremiumProductionBrief",
@@ -20205,6 +20229,7 @@ local function executeCommand(command)
 		premium_world = "getWorldgenIntentPlan",
 		premium_build = "executePremiumBuildRound",
 		premium_build_round = "executePremiumBuildRound",
+		premium_execute = "applyExecutionPlan",
 		premium_critique = "getPremiumVisualCritiquePlan",
 		premium_qa = "getQaSwarmPlan",
 		premium_autopilot = "runAutopilotProductionLoop",
@@ -20666,6 +20691,79 @@ if commandType == "runAutopilotProductionLoop" then
 
 	if commandType == "bakeProductionMemoryManifest" then
 		return V71.bakeProductionMemoryManifest(payload)
+	end
+
+	if commandType == "getExecutionKernelStatus" then
+		return V72.getExecutionKernelStatus(payload)
+	end
+
+	if commandType == "getExecutionRoots" then
+		return V72.getExecutionRoots(payload)
+	end
+
+	if commandType == "getExecutionPreview" then
+		return V72.getExecutionPreview(payload)
+	end
+
+	if commandType == "getExecutionApplyPlan" then
+		return V72.getExecutionApplyPlan(payload)
+	end
+
+	if commandType == "getExecutionWorldgenPlan" then
+		return V72.getExecutionWorldgenPlan(payload)
+	end
+
+	if commandType == "getExecutionAssetKitPlan" then
+		return V72.getExecutionAssetKitPlan(payload)
+	end
+
+	if commandType == "getExecutionCinematicPlan" then
+		return V72.getExecutionCinematicPlan(payload)
+	end
+
+	if commandType == "getExecutionQaMarkerPlan" then
+		return V72.getExecutionQaMarkerPlan(payload)
+	end
+
+	if commandType == "getExecutionPolishPlan" then
+		return V72.getExecutionPolishPlan(payload)
+	end
+
+	if commandType == "getExecutionSafeFixPlan" then
+		return V72.getExecutionSafeFixPlan(payload)
+	end
+
+	if commandType == "getExecutionVerificationReport" then
+		return V72.getExecutionVerificationReport(payload)
+	end
+
+	if commandType == "getExecutionTransactionList" then
+		return V72.getExecutionTransactionList(payload)
+	end
+
+	if commandType == "getExecutionReceipt" then
+		return V72.getExecutionReceipt(payload)
+	end
+
+	if commandType == "getExecutionRollbackPlan" then
+		return V72.getExecutionRollbackPlan(payload)
+	end
+
+	if commandType == "getExecutionManifest" then
+		return V72.getExecutionManifest(payload)
+	end
+
+	if commandType == "applyExecutionPlan" or commandType == "applyWorldgenExecutionPlan" or commandType == "applyAssetKitExecutionPlan"
+		or commandType == "applyCinematicExecutionPlan" or commandType == "applyQaMarkerExecutionPlan" or commandType == "applyExecutionSafeFixes" then
+		return V72.applyExecutionPlan(payload)
+	end
+
+	if commandType == "rollbackExecutionTransaction" then
+		return V72.rollbackExecutionTransaction(payload)
+	end
+
+	if commandType == "bakeExecutionManifest" then
+		return V72.bakeExecutionManifest(payload)
 	end
 
 	if commandType == "getCreatorOsStatus" then
@@ -35719,6 +35817,275 @@ function V71.bakeProductionMemoryManifest(payload)
 	return result
 end
 
+V72 = {}
+V72.workspaceRoots = {
+	"Workspace.CodexProduction",
+	"Workspace.CodexWorldgen",
+	"Workspace.CodexAssetForge",
+	"Workspace.CodexCinematicDirector",
+	"Workspace.CodexQaSwarm",
+	"Workspace.CodexAutopilot",
+	"Workspace.CodexExecutionKernel",
+}
+V72.replicatedRoots = {
+	"ReplicatedStorage.CodexExecutionKernel",
+	"ReplicatedStorage.CodexExecutionKernel.Transactions",
+	"ReplicatedStorage.CodexExecutionKernel.Receipts",
+	"ReplicatedStorage.CodexExecutionKernel.Manifests",
+	"ReplicatedStorage.CodexExecutionKernel.Rollback",
+	"ReplicatedStorage.CodexExecutionKernel.Verification",
+	"ReplicatedStorage.CodexProductionManifests",
+}
+V72.capabilities = {
+	"transactionReceipts",
+	"codexOwnedBlueprintApply",
+	"receiptScopedRollback",
+	"verificationReports",
+	"worldgenCompilation",
+	"assetkitCompilation",
+	"cinematicCompilation",
+	"qaMarkerCompilation",
+	"safeFixCompilation",
+}
+
+function V72.goal(payload)
+	payload = payload or {}
+	return tostring(payload.goal or payload.intent or payload.text or payload.name or "premium Roblox production build")
+end
+
+function V72.startsWith(value, prefix)
+	return tostring(value or ""):sub(1, #prefix) == prefix
+end
+
+function V72.isCodexPath(path)
+	local text = tostring(path or "")
+	for _, root in ipairs(V72.workspaceRoots) do
+		if text == root or V72.startsWith(text, root .. ".") then
+			return true
+		end
+	end
+	for _, root in ipairs(V72.replicatedRoots) do
+		if text == root or V72.startsWith(text, root .. ".") then
+			return true
+		end
+	end
+	return text:find("%.Codex") ~= nil or V72.startsWith(text, "Codex")
+end
+
+function V72.base(payload, mode)
+	local goal = V72.goal(payload)
+	return {
+		ok = true,
+		version = VERSION,
+		at = isoNow(),
+		goal = goal,
+		mode = mode or "status",
+		warnings = {},
+		blockers = {},
+		nextCommand = "tools\\bridge.cmd execute preview \"" .. goal .. "\"",
+	}
+end
+
+function V72.getExecutionKernelStatus(payload)
+	local result = V72.base(payload, "status")
+	result.status = "ready"
+	result.capabilities = V72.capabilities
+	result.safety = {
+		onlyCodexOwnedMutationsByDefault = true,
+		rollbackLimitedToReceiptPaths = true,
+		externalAccountRisksBlocked = true,
+	}
+	result.roots = {
+		workspace = V72.workspaceRoots,
+		replicatedStorage = V72.replicatedRoots,
+	}
+	result.nextCommand = "tools\\bridge.cmd execute preview \"" .. result.goal .. "\""
+	return result
+end
+
+function V72.getExecutionRoots(payload)
+	local result = V72.base(payload, "roots")
+	result.workspaceRoots = V72.workspaceRoots
+	result.replicatedStorageRoots = V72.replicatedRoots
+	result.rollbackPolicy = "Only receipt-scoped Codex-owned paths are removed."
+	result.nextCommand = "tools\\bridge.cmd execute apply \"" .. result.goal .. "\""
+	return result
+end
+
+function V72.plan(payload, system)
+	payload = payload or {}
+	local result = V72.base(payload, system or "preview")
+	local transactionId = tostring(payload.transactionId or payload.id or "helperCompiled")
+	local blueprintStepCount = 0
+	if type(payload.blueprint) == "table" and type(payload.blueprint.steps) == "table" then
+		blueprintStepCount = #payload.blueprint.steps
+	end
+	result.transactionId = transactionId
+	result.system = system or tostring(payload.system or "ExecutionKernel")
+	result.status = "helperCompiled"
+	result.reason = "The Node V72 execution kernel owns compilation; the plugin applies supplied blueprints and receipt rollback plans."
+	result.blueprintStepCount = blueprintStepCount
+	result.actionCount = type(payload.actions) == "table" and #payload.actions or 0
+	result.nextCommand = "tools\\bridge.cmd execute apply \"" .. result.goal .. "\""
+	return result
+end
+
+function V72.getExecutionPreview(payload)
+	return V72.plan(payload, "preview")
+end
+
+function V72.getExecutionApplyPlan(payload)
+	return V72.plan(payload, "applyPlan")
+end
+
+function V72.getExecutionWorldgenPlan(payload)
+	return V72.plan(payload, "worldgen")
+end
+
+function V72.getExecutionAssetKitPlan(payload)
+	return V72.plan(payload, "assetkit")
+end
+
+function V72.getExecutionCinematicPlan(payload)
+	return V72.plan(payload, "cinematic")
+end
+
+function V72.getExecutionQaMarkerPlan(payload)
+	return V72.plan(payload, "qaMarkers")
+end
+
+function V72.getExecutionPolishPlan(payload)
+	return V72.plan(payload, "polish")
+end
+
+function V72.getExecutionSafeFixPlan(payload)
+	return V72.plan(payload, "safeFix")
+end
+
+function V72.getExecutionVerificationReport(payload)
+	local result = V72.base(payload, "verification")
+	result.transactionId = tostring((payload or {}).transactionId or (payload or {}).id or "unknown")
+	result.status = "helperVerificationRequired"
+	result.reason = "Local transaction receipts live in the Node bridge; run the helper verification command for the authoritative report."
+	result.nextCommand = "tools\\bridge.cmd execute verify " .. result.transactionId
+	return result
+end
+
+function V72.getExecutionTransactionList(payload)
+	local result = V72.base(payload, "transactions")
+	result.status = "helperRequired"
+	result.transactions = {}
+	result.reason = "Execution transaction index is stored locally by the Node bridge."
+	result.nextCommand = "tools\\bridge.cmd execute transactions"
+	return result
+end
+
+function V72.getExecutionReceipt(payload)
+	local result = V72.base(payload, "receipt")
+	result.transactionId = tostring((payload or {}).transactionId or (payload or {}).id or "unknown")
+	result.status = "helperRequired"
+	result.reason = "Execution receipts are stored locally by the Node bridge."
+	result.nextCommand = "tools\\bridge.cmd execute receipt " .. result.transactionId
+	return result
+end
+
+function V72.getExecutionRollbackPlan(payload)
+	local result = V72.base(payload, "rollbackPlan")
+	result.transactionId = tostring((payload or {}).transactionId or (payload or {}).id or "unknown")
+	result.rollbackPlan = type((payload or {}).rollbackPlan) == "table" and (payload or {}).rollbackPlan or {}
+	result.status = #result.rollbackPlan > 0 and "ready" or "helperRequired"
+	result.nextCommand = "tools\\bridge.cmd execute rollback " .. result.transactionId
+	return result
+end
+
+function V72.getExecutionManifest(payload)
+	local result = V72.base(payload, "manifest")
+	result.transactionId = tostring((payload or {}).transactionId or (payload or {}).id or "unknown")
+	result.status = "helperRequired"
+	result.reason = "Execution manifests are baked by the Node bridge and mirrored through supplied blueprints."
+	result.nextCommand = "tools\\bridge.cmd execute manifest " .. result.transactionId
+	return result
+end
+
+function V72.applyExecutionPlan(payload)
+	payload = payload or {}
+	local blueprint = payload.blueprint or payload.buildPlan or (type(payload.applyPlan) == "table" and payload.applyPlan.blueprint) or nil
+	if type(blueprint) ~= "table" or type(blueprint.steps) ~= "table" then
+		local result = V72.base(payload, "apply")
+		result.ok = false
+		result.status = "manualRequired"
+		result.reason = "No V72 execution blueprint was supplied to the plugin."
+		result.nextCommand = "tools\\bridge.cmd execute apply \"" .. result.goal .. "\""
+		return result
+	end
+	local result = applyBuildPlan({ blueprint = blueprint })
+	return {
+		ok = result.ok ~= false,
+		version = VERSION,
+		at = isoNow(),
+		status = result.ok == false and "failed" or "executed",
+		transactionId = payload.transactionId,
+		goal = V72.goal(payload),
+		blueprintName = tostring(blueprint.name or "V72 Execution Blueprint"),
+		stepCount = #blueprint.steps,
+		result = result,
+		warnings = result.warnings or {},
+		blockers = result.blockers or {},
+		nextCommand = payload.transactionId and ("tools\\bridge.cmd execute verify " .. tostring(payload.transactionId)) or "tools\\bridge.cmd execute transactions",
+	}
+end
+
+function V72.rollbackExecutionTransaction(payload)
+	payload = payload or {}
+	local rollbackPlan = type(payload.rollbackPlan) == "table" and payload.rollbackPlan or {}
+	local destroyed = {}
+	local skipped = {}
+	local function run()
+		for _, item in ipairs(rollbackPlan) do
+			local targetPath = tostring(item.path or "")
+			if item.safe == false or not V72.isCodexPath(targetPath) then
+				table.insert(skipped, { path = targetPath, reason = "notCodexOwnedOrNotMarkedSafe" })
+			else
+				local target = resolvePath(targetPath)
+				if target then
+					table.insert(destroyed, safeFullName(target))
+					target:Destroy()
+				else
+					table.insert(skipped, { path = targetPath, reason = "notFound" })
+				end
+			end
+		end
+	end
+	if #rollbackPlan > 0 then
+		withUndo("V72ExecutionRollback", run)
+	end
+	return {
+		ok = true,
+		version = VERSION,
+		at = isoNow(),
+		status = #rollbackPlan > 0 and "rolledBack" or "manualRequired",
+		transactionId = tostring(payload.transactionId or payload.id or "unknown"),
+		destroyedPaths = destroyed,
+		skipped = skipped,
+		warnings = #rollbackPlan == 0 and { "No rollback plan was supplied to the plugin." } or {},
+		blockers = {},
+		nextCommand = "tools\\bridge.cmd execute verify " .. tostring(payload.transactionId or payload.id or "unknown"),
+	}
+end
+
+function V72.bakeExecutionManifest(payload)
+	payload = payload or {}
+	local blueprint = payload.blueprint or payload.manifestBlueprint
+	if type(blueprint) == "table" and type(blueprint.steps) == "table" then
+		return V72.applyExecutionPlan(payload)
+	end
+	local result = V72.base(payload, "manifest")
+	result.status = "helperRequired"
+	result.reason = "Manifest baking is handled by the Node bridge unless a manifest blueprint is supplied."
+	result.nextCommand = "tools\\bridge.cmd execute manifest " .. tostring(payload.transactionId or result.goal)
+	return result
+end
+
 mutatingTypes = {
 	updateScriptSource = true,
 	applyScriptPatch = true,
@@ -35757,6 +36124,14 @@ mutatingTypes = {
 	applyStyleAssetPlan = true,
 	applyDirectorRound = true,
 	applyProductionRefactorPlan = true,
+	applyExecutionPlan = true,
+	applyWorldgenExecutionPlan = true,
+	applyAssetKitExecutionPlan = true,
+	applyCinematicExecutionPlan = true,
+	applyQaMarkerExecutionPlan = true,
+	applyExecutionSafeFixes = true,
+	rollbackExecutionTransaction = true,
+	bakeExecutionManifest = true,
 	installLiveVisionHarness = true,
 	removeLiveVisionHarness = true,
 	requestLiveVisionCapture = true,
@@ -36483,6 +36858,17 @@ local function commandPreviewText(command)
 		local name = type(blueprint) == "table" and tostring(blueprint.name or "Untitled Build Plan") or "Build Plan"
 		local stepCount = type(blueprint) == "table" and type(blueprint.steps) == "table" and #blueprint.steps or 0
 		return "applyBuildPlan\n" .. name .. "\nsteps: " .. tostring(stepCount)
+	end
+	if command.type == "applyExecutionPlan" or command.type == "applyWorldgenExecutionPlan" or command.type == "applyAssetKitExecutionPlan"
+		or command.type == "applyCinematicExecutionPlan" or command.type == "applyQaMarkerExecutionPlan" or command.type == "applyExecutionSafeFixes" then
+		local blueprint = payload.blueprint or payload.buildPlan or payload
+		local name = type(blueprint) == "table" and tostring(blueprint.name or "V72 Execution Plan") or "V72 Execution Plan"
+		local stepCount = type(blueprint) == "table" and type(blueprint.steps) == "table" and #blueprint.steps or 0
+		return tostring(command.type) .. "\n" .. name .. "\ntransaction: " .. tostring(payload.transactionId or "?") .. " | steps: " .. tostring(stepCount)
+	end
+	if command.type == "rollbackExecutionTransaction" then
+		local rollbackPlan = type(payload.rollbackPlan) == "table" and payload.rollbackPlan or {}
+		return "rollbackExecutionTransaction\ntransaction: " .. tostring(payload.transactionId or "?") .. "\npaths: " .. tostring(#rollbackPlan)
 	end
 	if command.type == "applyTestScenario" then
 		local blueprint = payload.blueprint or payload.buildPlan or payload

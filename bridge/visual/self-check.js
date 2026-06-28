@@ -31,7 +31,7 @@ function run() {
   assertFilesExist();
   const goal = 'premium anime boss lobby';
   const status = Visual.createStatus();
-  assert.strictEqual(status.version, '0.71.0');
+  assert.strictEqual(status.version, '0.72.0');
   assert.strictEqual(status.ok, true);
 
   const evidence = Visual.createEvidencePack(goal, { studioConnected: true });
@@ -42,7 +42,7 @@ function run() {
   assert.ok(evidence.warnings.some((warning) => warning.includes('Actual screenshot pixel analysis unavailable')));
 
   const critique = Visual.createCritiqueReport(goal, { evidencePack: evidence });
-  assert.strictEqual(critique.version, '0.71.0');
+  assert.strictEqual(critique.version, '0.72.0');
   assert.ok(critique.overallScore >= 0 && critique.overallScore <= 100);
   for (const key of SCORE_KEYS) {
     const item = critique.subScores[key];
@@ -72,10 +72,10 @@ function run() {
   assert.strictEqual(CommandRouter.createRoute('new pairing code').category, 'pairing');
 
   const premium = Premium.createPremiumManifest(goal);
-  assert.strictEqual(premium.version, '0.71.0');
+  assert.strictEqual(premium.version, '0.72.0');
   assert.ok(premium.visualCritiqueReport);
   assert.strictEqual(premium.visualEvidencePack.availableEvidence.actualPixels, false);
-  assert.strictEqual(Premium.scoreFromManifest(premium).version, '0.71.0');
+  assert.strictEqual(Premium.scoreFromManifest(premium).version, '0.72.0');
 
   return {
     ok: true,

@@ -58,7 +58,7 @@ function run() {
   const fixPlan = QaSwarm.createFixPlan(goal);
   const manifest = QaSwarm.createManifest(goal);
 
-  assert(status.ok && status.version === '0.71.0', 'status version/shape failed');
+  assert(status.ok && status.version === '0.72.0', 'status version/shape failed');
   assert(personas.length >= 16, 'persona catalog must include at least 16 personas');
   for (const persona of personas) {
     for (const key of ['goal', 'mindset', 'explorationStrategy', 'interactionHabit', 'likelyFinds', 'deviceAssumption', 'failureSignals', 'testFocus', 'forbiddenActions', 'maxActions', 'evidenceNeeded']) assert(persona[key] !== undefined, `persona ${persona.id} missing ${key}`);

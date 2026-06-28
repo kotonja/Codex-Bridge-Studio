@@ -50,6 +50,12 @@ function createRoute(rawQuery = '', options = {}) {
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
   const memorySignal = has('production memory', 'project memory', 'style memory', 'remember this', 'remember that', 'recall', 'learn from report', 'learn this report', 'what did we learn', 'did we learn', 'lessons learned', 'use previous style', 'previous style', 'reuse previous style', 'save this style', 'what worked best', 'what failed before', 'best previous score', 'score history', 'issue patterns', 'reference memory', 'memory recommend', 'premium memory')
     || ((has('memory', 'remember', 'recall', 'lessons', 'reference', 'references', 'previous') && has('production', 'project', 'style', 'premium', 'report', 'score', 'issue', 'recommend', 'learn', 'worked', 'failed')));
+  const executionSignal = has('build this for real', 'apply the plan', 'create it in studio', 'make real objects', 'safe build', 'build real', 'execute plan', 'rollback build', 'show transactions', 'verify transaction', 'apply safe fixes', 'turn this plan into parts', 'make the world in studio')
+    || ((has('execute', 'apply', 'rollback', 'transaction', 'receipt', 'verify') && has('plan', 'build', 'studio', 'objects', 'transaction', 'receipt', 'safe fixes')))
+    || ((has('real', 'studio', 'parts', 'objects') && has('build', 'create', 'make')));
+  const executionExplicitSignal = has('build this for real', 'apply the plan', 'create it in studio', 'make real objects', 'safe build', 'build real', 'execute plan', 'rollback build', 'show transactions', 'verify transaction', 'apply safe fixes', 'turn this plan into parts', 'make the world in studio')
+    || ((has('execute', 'apply', 'rollback', 'transaction', 'receipt', 'verify') && has('plan', 'build', 'studio', 'objects', 'transaction', 'receipt', 'safe fixes')))
+    || ((has('real', 'studio') && has('build', 'create', 'make')));
   const premiumBuildSignal = has('build premium roblox game', 'premium anime boss lobby', 'premium simulator lobby', 'premium hub', 'premium lobby', 'premium game', 'premium world', 'premium scene')
     || ((has('premium', 'top dev', 'expensive', 'reference quality', 'high quality') && has('build', 'scene', 'hub', 'game', 'world', 'lobby', 'roblox')));
   const premiumSignal = has('premium director', 'make this premium', 'build premium roblox game', 'top dev quality', 'fix cheap looking build', 'upgrade everything')
@@ -165,6 +171,33 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd memory recommend ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd premium memory ${quoteForCommand(intent)}`,
       ],
+    });
+  } else if (executionSignal && !vfxOnlySignal && !visualSignal && !cinematicSignal && !qaSignal && !autopilotSignal && (executionExplicitSignal || (!assetforgeSignal && !worldgenSignal))) {
+    const action = has('rollback') ? 'rollback'
+      : has('transactions', 'show transactions') ? 'transactions'
+        : has('verify') ? 'verify'
+          : has('safe fix', 'safe fixes') ? 'safe-fix'
+            : has('world') ? 'worldgen'
+              : has('asset', 'kit') ? 'assetkit'
+                : has('cinematic') ? 'cinematic'
+                  : has('qa', 'marker') ? 'qa-markers'
+                    : has('polish') ? 'polish'
+                      : has('preview') ? 'preview'
+                        : 'apply';
+    const executeGoal = intent || 'premium Roblox production build';
+    setRoute({
+      category: 'execution',
+      title: 'V72 Production Execution Kernel',
+      confidence: 0.96,
+      safety: action === 'preview' || action === 'transactions' || action === 'verify' ? 'transactionReadOrPreview' : 'fullTrustCodexOwnedTransaction',
+      reason: 'Execution/apply/real-build/rollback/transaction language detected. Route through V72 transaction receipts and Codex-owned roots.',
+      commands: action === 'transactions'
+        ? ['tools\\bridge.cmd execute transactions']
+        : action === 'rollback'
+          ? ['tools\\bridge.cmd execute transactions', 'tools\\bridge.cmd execute rollback <transactionId>']
+          : action === 'verify'
+            ? ['tools\\bridge.cmd execute transactions', 'tools\\bridge.cmd execute verify <transactionId>']
+            : [`tools\\bridge.cmd execute preview ${quoteForCommand(executeGoal)}`, `tools\\bridge.cmd execute ${action} ${quoteForCommand(executeGoal)}`, `tools\\bridge.cmd execute verify <transactionId>`],
     });
   } else if (visualSignal && !premiumBuildSignal) {
     const action = has('score') ? 'score'

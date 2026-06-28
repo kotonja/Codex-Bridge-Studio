@@ -1,6 +1,6 @@
 -- V71 Production Memory profile contract stub.
 return {
-	version = "0.71.0",
+	version = "0.72.0",
 	storesRawSource = false,
 	storesTokens = false,
 }

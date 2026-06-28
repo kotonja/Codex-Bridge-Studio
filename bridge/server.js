@@ -14,8 +14,9 @@ const Cinematic = require('./cinematic');
 const QaSwarm = require('./qa-swarm');
 const Autopilot = require('./autopilot');
 const Memory = require('./memory');
+const Execution = require('./execution');
 
-const VERSION = '0.71.0';
+const VERSION = '0.72.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -527,6 +528,29 @@ const supportedCommands = new Set([
   'rememberProductionNote',
   'learnFromProductionReport',
   'bakeProductionMemoryManifest',
+  'getExecutionKernelStatus',
+  'getExecutionRoots',
+  'getExecutionPreview',
+  'getExecutionApplyPlan',
+  'getExecutionWorldgenPlan',
+  'getExecutionAssetKitPlan',
+  'getExecutionCinematicPlan',
+  'getExecutionQaMarkerPlan',
+  'getExecutionPolishPlan',
+  'getExecutionSafeFixPlan',
+  'getExecutionVerificationReport',
+  'getExecutionTransactionList',
+  'getExecutionReceipt',
+  'getExecutionRollbackPlan',
+  'getExecutionManifest',
+  'applyExecutionPlan',
+  'applyWorldgenExecutionPlan',
+  'applyAssetKitExecutionPlan',
+  'applyCinematicExecutionPlan',
+  'applyQaMarkerExecutionPlan',
+  'applyExecutionSafeFixes',
+  'rollbackExecutionTransaction',
+  'bakeExecutionManifest',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -1250,6 +1274,14 @@ const mutatingCommands = new Set([
   'autopilot_polish',
   'autopilot_retest',
   'improve_until_ready',
+  'applyExecutionPlan',
+  'applyWorldgenExecutionPlan',
+  'applyAssetKitExecutionPlan',
+  'applyCinematicExecutionPlan',
+  'applyQaMarkerExecutionPlan',
+  'applyExecutionSafeFixes',
+  'rollbackExecutionTransaction',
+  'bakeExecutionManifest',
   'premium_build_round',
   'premium_polish',
 ]);
@@ -6326,6 +6358,146 @@ async function route(req, res) {
       sendJson(res, 200, map[endpoint]());
       return;
     }
+  }
+
+  if (req.method === 'GET' && path === '/codex/execution/status') {
+    sendJson(res, 200, Execution.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/execution/roots') {
+    sendJson(res, 200, Execution.createRootsReport());
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/execution/')) {
+    const endpoint = path.replace('/codex/execution/', '');
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('q') || requestUrl.searchParams.get('intent') || 'premium Roblox production build';
+    const tx = requestUrl.searchParams.get('transactionId') || requestUrl.searchParams.get('tx') || goal;
+    const map = {
+      preview: () => Execution.preview(goal),
+      'apply-plan': () => Execution.apply(goal),
+      worldgen: () => Execution.worldgen(goal),
+      assetkit: () => Execution.assetkit(goal),
+      cinematic: () => Execution.cinematic(goal),
+      'qa-markers': () => Execution.qaMarkers(goal),
+      polish: () => Execution.polish(goal),
+      'safe-fix': () => Execution.safeFix(goal),
+      verify: () => Execution.verify(tx),
+      transactions: () => Execution.transactionList(Number(requestUrl.searchParams.get('limit') || 50)),
+      receipt: () => Execution.receipt(tx),
+      rollback: () => Execution.rollbackPlan(tx),
+      manifest: () => Execution.manifest(tx),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, map[endpoint]());
+      return;
+    }
+  }
+
+  if (req.method === 'POST' && path === '/codex/execution/apply') {
+    const body = await readBody(req);
+    const goal = body.goal || body.intent || body.text || 'premium Roblox production build';
+    const active = getActiveStudioEntry();
+    const applyPlan = Execution.apply(goal, body);
+    if (!active || !isPlaceFresh(active)) {
+      sendJson(res, 200, {
+        ...applyPlan,
+        ok: false,
+        status: 'manualRequired',
+        warnings: [...(applyPlan.warnings || []), 'Studio is not connected/fresh; no Studio objects were created.'],
+        blockers: applyPlan.blockers || [],
+        nextCommand: 'tools\\bridge.cmd connect',
+      });
+      return;
+    }
+    if (active.pluginVersion && active.pluginVersion !== VERSION) {
+      sendJson(res, 200, {
+        ...applyPlan,
+        ok: false,
+        status: 'manualRequired',
+        reason: 'versionMismatch',
+        expectedVersion: VERSION,
+        loadedPluginVersion: active.pluginVersion,
+        warnings: [...(applyPlan.warnings || []), 'Reload/reopen the Roblox Studio plugin window before applying.'],
+        blockers: [`Plugin version mismatch: ${active.pluginVersion} != ${VERSION}`],
+        nextCommand: 'tools\\bridge.cmd plugin-health',
+      });
+      return;
+    }
+    if (!applyPlan.blueprint) {
+      sendJson(res, 200, applyPlan);
+      return;
+    }
+    const command = queueBridgeCommand({
+      type: 'applyBuildPlan',
+      targetStudioId: active.studioId,
+      payload: {
+        blueprint: applyPlan.blueprint,
+        transactionId: applyPlan.transactionId,
+        source: 'executionKernelApply',
+        expectedVersion: VERSION,
+      },
+      requiresApproval: true,
+    });
+    sendJson(res, 200, {
+      ...applyPlan,
+      ok: true,
+      status: 'queued',
+      commandId: command.id,
+      transaction: { ...applyPlan.transaction, status: 'queued', commandId: command.id },
+      nextCommand: `tools\\bridge.cmd execute verify ${applyPlan.transactionId}`,
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/codex/execution/rollback') {
+    const body = await readBody(req);
+    const transactionId = body.transactionId || body.tx || body.goal;
+    const active = getActiveStudioEntry();
+    const plan = Execution.rollbackPlan(transactionId);
+    if (!active || !isPlaceFresh(active)) {
+      sendJson(res, 200, {
+        ...plan,
+        ok: false,
+        status: 'manualRequired',
+        warnings: [...(plan.warnings || []), 'Studio is not connected/fresh; rollback was not executed.'],
+        nextCommand: 'tools\\bridge.cmd connect',
+      });
+      return;
+    }
+    if (active.pluginVersion && active.pluginVersion !== VERSION) {
+      sendJson(res, 200, {
+        ...plan,
+        ok: false,
+        status: 'manualRequired',
+        reason: 'versionMismatch',
+        expectedVersion: VERSION,
+        loadedPluginVersion: active.pluginVersion,
+        blockers: [`Plugin version mismatch: ${active.pluginVersion} != ${VERSION}`],
+        nextCommand: 'tools\\bridge.cmd plugin-health',
+      });
+      return;
+    }
+    const command = queueBridgeCommand({
+      type: 'rollbackExecutionTransaction',
+      targetStudioId: active.studioId,
+      payload: {
+        transactionId,
+        rollbackPlan: plan.rollbackPlan || [],
+        source: 'executionKernelRollback',
+        expectedVersion: VERSION,
+      },
+      requiresApproval: true,
+    });
+    sendJson(res, 200, {
+      ...plan,
+      ok: true,
+      status: 'queued',
+      commandId: command.id,
+      nextCommand: `tools\\bridge.cmd execute verify ${transactionId}`,
+    });
+    return;
   }
 
   if (req.method === 'GET' && path === '/codex/premium/status') {
