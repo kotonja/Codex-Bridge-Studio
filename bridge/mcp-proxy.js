@@ -7,8 +7,9 @@ const http = require('node:http');
 const path = require('node:path');
 const Execution = require('./execution');
 const Memory = require('./memory');
+const AiOrchestrator = require('./ai-orchestrator');
 
-const VERSION = '0.72.0';
+const VERSION = '0.73.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -535,6 +536,19 @@ const toolHandlers = {
   execute_receipt: async (args) => requestBridge('GET', `/codex/execution/receipt?transactionId=${encodeURIComponent(args.transactionId || args.id || '')}`, undefined, 3500),
   execute_rollback: async (args) => requestBridge('POST', '/codex/execution/rollback', { transactionId: args.transactionId || args.id }, DEFAULT_COMMAND_TIMEOUT_MS),
   execute_manifest: async (args) => requestBridge('GET', `/codex/execution/manifest?transactionId=${encodeURIComponent(args.transactionId || args.id || args.goal || args.intent || args.text || '')}`, undefined, 3500),
+  ai_status: async () => AiOrchestrator.getStatus(),
+  ai_config: async () => AiOrchestrator.getConfig(),
+  ai_models: async () => AiOrchestrator.getModelCatalog(),
+  ai_tools: async () => AiOrchestrator.getToolCatalog(),
+  ai_plan: async (args) => AiOrchestrator.getProductionPlan(args.goal || args.intent || args.text || 'premium Roblox production goal', { source: 'mcpProxy' }),
+  ai_run: async (args) => AiOrchestrator.runProduction(args.goal || args.intent || args.text || 'premium Roblox production goal', { ...args, source: 'mcpProxy' }),
+  ai_continue: async (args) => AiOrchestrator.continueRun(args.runId || args.id || ''),
+  ai_approve: async (args) => AiOrchestrator.approveRun(args.runId || args.id || ''),
+  ai_cancel: async (args) => AiOrchestrator.cancelRun(args.runId || args.id || ''),
+  ai_reference: async (args) => AiOrchestrator.intakeReference(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy', metadata: redacted(args.metadata || {}) }),
+  ai_cost: async () => AiOrchestrator.getCostReport(),
+  ai_runs: async (args) => AiOrchestrator.listRuns(Number(args.limit || 50)),
+  ai_report: async (args) => AiOrchestrator.getRunReport(args.runId || args.id || ''),
   memory_status: async () => Memory.getProductionMemoryStatus(),
   memory_profile: async () => Memory.getProjectMemoryProfile(),
   memory_learn: async (args) => Memory.learnFromProductionReport(args.goal || args.intent || args.text || args.report || 'premium Roblox production goal', args),
@@ -716,6 +730,19 @@ const toolDefinitions = [
   ['execute_receipt', 'Return the V72 receipt for a transaction.', { transactionId: { type: 'string' }, id: { type: 'string' } }],
   ['execute_rollback', 'Rollback a V72 transaction using receipt-scoped Codex-owned targets only.', { transactionId: { type: 'string' }, id: { type: 'string' } }],
   ['execute_manifest', 'Return a V72 execution manifest for a transaction or preview a goal manifest.', { transactionId: { type: 'string' }, id: { type: 'string' }, goal: { type: 'string' } }],
+  ['ai_status', 'Return V73 API Orchestrator readiness without exposing secrets.', {}],
+  ['ai_config', 'Return V73 local API configuration policy and redacted key presence.', {}],
+  ['ai_models', 'List supported/recommended API planning models.', {}],
+  ['ai_tools', 'List StudioBridge specialist tools available to the API orchestrator.', {}],
+  ['ai_plan', 'Create an API-backed or offline local production plan; no Studio mutation.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, model: { type: 'string' } }],
+  ['ai_run', 'Create a V73 bounded AI production run state; mutations still route through V72 gates.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, model: { type: 'string' } }],
+  ['ai_continue', 'Continue a stored V73 run to the next approval/checkpoint state.', { runId: { type: 'string' }, id: { type: 'string' } }],
+  ['ai_approve', 'Approve the next local V73 run step; external/account risks still remain blocked/manual.', { runId: { type: 'string' }, id: { type: 'string' } }],
+  ['ai_cancel', 'Cancel a stored V73 run.', { runId: { type: 'string' }, id: { type: 'string' } }],
+  ['ai_reference', 'Ingest reference text/path metadata for future V74+ style/image understanding; no pixel claim.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' } }],
+  ['ai_cost', 'Return local estimated run cost summary.', {}],
+  ['ai_runs', 'List recent V73 AI production runs.', { limit: { type: 'number' } }],
+  ['ai_report', 'Return a stored V73 AI run report.', { runId: { type: 'string' }, id: { type: 'string' } }],
   ['memory_status', 'Return V71 Production Memory readiness, local storage, and redaction policy.', {}],
   ['memory_profile', 'Return the local project memory profile and user taste profile.', {}],
   ['memory_learn', 'Learn redacted production memory from a goal or report summary.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, report: { type: 'object' } }],

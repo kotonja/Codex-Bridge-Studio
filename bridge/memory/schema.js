@@ -3,7 +3,7 @@
 const path = require('path');
 const crypto = require('crypto');
 
-const VERSION = '0.72.0';
+const VERSION = '0.73.0';
 const MEMORY_ROOT = path.join(process.cwd(), '.codex-studio', 'memory-v71');
 
 const ROOTS = {

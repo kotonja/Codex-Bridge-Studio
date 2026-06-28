@@ -69,7 +69,7 @@ function run() {
   const finalReport = Autopilot.createFinalReport(goal);
   const manifest = Autopilot.createManifest(goal);
 
-  assert(status.ok && status.version === '0.72.0', 'status version/shape failed');
+  assert(status.ok && status.version === '0.73.0', 'status version/shape failed');
   assert(status.capabilities.includes('boundedProductionLoops'), 'status missing boundedProductionLoops');
   assert(Object.values(status.integrations).every(Boolean), 'status integrations must be true');
   assert(policies.length === Autopilot.POLICY_IDS.length, 'all policies must exist');
@@ -125,12 +125,12 @@ function run() {
   assert(routes.vfx === 'vfx', 'vfx route drifted');
   assert(routes.pairing === 'pairing', 'pairing route drifted');
 
-  assert(QaSwarm.createStatus().version === '0.72.0', 'QA version drift');
-  assert(Cinematic.createStatus().version === '0.72.0', 'cinematic version drift');
-  assert(AssetForge.createStatus().version === '0.72.0', 'assetforge version drift');
-  assert(Worldgen.createStatus().version === '0.72.0', 'worldgen version drift');
-  assert(Visual.createStatus().version === '0.72.0', 'visual version drift');
-  assert(Premium.getStatus().version === '0.72.0', 'premium version drift');
+  assert(QaSwarm.createStatus().version === '0.73.0', 'QA version drift');
+  assert(Cinematic.createStatus().version === '0.73.0', 'cinematic version drift');
+  assert(AssetForge.createStatus().version === '0.73.0', 'assetforge version drift');
+  assert(Worldgen.createStatus().version === '0.73.0', 'worldgen version drift');
+  assert(Visual.createStatus().version === '0.73.0', 'visual version drift');
+  assert(Premium.getStatus().version === '0.73.0', 'premium version drift');
 
   return {
     ok: true,

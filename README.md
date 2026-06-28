@@ -1,4 +1,4 @@
-# Codex Studio Bridge V72.0
+# Codex Studio Bridge V73.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -293,6 +293,27 @@ V72 turns specialist plans into real, receipt-backed Studio builds under Codex-o
 ```
 
 V72 only writes Codex-owned/generated paths by default, such as `Workspace.CodexProduction`, `Workspace.CodexWorldgen`, `Workspace.CodexAssetForge`, `Workspace.CodexCinematicDirector`, `Workspace.CodexQaSwarm`, `Workspace.CodexAutopilot`, `Workspace.CodexExecutionKernel`, and `ReplicatedStorage.CodexExecutionKernel`. Rollback is receipt-scoped and does not delete shared Codex root folders. Publishing, uploads, marketplace insertion, monetization, DataStore/save/economy mutation, broad deletes, and unsafe production edits remain blocked or `manualRequired`.
+
+## V73 API Orchestrator + Reference Intake
+
+V73 adds a local Node-side API orchestrator foundation for production planning, reference intake, tool selection, run state, cost estimates, and V72 transaction gating. API keys never live in the Roblox plugin, generated plugin bundle, manifests, command payloads, MCP stdout, or git-tracked files. The optional key source is local only: set `OPENAI_API_KEY` in the shell environment or store a local ignored `.codex-studio/secrets.local.json` file. If no key is configured, V73 still returns a structured offline fallback plan.
+
+```powershell
+.\tools\bridge.cmd ai status
+.\tools\bridge.cmd ai config
+.\tools\bridge.cmd ai models
+.\tools\bridge.cmd ai tools
+.\tools\bridge.cmd ai plan "premium anime dungeon hub"
+.\tools\bridge.cmd ai run "premium anime dungeon hub"
+.\tools\bridge.cmd ai reference "bright readable anime dungeon reference"
+.\tools\bridge.cmd ai runs
+.\tools\bridge.cmd ai cost
+.\tools\bridge.cmd ai self-check
+.\tools\bridge.cmd api run "premium anime boss lobby"
+.\tools\bridge.cmd premium ai "premium anime boss lobby"
+```
+
+V73 is plan-first. Any real Studio mutation must route through the V72 execution kernel: preview, apply, verify, receipt, and rollback. Publishing/uploading, marketplace actions, monetization, DataStore/save/economy mutation, broad deletes, raw source dumps, and unsafe external actions remain blocked or `manualRequired`.
 
 For day-to-day connection and pairing help:
 

@@ -15,8 +15,9 @@ const QaSwarm = require('./qa-swarm');
 const Autopilot = require('./autopilot');
 const Memory = require('./memory');
 const Execution = require('./execution');
+const AiOrchestrator = require('./ai-orchestrator');
 
-const VERSION = '0.72.0';
+const VERSION = '0.73.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -551,6 +552,20 @@ const supportedCommands = new Set([
   'applyExecutionSafeFixes',
   'rollbackExecutionTransaction',
   'bakeExecutionManifest',
+  'getAiOrchestratorStatus',
+  'getAiOrchestratorConfig',
+  'getAiModelCatalog',
+  'getAiToolCatalog',
+  'getAiProductionPlan',
+  'getAiReferenceIntakePlan',
+  'getAiRunList',
+  'getAiRunReport',
+  'getAiCostReport',
+  'runAiProductionOrchestrator',
+  'continueAiRun',
+  'approveAiRunStep',
+  'cancelAiRun',
+  'bakeAiRunManifest',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -2030,6 +2045,15 @@ const CACHEABLE_TTLS = new Map([
   ['audio_audit', 60_000],
   ['audio_plan', 60_000],
   ['audio_live', 15_000],
+  ['getAiOrchestratorStatus', 15_000],
+  ['getAiOrchestratorConfig', 15_000],
+  ['getAiModelCatalog', 120_000],
+  ['getAiToolCatalog', 120_000],
+  ['getAiProductionPlan', 30_000],
+  ['getAiReferenceIntakePlan', 30_000],
+  ['getAiRunList', 15_000],
+  ['getAiRunReport', 15_000],
+  ['getAiCostReport', 15_000],
   ['getBuildStyleCatalog', 120_000],
   ['getBuildIntentPlan', 60_000],
   ['getBuildAssetKitReport', 120_000],
@@ -3979,6 +4003,22 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'ai',
+    title: 'V73 API Orchestrator + Reference Intake',
+    safety: 'localApiKeyOnlyPlanFirstV72GatedMutation',
+    readiness: ['bridge', 'optionalOpenAiKey', 'executionKernel'],
+    commands: [
+      { command: 'tools\\bridge.cmd ai status', example: 'tools\\bridge.cmd ai status', bestFor: 'Check local API orchestration readiness without exposing secrets.' },
+      { command: 'tools\\bridge.cmd ai config', example: 'tools\\bridge.cmd ai config', bestFor: 'Show redacted Node-side model, store, and key-source policy.' },
+      { command: 'tools\\bridge.cmd ai tools', example: 'tools\\bridge.cmd ai tools', bestFor: 'List specialist tools the AI orchestrator may call.' },
+      { command: 'tools\\bridge.cmd ai plan <goal>', example: 'tools\\bridge.cmd ai plan "premium anime boss lobby"', bestFor: 'Create an API-backed or offline fallback production plan without mutating Studio.' },
+      { command: 'tools\\bridge.cmd ai run <goal>', example: 'tools\\bridge.cmd ai run "premium anime boss lobby"', bestFor: 'Create a bounded run state with approval/transaction gates.' },
+      { command: 'tools\\bridge.cmd ai reference <path-or-note>', example: 'tools\\bridge.cmd ai reference "bright anime lobby reference board"', bestFor: 'Ingest reference metadata for future style/image intelligence.' },
+      { command: 'tools\\bridge.cmd api run <goal>', example: 'tools\\bridge.cmd api run "premium dungeon hub"', bestFor: 'Direct alias for AI orchestration from API language.' },
+      { command: 'tools\\bridge.cmd premium ai <goal>', example: 'tools\\bridge.cmd premium ai "premium anime boss lobby"', bestFor: 'Run Premium Director through the API orchestrator surface.' },
+    ],
+  },
+  {
     id: 'health',
     title: 'Health / Trust / Recovery',
     safety: 'readOnly',
@@ -4426,6 +4466,23 @@ const V46_DIRECT_ALIASES = [
   'autopilot_report',
   'autopilot_manifest',
   'improve_until_ready',
+  'ai_status',
+  'ai_config',
+  'ai_models',
+  'ai_tools',
+  'ai_plan',
+  'ai_run',
+  'ai_continue',
+  'ai_approve',
+  'ai_cancel',
+  'ai_reference',
+  'ai_cost',
+  'ai_runs',
+  'ai_report',
+  'api_run',
+  'ai_build',
+  'ai_premium',
+  'premium_ai',
   'list_rigs',
   'inspect_rig',
   'get_rig_pose',
@@ -6310,6 +6367,83 @@ async function route(req, res) {
       liveContext: includeContext ? codexLiveContext(routePlaceOptions(requestUrl)) : undefined,
       places: includeContext ? placeListSummary() : undefined,
     });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/status') {
+    sendJson(res, 200, AiOrchestrator.getStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/config') {
+    sendJson(res, 200, AiOrchestrator.getConfig());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/models') {
+    sendJson(res, 200, AiOrchestrator.getModelCatalog());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/tools') {
+    sendJson(res, 200, AiOrchestrator.getToolCatalog());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/functions') {
+    sendJson(res, 200, AiOrchestrator.getFunctionSchemas());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/plan') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('q') || requestUrl.searchParams.get('intent') || 'premium Roblox production goal';
+    sendJson(res, 200, await AiOrchestrator.getProductionPlan(goal, { source: 'serverHttp' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/reference') {
+    const source = requestUrl.searchParams.get('source') || requestUrl.searchParams.get('path') || requestUrl.searchParams.get('q') || requestUrl.searchParams.get('goal') || '';
+    sendJson(res, 200, AiOrchestrator.intakeReference(source, { source: 'serverHttp' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/runs') {
+    sendJson(res, 200, AiOrchestrator.listRuns(Number(requestUrl.searchParams.get('limit') || 50)));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/report') {
+    sendJson(res, 200, AiOrchestrator.getRunReport(requestUrl.searchParams.get('runId') || requestUrl.searchParams.get('id') || ''));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/ai/cost') {
+    sendJson(res, 200, AiOrchestrator.getCostReport());
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/codex/ai/run') {
+    const body = await readBody(req);
+    const goal = body.goal || body.intent || body.text || 'premium Roblox production goal';
+    sendJson(res, 200, await AiOrchestrator.runProduction(goal, { ...body, source: 'serverHttp' }));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/codex/ai/continue') {
+    const body = await readBody(req);
+    sendJson(res, 200, AiOrchestrator.continueRun(body.runId || body.id || ''));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/codex/ai/approve') {
+    const body = await readBody(req);
+    sendJson(res, 200, AiOrchestrator.approveRun(body.runId || body.id || ''));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/codex/ai/cancel') {
+    const body = await readBody(req);
+    sendJson(res, 200, AiOrchestrator.cancelRun(body.runId || body.id || ''));
     return;
   }
 

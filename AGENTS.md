@@ -402,6 +402,26 @@ V72 Production Execution Kernel is the preferred route when Codex needs to turn 
 
 Routing priority for V72: pairing/recovery still wins; explicit VFX/visual/worldgen/assetforge/cinematic/QA/premium/memory planning stays with specialists until the user asks to actually apply/build/execute. Execution writes only Codex-owned/generated roots by default, including `Workspace.CodexProduction`, `Workspace.CodexWorldgen`, `Workspace.CodexAssetForge`, `Workspace.CodexCinematicDirector`, `Workspace.CodexQaSwarm`, `Workspace.CodexAutopilot`, `Workspace.CodexExecutionKernel`, and `ReplicatedStorage.CodexExecutionKernel`. Rollback is receipt-scoped and must not delete shared Codex root folders. Publishing/uploading, marketplace insertion, monetization, DataStore/save/economy mutation, broad deletes, and unsafe production edits remain blocked or `manualRequired`.
 
+V73 API Orchestrator + Reference Intake is the preferred route when the user asks Codex to use the API, run an AI production planner, intake references, compare production plans through model/tool orchestration, or make a premium plan with a model-backed reasoning pass. The API key is local Node-only. It must never be stored in the Roblox plugin, generated bundle, Roblox objects, command history, MCP stdout, git-tracked files, or manifests. If no key is configured, V73 must return a structured offline fallback plan instead of blocking the workflow.
+
+```powershell
+.\tools\bridge.cmd ai status
+.\tools\bridge.cmd ai config
+.\tools\bridge.cmd ai models
+.\tools\bridge.cmd ai tools
+.\tools\bridge.cmd ai plan "premium anime dungeon hub"
+.\tools\bridge.cmd ai run "premium anime dungeon hub"
+.\tools\bridge.cmd ai reference "bright readable anime dungeon reference"
+.\tools\bridge.cmd ai runs
+.\tools\bridge.cmd ai report <runId>
+.\tools\bridge.cmd ai cost
+.\tools\bridge.cmd ai self-check
+.\tools\bridge.cmd api run "premium anime boss lobby"
+.\tools\bridge.cmd premium ai "premium anime boss lobby"
+```
+
+Routing priority for V73: pairing/recovery still wins; explicit VFX/visual/worldgen/assetforge/cinematic/QA/premium/memory/execution commands stay with their specialists. AI/API/reference-orchestrator language routes to V73. V73 may plan and store local redacted run state, but real Studio writes must go through V72 preview/apply/verify/receipt/rollback. Publishing/uploading, marketplace actions, monetization, DataStore/save/economy mutation, broad deletes, raw source dumps, and unsafe external actions remain blocked or `manualRequired`.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

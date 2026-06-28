@@ -15,9 +15,10 @@ const QaSwarm = require('../bridge/qa-swarm');
 const Autopilot = require('../bridge/autopilot');
 const Memory = require('../bridge/memory');
 const Execution = require('../bridge/execution');
+const AiOrchestrator = require('../bridge/ai-orchestrator');
 
-const HELPER_VERSION = '0.72.0';
-const MCP_PROXY_VERSION = '0.72.0';
+const HELPER_VERSION = '0.73.0';
+const MCP_PROXY_VERSION = '0.73.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -190,6 +191,19 @@ const MCP_PROXY_TOOLS = [
   'execute_receipt',
   'execute_rollback',
   'execute_manifest',
+  'ai_status',
+  'ai_config',
+  'ai_models',
+  'ai_tools',
+  'ai_plan',
+  'ai_run',
+  'ai_continue',
+  'ai_approve',
+  'ai_cancel',
+  'ai_reference',
+  'ai_cost',
+  'ai_runs',
+  'ai_report',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -433,6 +447,20 @@ Usage:
   node tools/bridge.js memory self-check
   node tools/bridge.js remember "<note>"
   node tools/bridge.js recall "<query>"
+  node tools/bridge.js ai status
+  node tools/bridge.js ai config
+  node tools/bridge.js ai models
+  node tools/bridge.js ai tools
+  node tools/bridge.js ai plan "<goal>"
+  node tools/bridge.js ai run "<goal>"
+  node tools/bridge.js ai continue <runId>
+  node tools/bridge.js ai approve <runId>
+  node tools/bridge.js ai cancel <runId>
+  node tools/bridge.js ai reference "<path-or-note>"
+  node tools/bridge.js ai cost
+  node tools/bridge.js ai runs
+  node tools/bridge.js ai report <runId>
+  node tools/bridge.js ai self-check
   node tools/bridge.js execute status
   node tools/bridge.js execute roots
   node tools/bridge.js execute preview "<goal>"
@@ -6598,12 +6626,83 @@ async function runExecute(subcommand = 'status', args = []) {
   throw new Error('execute command must be status, roots, preview, apply, worldgen, assetkit, cinematic, qa-markers, polish, safe-fix, verify, transactions, receipt, rollback, manifest, or self-check.');
 }
 
+async function runAi(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'premium Roblox production goal';
+  const mode = String(subcommand || 'status').toLowerCase();
+  if (mode === 'status') {
+    print(AiOrchestrator.getStatus());
+    return;
+  }
+  if (mode === 'config') {
+    print(AiOrchestrator.getConfig());
+    return;
+  }
+  if (mode === 'models') {
+    print(AiOrchestrator.getModelCatalog());
+    return;
+  }
+  if (mode === 'tools') {
+    print(AiOrchestrator.getToolCatalog());
+    return;
+  }
+  if (mode === 'plan') {
+    print(await AiOrchestrator.getProductionPlan(cleanGoal(), { source: 'tools.bridge.ai.plan' }));
+    return;
+  }
+  if (mode === 'run' || mode === 'build' || mode === 'premium') {
+    print(await AiOrchestrator.runProduction(cleanGoal(), { source: 'tools.bridge.ai.run' }));
+    return;
+  }
+  if (mode === 'continue') {
+    if (!args[0]) throw new Error('ai continue requires <runId>.');
+    print(AiOrchestrator.continueRun(args[0]));
+    return;
+  }
+  if (mode === 'approve') {
+    if (!args[0]) throw new Error('ai approve requires <runId>.');
+    print(AiOrchestrator.approveRun(args[0]));
+    return;
+  }
+  if (mode === 'cancel') {
+    if (!args[0]) throw new Error('ai cancel requires <runId>.');
+    print(AiOrchestrator.cancelRun(args[0]));
+    return;
+  }
+  if (mode === 'reference' || mode === 'refs' || mode === 'intake') {
+    print(AiOrchestrator.intakeReference(cleanGoal(), { source: 'tools.bridge.ai.reference' }));
+    return;
+  }
+  if (mode === 'cost') {
+    print(AiOrchestrator.getCostReport());
+    return;
+  }
+  if (mode === 'runs' || mode === 'list') {
+    print(AiOrchestrator.listRuns(Number(args[0] || 50)));
+    return;
+  }
+  if (mode === 'report') {
+    if (!args[0]) throw new Error('ai report requires <runId>.');
+    print(AiOrchestrator.getRunReport(args[0]));
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-ai-orchestrator.js'));
+    return;
+  }
+  throw new Error('ai command must be status, config, models, tools, plan, run, continue, approve, cancel, reference, cost, runs, report, or self-check.');
+}
+
 async function runPremium(subcommand = 'status', args = []) {
   const cleanIntent = () => args.join(' ').trim() || 'premium Roblox game slice';
   const localManifest = (intent = cleanIntent()) => Premium.createPremiumManifest(intent, {
     source: 'tools.bridge.premium',
     helperVersion: HELPER_VERSION,
   });
+
+  if (subcommand === 'ai') {
+    await runAi('run', args);
+    return;
+  }
 
   if (!subcommand || subcommand === 'status') {
     print(Premium.getStatus());
@@ -11768,6 +11867,31 @@ async function main(argv) {
 
   if (command === 'memory') {
     await runMemory(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'ai') {
+    await runAi(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'api') {
+    await runAi(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'ai_build' || command === 'ai-build') {
+    await runAi('run', args);
+    return;
+  }
+
+  if (command === 'ai_premium' || command === 'ai-premium') {
+    await runAi('run', args);
+    return;
+  }
+
+  if (command === 'reference' && (args[0] || '').toLowerCase() === 'intake') {
+    await runAi('reference', args.slice(1));
     return;
   }
 

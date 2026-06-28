@@ -1,7 +1,7 @@
--- Codex Studio Bridge V72.0
+-- Codex Studio Bridge V73.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.72.0"
+local VERSION = "0.73.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0
@@ -20776,6 +20776,62 @@ if commandType == "runAutopilotProductionLoop" then
 		return V72.bakeExecutionManifest(payload)
 	end
 
+	if commandType == "getAiOrchestratorStatus" then
+		return V73.getAiOrchestratorStatus(payload)
+	end
+
+	if commandType == "getAiOrchestratorConfig" then
+		return V73.getAiOrchestratorConfig(payload)
+	end
+
+	if commandType == "getAiModelCatalog" then
+		return V73.getAiModelCatalog(payload)
+	end
+
+	if commandType == "getAiToolCatalog" then
+		return V73.getAiToolCatalog(payload)
+	end
+
+	if commandType == "getAiProductionPlan" then
+		return V73.getAiProductionPlan(payload)
+	end
+
+	if commandType == "getAiReferenceIntakePlan" then
+		return V73.getAiReferenceIntakePlan(payload)
+	end
+
+	if commandType == "getAiRunList" then
+		return V73.getAiRunList(payload)
+	end
+
+	if commandType == "getAiRunReport" then
+		return V73.getAiRunReport(payload)
+	end
+
+	if commandType == "getAiCostReport" then
+		return V73.getAiCostReport(payload)
+	end
+
+	if commandType == "runAiProductionOrchestrator" then
+		return V73.runAiProductionOrchestrator(payload)
+	end
+
+	if commandType == "continueAiRun" then
+		return V73.continueAiRun(payload)
+	end
+
+	if commandType == "approveAiRunStep" then
+		return V73.approveAiRunStep(payload)
+	end
+
+	if commandType == "cancelAiRun" then
+		return V73.cancelAiRun(payload)
+	end
+
+	if commandType == "bakeAiRunManifest" then
+		return V73.bakeAiRunManifest(payload)
+	end
+
 	if commandType == "getCreatorOsStatus" then
 		return V62.getCreatorOsStatus(payload)
 	end
@@ -36159,6 +36215,201 @@ function V72.bakeExecutionManifest(payload)
 	result.status = "helperRequired"
 	result.reason = "Manifest baking is handled by the Node bridge unless a manifest blueprint is supplied."
 	result.nextCommand = "tools\\bridge.cmd execute manifest " .. tostring(payload.transactionId or result.goal)
+	return result
+end
+
+V73 = {}
+V73.capabilities = {
+	"apiKeyStaysInNode",
+	"localFallbackPlanning",
+	"structuredToolCalling",
+	"referenceIntakeMetadata",
+	"runState",
+	"costTracking",
+	"executionKernelGate",
+}
+V73.modelCatalog = {
+	{ id = "gpt-4.1-mini", bestFor = "fast production planning and routing", default = true },
+	{ id = "gpt-4.1", bestFor = "deeper premium planning when configured", default = false },
+	{ id = "localFallback", bestFor = "offline deterministic StudioBridge planning", default = false },
+}
+V73.toolCatalog = {
+	"memory_recommend",
+	"premium_plan",
+	"worldgen_graph",
+	"assetforge_kit",
+	"cinematic_timeline",
+	"visual_critique",
+	"qa_launch",
+	"execute_preview",
+	"execute_apply",
+	"execute_verify",
+	"execute_rollback",
+}
+
+function V73.goal(payload)
+	payload = payload or {}
+	return tostring(payload.goal or payload.intent or payload.text or payload.query or "premium Roblox production goal")
+end
+
+function V73.base(payload, mode)
+	local goal = V73.goal(payload)
+	return {
+		ok = true,
+		version = VERSION,
+		at = isoNow(),
+		mode = mode,
+		goal = goal,
+		pluginHasApiKey = false,
+		apiKeyLocation = "local Node bridge only",
+		robloxPluginSecretPolicy = "No API keys, session tokens, pairing codes, raw sources, or patch payloads are stored in Roblox plugin AI reports.",
+		warnings = {},
+		blockers = {},
+		nextCommand = "tools\\bridge.cmd ai status",
+	}
+end
+
+function V73.getAiOrchestratorStatus(payload)
+	local result = V73.base(payload, "status")
+	result.name = "V73 API Orchestrator + Reference Intake Foundation"
+	result.configured = false
+	result.configuredReason = "Roblox plugin cannot read local environment variables or secret files; use tools\\bridge.cmd ai status for Node-side configuration."
+	result.capabilities = V73.capabilities
+	result.integrations = {
+		executionKernel = true,
+		memory = true,
+		premium = true,
+		visual = true,
+		worldgen = true,
+		assetforge = true,
+		cinematic = true,
+		qa = true,
+	}
+	result.nextCommand = "tools\\bridge.cmd ai config"
+	return result
+end
+
+function V73.getAiOrchestratorConfig(payload)
+	local result = V73.base(payload, "config")
+	result.configured = false
+	result.localSecretPolicy = {
+		nodeEnv = "OPENAI_API_KEY",
+		localSecretFile = ".codex-studio/secrets.local.json",
+		robloxPluginHasSecretAccess = false,
+		logsRedacted = true,
+	}
+	result.warnings = { "Run tools\\bridge.cmd ai config to see Node-side API configuration; this plugin report intentionally hides all secret state." }
+	result.nextCommand = "tools\\bridge.cmd ai status"
+	return result
+end
+
+function V73.getAiModelCatalog(payload)
+	local result = V73.base(payload, "models")
+	result.models = V73.modelCatalog
+	result.nextCommand = "tools\\bridge.cmd ai tools"
+	return result
+end
+
+function V73.getAiToolCatalog(payload)
+	local result = V73.base(payload, "tools")
+	result.tools = V73.toolCatalog
+	result.safety = {
+		planOnlyByDefault = true,
+		mutationsRouteThroughV72 = true,
+		previewBeforeApply = true,
+		verifyAfterApply = true,
+		rollbackReceiptRequired = true,
+	}
+	result.nextCommand = "tools\\bridge.cmd ai plan \"" .. result.goal .. "\""
+	return result
+end
+
+function V73.getAiProductionPlan(payload)
+	local result = V73.base(payload, "offlineLocalFallbackPlan")
+	result.configured = false
+	result.steps = {
+		{ id = "memory", tool = "memory_recommend", command = "tools\\bridge.cmd memory recommend \"" .. result.goal .. "\"" },
+		{ id = "premium", tool = "premium_plan", command = "tools\\bridge.cmd premium plan \"" .. result.goal .. "\"" },
+		{ id = "worldgen", tool = "worldgen_graph", command = "tools\\bridge.cmd worldgen graph \"" .. result.goal .. "\"" },
+		{ id = "assetforge", tool = "assetforge_kit", command = "tools\\bridge.cmd assetforge kit \"" .. result.goal .. "\"" },
+		{ id = "executionPreview", tool = "execute_preview", command = "tools\\bridge.cmd execute preview \"" .. result.goal .. "\"" },
+		{ id = "visualGate", tool = "visual_critique", command = "tools\\bridge.cmd visual critique \"" .. result.goal .. "\"" },
+		{ id = "qaGate", tool = "qa_launch", command = "tools\\bridge.cmd qa launch \"" .. result.goal .. "\"" },
+	}
+	result.nextCommand = "tools\\bridge.cmd ai run \"" .. result.goal .. "\""
+	return result
+end
+
+function V73.getAiReferenceIntakePlan(payload)
+	local result = V73.base(payload, "referenceIntake")
+	result.source = tostring((payload or {}).source or (payload or {}).path or result.goal)
+	result.actualImageAnalysis = false
+	result.futureImageUnderstanding = true
+	result.metadataOnly = true
+	result.nextCommand = "tools\\bridge.cmd ai reference \"" .. result.source .. "\""
+	return result
+end
+
+function V73.getAiRunList(payload)
+	local result = V73.base(payload, "runs")
+	result.count = 0
+	result.runs = {}
+	result.warnings = { "Run state is stored by the Node helper under .codex-studio/ai-runs-v73, not in Roblox plugin memory." }
+	result.nextCommand = "tools\\bridge.cmd ai runs"
+	return result
+end
+
+function V73.getAiRunReport(payload)
+	local result = V73.base(payload, "report")
+	result.runId = tostring((payload or {}).runId or (payload or {}).id or "")
+	result.status = result.runId ~= "" and "nodeHelperRequired" or "notFound"
+	result.nextCommand = result.runId ~= "" and ("tools\\bridge.cmd ai report " .. result.runId) or "tools\\bridge.cmd ai runs"
+	return result
+end
+
+function V73.getAiCostReport(payload)
+	local result = V73.base(payload, "cost")
+	result.exactProviderUsageAvailable = false
+	result.totalEstimatedUsd = 0
+	result.warnings = { "Exact provider usage is available only from Node-side API run reports when configured." }
+	result.nextCommand = "tools\\bridge.cmd ai runs"
+	return result
+end
+
+function V73.runAiProductionOrchestrator(payload)
+	local result = V73.getAiProductionPlan(payload)
+	result.status = "helperRequired"
+	result.reason = "API calls and run state execute in the local Node bridge, never inside Roblox plugin Lua."
+	result.nextCommand = "tools\\bridge.cmd ai run \"" .. result.goal .. "\""
+	return result
+end
+
+function V73.continueAiRun(payload)
+	local result = V73.getAiRunReport(payload)
+	result.status = "helperRequired"
+	result.nextCommand = result.runId ~= "" and ("tools\\bridge.cmd ai continue " .. result.runId) or "tools\\bridge.cmd ai runs"
+	return result
+end
+
+function V73.approveAiRunStep(payload)
+	local result = V73.getAiRunReport(payload)
+	result.status = "helperRequired"
+	result.nextCommand = result.runId ~= "" and ("tools\\bridge.cmd ai approve " .. result.runId) or "tools\\bridge.cmd ai runs"
+	return result
+end
+
+function V73.cancelAiRun(payload)
+	local result = V73.getAiRunReport(payload)
+	result.status = "helperRequired"
+	result.nextCommand = result.runId ~= "" and ("tools\\bridge.cmd ai cancel " .. result.runId) or "tools\\bridge.cmd ai runs"
+	return result
+end
+
+function V73.bakeAiRunManifest(payload)
+	local result = V73.base(payload, "manifest")
+	result.status = "helperRequired"
+	result.manifestPath = "ReplicatedStorage.CodexPremiumDirector.AiOrchestrator." .. tostring((payload or {}).runId or "RunManifest")
+	result.nextCommand = "tools\\bridge.cmd ai report " .. tostring((payload or {}).runId or "<runId>")
 	return result
 end
 

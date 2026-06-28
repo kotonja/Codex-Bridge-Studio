@@ -48,6 +48,8 @@ function createRoute(rawQuery = '', options = {}) {
   const vfxOnlySignal = vfxSignal && !cinematicSignal && !has('animation', 'audio', 'camera', 'timing', 'sync', 'game feel', 'gamefeel', 'cinematic');
   const audioSignal = has('audio', 'sound', 'sounds', 'music', 'mix', 'volume', 'sfx', 'ambience', 'footstep')
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
+  const aiSignal = has('use api', 'run with api', 'ai orchestrator', 'api orchestrator', 'use openai api', 'ai build this', 'run ai production', 'ai reference intake', 'analyze this reference with api', 'use api to build premium', 'api premium run')
+    || ((has('api', 'openai api', 'ai') && has('orchestrator', 'reference intake', 'build this', 'production', 'premium run', 'run with', 'use')));
   const memorySignal = has('production memory', 'project memory', 'style memory', 'remember this', 'remember that', 'recall', 'learn from report', 'learn this report', 'what did we learn', 'did we learn', 'lessons learned', 'use previous style', 'previous style', 'reuse previous style', 'save this style', 'what worked best', 'what failed before', 'best previous score', 'score history', 'issue patterns', 'reference memory', 'memory recommend', 'premium memory')
     || ((has('memory', 'remember', 'recall', 'lessons', 'reference', 'references', 'previous') && has('production', 'project', 'style', 'premium', 'report', 'score', 'issue', 'recommend', 'learn', 'worked', 'failed')));
   const executionSignal = has('build this for real', 'apply the plan', 'create it in studio', 'make real objects', 'safe build', 'build real', 'execute plan', 'rollback build', 'show transactions', 'verify transaction', 'apply safe fixes', 'turn this plan into parts', 'make the world in studio')
@@ -125,6 +127,23 @@ function createRoute(rawQuery = '', options = {}) {
       confidence: 0.96,
       reason: 'Fast live context request.',
       commands: ['tools\\bridge.cmd codex-context', 'tools\\bridge.cmd watch now', 'tools\\bridge.cmd watch errors'],
+    });
+  } else if (aiSignal) {
+    const action = has('reference intake', 'analyze this reference') ? 'reference'
+      : has('status') ? 'status'
+        : has('config') ? 'config'
+          : has('tools') ? 'tools'
+            : has('run with api', 'ai build this', 'run ai production', 'api premium run', 'use api to build premium') ? 'run'
+              : 'plan';
+    setRoute({
+      category: 'ai',
+      title: 'V73 API Orchestrator + Reference Intake Foundation',
+      confidence: 0.97,
+      safety: action === 'run' ? 'planOnlyApiRunUntilApproved' : 'readOnlyApiOrchestrationPlan',
+      reason: 'API/OpenAI/AI orchestrator/reference-intake language detected. Use the local Node bridge API layer; never Roblox plugin keys.',
+      commands: action === 'reference'
+        ? [`tools\\bridge.cmd ai reference ${quoteForCommand(intent)}`, `tools\\bridge.cmd ai plan ${quoteForCommand(intent)}`]
+        : [`tools\\bridge.cmd ai ${action} ${quoteForCommand(intent)}`, `tools\\bridge.cmd ai status`, `tools\\bridge.cmd ai tools`],
     });
   } else if (has('places', 'universe', 'riftarena') || ((has('place', 'hub', 'match', 'dungeon', 'arena') && has('switch', 'use ', 'current', 'select', 'target')))) {
     const placeTarget = q.includes('riftarena') ? 'RiftArena' : (q.includes('hub') ? 'Hub' : '<place>');
@@ -496,6 +515,11 @@ function catalog(version = null) {
   const examples = [
     ['check now', 'tools\\bridge.cmd codex-context'],
     ['recover bridge', 'tools\\bridge.cmd mcp-proxy status'],
+    ['use api', 'tools\\bridge.cmd ai plan "use api"'],
+    ['run with api', 'tools\\bridge.cmd ai run "<goal>"'],
+    ['ai orchestrator', 'tools\\bridge.cmd ai status'],
+    ['api premium run', 'tools\\bridge.cmd ai run "premium Roblox production goal"'],
+    ['ai reference intake', 'tools\\bridge.cmd ai reference "<path-or-note>"'],
     ['new pairing code', 'tools\\bridge.cmd pair reset'],
     ['show places', 'tools\\bridge.cmd places'],
     ['switch to RiftArena', 'tools\\bridge.cmd place use RiftArena'],
