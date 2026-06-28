@@ -9317,6 +9317,16 @@ local function applyBlueprintStep(step, index, result)
 			table.insert(result.warnings, tostring(path) .. ": " .. failure)
 		end
 	end
+	if type(step.attributes) == "table" then
+		for key, value in pairs(step.attributes) do
+			local ok, err = pcall(function()
+				instance:SetAttribute(tostring(key), value)
+			end)
+			if not ok then
+				table.insert(result.warnings, tostring(path) .. ": attribute " .. tostring(key) .. " failed: " .. tostring(err))
+			end
+		end
+	end
 
 	if existing then
 		return finish("updated", stepType, instance)
@@ -35963,11 +35973,77 @@ function V72.getExecutionSafeFixPlan(payload)
 end
 
 function V72.getExecutionVerificationReport(payload)
+	payload = payload or {}
 	local result = V72.base(payload, "verification")
-	result.transactionId = tostring((payload or {}).transactionId or (payload or {}).id or "unknown")
-	result.status = "helperVerificationRequired"
-	result.reason = "Local transaction receipts live in the Node bridge; run the helper verification command for the authoritative report."
-	result.nextCommand = "tools\\bridge.cmd execute verify " .. result.transactionId
+	local receipt = type(payload.receipt) == "table" and payload.receipt or {}
+	local created = type(receipt.created) == "table" and receipt.created or {}
+	local rollbackExpected = payload.rollbackExpected == true
+	local checks = {}
+	local foundCount = 0
+	local missingCount = 0
+	local classMismatchCount = 0
+	local attributeMismatchCount = 0
+	local unexpectedPresentCount = 0
+	local transactionId = tostring(payload.transactionId or payload.id or receipt.transactionId or "unknown")
+	for _, item in ipairs(created) do
+		local path = tostring(item.path or "")
+		local expectedClassName = tostring(item.className or "")
+		local target = resolvePath(path)
+		local exists = target ~= nil
+		local status = "missing"
+		local classMatches = false
+		local attributesMatch = false
+		local actualClassName = nil
+		if exists then
+			foundCount = foundCount + 1
+			actualClassName = target.ClassName
+			classMatches = expectedClassName == "" or actualClassName == expectedClassName
+			local generatedOk = target:GetAttribute("CodexGenerated") == true
+			local transactionOk = tostring(target:GetAttribute("CodexTransactionId") or transactionId) == transactionId
+			attributesMatch = generatedOk and transactionOk
+			if rollbackExpected then
+				status = "unexpectedPresent"
+				unexpectedPresentCount = unexpectedPresentCount + 1
+			elseif classMatches and attributesMatch then
+				status = "pass"
+			elseif not classMatches then
+				status = "classMismatch"
+				classMismatchCount = classMismatchCount + 1
+			else
+				status = "attributeMismatch"
+				attributeMismatchCount = attributeMismatchCount + 1
+			end
+		else
+			missingCount = missingCount + 1
+			status = rollbackExpected and "rolledBack" or "missing"
+		end
+		table.insert(checks, {
+			path = path,
+			expectedClassName = expectedClassName,
+			actualClassName = actualClassName,
+			exists = exists,
+			classMatches = classMatches,
+			attributesMatch = attributesMatch,
+			status = status,
+		})
+	end
+	local ok = rollbackExpected and unexpectedPresentCount == 0 or (missingCount == 0 and classMismatchCount == 0 and attributeMismatchCount == 0)
+	result.ok = ok
+	result.transactionId = transactionId
+	result.status = rollbackExpected and (ok and "rolledBackVerified" or "rollbackVerificationFailed") or (ok and "verifiedLive" or "liveVerificationFailed")
+	result.liveChecked = true
+	result.rollbackExpected = rollbackExpected
+	result.createdPathCount = #created
+	result.foundCount = foundCount
+	result.missingCount = missingCount
+	result.classMismatchCount = classMismatchCount
+	result.attributeMismatchCount = attributeMismatchCount
+	result.unexpectedPresentCount = unexpectedPresentCount
+	result.checks = checks
+	result.safeScope = "Receipt-scoped CodexGenerated paths only."
+	result.warnings = #created == 0 and { "No receipt-created paths were supplied for live verification." } or {}
+	result.blockers = ok and {} or { rollbackExpected and "One or more rollback targets still exist." or "One or more receipt-created paths failed live verification." }
+	result.nextCommand = rollbackExpected and "tools\\bridge.cmd plugin-health" or ("tools\\bridge.cmd execute rollback " .. transactionId)
 	return result
 end
 

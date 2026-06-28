@@ -6441,6 +6441,82 @@ async function queueExecutionRollback(transactionId) {
     commandStatus: status.status,
     commandId: status.id,
     pluginResult: status.result || null,
+    destroyedPaths: (status.result && status.result.destroyedPaths) || [],
+    destroyedCount: Array.isArray(status.result && status.result.destroyedPaths) ? status.result.destroyedPaths.length : 0,
+    skipped: (status.result && status.result.skipped) || [],
+  };
+}
+
+async function queueExecutionVerify(transactionId) {
+  const localReport = Execution.verify(transactionId, { source: 'tools.bridge.execution.verify' });
+  const receiptReport = Execution.receipt(transactionId);
+  if (!receiptReport.ok || !receiptReport.receipt) return localReport;
+
+  const transactionInfo = Execution.transactionList(200).transactions.find((item) => item.transactionId === transactionId) || {};
+  const rollbackExpected = transactionInfo.status === 'rolledBack';
+  const health = await requestSafe('/health', { timeoutMs: 1500, noAutoStart: true });
+  if (!health.ok || !health.value || health.value.studioConnected !== true) {
+    return {
+      ...localReport,
+      liveChecked: false,
+      status: 'verifiedLocalReceipt',
+      warnings: [...(localReport.warnings || []), 'Studio is not connected/fresh; live path verification was not run.'],
+      nextCommand: 'tools\\bridge.cmd connect',
+    };
+  }
+  const activePlace = health.value.activePlace || {};
+  if (activePlace.pluginVersion && activePlace.pluginVersion !== HELPER_VERSION) {
+    return {
+      ...localReport,
+      ok: false,
+      liveChecked: false,
+      status: 'manualRequired',
+      reason: 'versionMismatch',
+      expectedVersion: HELPER_VERSION,
+      loadedPluginVersion: activePlace.pluginVersion,
+      blockers: [`Plugin version mismatch: ${activePlace.pluginVersion} != ${HELPER_VERSION}`],
+      nextCommand: 'tools\\bridge.cmd plugin-health',
+    };
+  }
+  const command = await queueCommand('getExecutionVerificationReport', {
+    transactionId,
+    receipt: receiptReport.receipt,
+    rollbackExpected,
+    source: 'tools.bridge.execution.verify',
+    expectedVersion: HELPER_VERSION,
+  }, { requiresApproval: false });
+  const status = await waitForCommandStatus(command.id, FINAL_COMMAND_STATUSES, DEFAULT_TIMEOUT_MS);
+  const pluginResult = status.result || {};
+  if (status.status !== 'executed') {
+    return {
+      ...localReport,
+      ok: false,
+      liveChecked: false,
+      status: 'failed',
+      commandStatus: status.status,
+      error: status.error || null,
+      blockers: [...(localReport.blockers || []), `Live verification command ended with status ${status.status}.`],
+      nextCommand: 'tools\\bridge.cmd plugin-health',
+    };
+  }
+  return {
+    ...localReport,
+    ok: pluginResult.ok !== false,
+    status: pluginResult.status || localReport.status,
+    liveChecked: true,
+    rollbackExpected,
+    commandId: status.id,
+    createdPathCount: pluginResult.createdPathCount ?? localReport.createdPathCount,
+    foundCount: pluginResult.foundCount,
+    missingCount: pluginResult.missingCount,
+    classMismatchCount: pluginResult.classMismatchCount,
+    attributeMismatchCount: pluginResult.attributeMismatchCount,
+    unexpectedPresentCount: pluginResult.unexpectedPresentCount,
+    checks: pluginResult.checks || localReport.checks,
+    liveVerification: pluginResult,
+    warnings: [...(localReport.warnings || []), ...(pluginResult.warnings || [])],
+    blockers: [...(localReport.blockers || []), ...(pluginResult.blockers || [])],
+    nextCommand: pluginResult.nextCommand || localReport.nextCommand,
   };
 }
 
@@ -6501,7 +6577,8 @@ async function runExecute(subcommand = 'status', args = []) {
     return;
   }
   if (subcommand === 'verify') {
-    print(Execution.verify(cleanGoal(), { source: 'tools.bridge.execution.verify' }));
+    if (!args[0]) throw new Error('execute verify requires <transactionId>.');
+    print(await queueExecutionVerify(args[0]));
     return;
   }
   if (subcommand === 'rollback-plan') {

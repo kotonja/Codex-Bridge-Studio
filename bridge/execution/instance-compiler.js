@@ -53,16 +53,35 @@ function createBaseSteps(transactionId, goal, system) {
   ];
 }
 
-function operationToStep(operation) {
+function withExecutionAttributes(step, operation, context = {}) {
+  if (!step || !operation || operation.role === 'root') return step;
+  return {
+    ...step,
+    attributes: {
+      ...(step.attributes || {}),
+      CodexGenerated: true,
+      CodexSystem: 'ExecutionKernel',
+      CodexVersion: VERSION,
+      CodexGoal: safeGoal(context.goal || ''),
+      CodexTransactionId: context.transactionId,
+      CodexExecutionSystem: context.system || 'ExecutionKernel',
+      CodexExecutionRole: operation.role || operation.type || 'generated',
+    },
+  };
+}
+
+function operationToStep(operation, context = {}) {
   if (!operation || typeof operation !== 'object') return null;
   const path = String(operation.path || '');
   if (!path || !isCodexPath(path)) return null;
   const className = operation.className || 'Folder';
-  if (operation.type === 'folder' || className === 'Folder') return folder(path);
-  if (operation.type === 'model' || className === 'Model') return model(path);
-  if (operation.type === 'part' || className === 'Part') return part(path, operation.properties || {});
-  if (className === 'StringValue') return stringValue(path, operation.value || (operation.properties && operation.properties.Value) || '');
-  return { type: 'createInstance', className, path, properties: operation.properties || {} };
+  let step = null;
+  if (operation.type === 'folder' || className === 'Folder') step = folder(path);
+  else if (operation.type === 'model' || className === 'Model') step = model(path);
+  else if (operation.type === 'part' || className === 'Part') step = part(path, operation.properties || {});
+  else if (className === 'StringValue') step = stringValue(path, operation.value || (operation.properties && operation.properties.Value) || '');
+  else step = { type: 'createInstance', className, path, properties: operation.properties || {} };
+  return withExecutionAttributes(step, operation, context);
 }
 
 function compileBlueprint(plan) {
@@ -71,7 +90,7 @@ function compileBlueprint(plan) {
   const system = plan.system || 'ExecutionKernel';
   const steps = createBaseSteps(transactionId, goal, system);
   for (const operation of plan.actions || []) {
-    const step = operationToStep(operation);
+    const step = operationToStep(operation, { transactionId, goal, system });
     if (step) steps.push(step);
   }
   const manifestPath = `${ROOTS.replicatedStorage.manifestsRoot}.${transactionId}.ManifestJson`;
