@@ -2,6 +2,8 @@
 
 const { VERSION, nowIso, redact, resultSummary, safeGoal } = require('./schema');
 const { runAllowedAction } = require('./command-runner');
+const Timeline = require('./timeline');
+const ApprovalQueue = require('./approval-queue');
 
 function createRuntimeState() {
   return {
@@ -15,6 +17,10 @@ function createRuntimeState() {
       timeline: {},
     },
     pendingApproval: null,
+    chatMessages: [],
+    timeline: [],
+    runs: [],
+    approvals: [],
     references: [],
     audit: [],
   };
@@ -49,6 +55,7 @@ function remember(runtime, action, result, goal) {
   if (action === 'qaLaunch') runtime.latest.qaLaunch = clean.result || clean;
   if (action === 'autopilotReport') runtime.latest.autopilotReport = clean.result || clean;
   if (clean.result && clean.result.transactionId) runtime.latest.transactions.unshift(clean.result);
+  Timeline.recordAction(runtime, action, clean, goal);
   runtime.audit.unshift({ at: nowIso(), action, goal, status: clean.status || (clean.ok === false ? 'failed' : 'ok'), summary: resultSummary(clean.result || clean) });
   runtime.audit = runtime.audit.slice(0, 80);
   return clean;
@@ -75,6 +82,7 @@ async function runDashboardCommand(runtime, body = {}, options = {}) {
       createdAt: nowIso(),
       nextCommand: 'Click Approve in the dashboard or POST /dashboard/approve.',
     };
+    ApprovalQueue.upsertApproval(runtime, runtime.pendingApproval);
     runtime.latest.timeline['Execute Apply'] = 'pendingApproval';
   }
   return remembered;

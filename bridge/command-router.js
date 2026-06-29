@@ -69,7 +69,9 @@ function createRoute(rawQuery = '', options = {}) {
   const executionExplicitSignal = has('build this for real', 'apply the plan', 'create it in studio', 'make real objects', 'safe build', 'build real', 'execute plan', 'rollback build', 'show transactions', 'verify transaction', 'apply safe fixes', 'turn this plan into parts', 'make the world in studio')
     || ((has('execute', 'apply', 'rollback', 'transaction', 'receipt', 'verify') && has('plan', 'build', 'studio', 'objects', 'transaction', 'receipt', 'safe fixes')))
     || ((has('real', 'studio') && has('build', 'create', 'make')));
-  const dashboardSignal = has('open dashboard', 'show dashboard', 'open control room', 'production dashboard', 'dashboard status', 'open ai ui', 'show ai control panel', 'ai control panel', 'control room');
+  const dashboardSignal = has('open dashboard', 'show dashboard', 'open control room', 'production dashboard', 'dashboard status', 'open ai ui', 'show ai control panel', 'ai control panel', 'control room', 'chat with bridge', 'dashboard chat', 'open ai chat', 'show tool timeline', 'show approvals', 'approve dashboard run', 'dashboard pipeline', 'one click build', 'one-click build', 'show dashboard runs', 'show dashboard safety', 'show dashboard cost')
+    || ((has('dashboard', 'control room') && has('chat', 'timeline', 'approval', 'approvals', 'pipeline', 'runs', 'cost', 'safety', 'open', 'show')))
+    || (has('one click', 'one-click') && has('build', 'pipeline'));
   const premiumBuildSignal = has('build premium roblox game', 'premium anime boss lobby', 'premium simulator lobby', 'premium hub', 'premium lobby', 'premium game', 'premium world', 'premium scene')
     || ((has('premium', 'top dev', 'expensive', 'reference quality', 'high quality') && has('build', 'scene', 'hub', 'game', 'world', 'lobby', 'roblox')));
   const premiumSignal = has('premium director', 'make this premium', 'build premium roblox game', 'top dev quality', 'fix cheap looking build', 'upgrade everything')
@@ -133,13 +135,21 @@ function createRoute(rawQuery = '', options = {}) {
       commands: [has('reset', 'new') ? 'tools\\bridge.cmd pair reset' : 'tools\\bridge.cmd pair code', 'tools\\bridge.cmd pair guide'],
     });
   } else if (dashboardSignal) {
+    const dashboardCommand = has('chat with bridge', 'dashboard chat', 'open ai chat') ? `tools\\bridge.cmd dashboard chat ${quoteForCommand(intent)}`
+      : has('show tool timeline', 'timeline') ? 'tools\\bridge.cmd dashboard timeline'
+        : has('show approvals', 'approve dashboard run', 'approvals') ? 'tools\\bridge.cmd dashboard approvals'
+          : has('show dashboard runs', 'runs') ? 'tools\\bridge.cmd dashboard runs'
+            : has('show dashboard safety', 'safety') ? 'tools\\bridge.cmd dashboard safety'
+              : has('show dashboard cost', 'cost') ? 'tools\\bridge.cmd dashboard cost'
+                : has('dashboard pipeline', 'one click build', 'one-click build') ? `tools\\bridge.cmd dashboard pipeline ${quoteForCommand(intent)}`
+                  : 'tools\\bridge.cmd dashboard open';
     setRoute({
       category: 'dashboard',
-      title: 'V82 Local AI Production Dashboard',
+      title: 'V84 Dashboard AI Chat + Tool Timeline',
       confidence: 0.97,
       safety: 'localBrowserControlRoom',
-      reason: 'Dashboard, control-room, or AI UI language detected. Open the local-only browser control room for bridge health, references, execution preview/apply, QA, fidelity, and memory.',
-      commands: ['tools\\bridge.cmd dashboard open', 'tools\\bridge.cmd dashboard status', 'tools\\bridge.cmd dashboard state'],
+      reason: 'Dashboard, chat, control-room, timeline, approval, or one-click workflow language detected. Use the local-only dashboard control room and V84 chat/timeline API.',
+      commands: [dashboardCommand, 'tools\\bridge.cmd dashboard state', 'tools\\bridge.cmd dashboard safety'],
     });
   } else if (has('check now', 'status', 'what is happening', 'what\'s happening', 'look now', 'live context')) {
     setRoute({

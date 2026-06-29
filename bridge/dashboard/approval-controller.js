@@ -3,6 +3,7 @@
 const { VERSION, nowIso, redact } = require('./schema');
 const { runAllowedAction } = require('./command-runner');
 const { remember } = require('./run-controller');
+const ApprovalQueue = require('./approval-queue');
 
 async function approveDashboardRun(runtime, body = {}, options = {}) {
   const pending = runtime.pendingApproval;
@@ -30,8 +31,30 @@ async function approveDashboardRun(runtime, body = {}, options = {}) {
     };
   }
   const result = await runAllowedAction('executeApply', { goal: pending.goal, approvalId, transactionId: pending.approvalId }, { ...options, approved: true });
-  runtime.pendingApproval = null;
   const clean = remember(runtime, 'executeApply', result, pending.goal);
+  if (clean.ok === false) {
+    runtime.pendingApproval = {
+      ...pending,
+      lastAttemptAt: nowIso(),
+      lastAttemptStatus: clean.status || 'failed',
+      lastAttemptWarnings: clean.warnings || [],
+      lastAttemptBlockers: clean.blockers || [],
+      nextCommand: clean.nextCommand || pending.nextCommand,
+    };
+    ApprovalQueue.upsertApproval(runtime, runtime.pendingApproval, {
+      status: 'pending',
+      risks: clean.blockers || [],
+    });
+    return redact({
+      ...clean,
+      approvedAt: nowIso(),
+      approvedPreviewId: approvalId,
+      pendingCleared: false,
+      pendingStillQueued: true,
+    });
+  }
+  runtime.pendingApproval = null;
+  ApprovalQueue.markApproval(runtime, approvalId, clean.ok === false ? 'failed' : 'approved');
   return redact({
     ...clean,
     approvedAt: nowIso(),
@@ -43,6 +66,7 @@ async function approveDashboardRun(runtime, body = {}, options = {}) {
 function cancelDashboardRun(runtime, body = {}) {
   const pending = runtime.pendingApproval;
   runtime.pendingApproval = null;
+  if (pending && pending.approvalId) ApprovalQueue.markApproval(runtime, pending.approvalId, 'rejected', body.reason || 'dashboardCancel');
   if (runtime.latest && runtime.latest.timeline) runtime.latest.timeline['Execute Apply'] = 'cancelled';
   return {
     ok: true,

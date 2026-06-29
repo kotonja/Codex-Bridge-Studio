@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.82.0';
+const VERSION = '0.84.0';
 const DASHBOARD_PATH = '/dashboard';
 const DASHBOARD_URL = 'http://127.0.0.1:28123/dashboard';
 
@@ -37,6 +37,7 @@ const EXTERNAL_RISK_PATTERN = /\b(publish|upload|marketplace|purchase|gamepass|d
 const SECRET_KEY_PATTERN = /(api[_-]?key|token|sessiontoken|pairingcode|authorization|cookie|password|secret)/i;
 const SOURCE_KEY_PATTERN = /^(rawSource|scriptSource|sourceText|oldSource|newSource|patch|patches|mutationPayload|patchPayload|commandPayload)$/i;
 const SOURCE_TEXT_PATTERN = /\b(function|local\s+\w+|require\s*\(|game:GetService|module\.exports|import\s+|export\s+default)\b/;
+const SAFE_SECRET_STATUS_KEYS = new Set(['apiKeyExposed', 'keyExposed', 'frontendHasApiKey', 'rawApiKeyInFrontend', 'noFrontendApiKey', 'noRobloxPluginApiKey']);
 
 function nowIso() {
   return new Date().toISOString();
@@ -75,7 +76,7 @@ function redact(value, depth = 0) {
   if (typeof value !== 'object') return value;
   const output = {};
   for (const [key, raw] of Object.entries(value)) {
-    if (SECRET_KEY_PATTERN.test(key) || SOURCE_KEY_PATTERN.test(key)) {
+    if (!SAFE_SECRET_STATUS_KEYS.has(key) && (SECRET_KEY_PATTERN.test(key) || SOURCE_KEY_PATTERN.test(key))) {
       output[key] = '[redacted]';
     } else {
       output[key] = redact(raw, depth + 1);

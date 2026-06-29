@@ -57,6 +57,7 @@ p, small { color: var(--muted); }
 }
 
 .goal-panel, .output-panel { grid-column: span 2; }
+.chat-panel, .timeline-panel { min-height: 240px; }
 
 textarea, input {
   width: 100%;
@@ -136,6 +137,51 @@ ol { padding-left: 20px; margin: 0; }
   margin-bottom: 8px;
 }
 
+.approval-row, .run-row, .chat-message {
+  display: grid;
+  gap: 6px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #111922;
+  margin-bottom: 8px;
+}
+
+.approval-row {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+}
+
+.run-row {
+  grid-template-columns: minmax(120px, .8fr) minmax(100px, .6fr) minmax(0, 1.2fr);
+}
+
+.chat-messages {
+  min-height: 92px;
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #0d1218;
+  padding: 9px;
+}
+
+.chat-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #0d1218;
+  color: var(--text);
+}
+
 .tx-row span {
   flex: 1 0 100%;
   word-break: break-word;
@@ -145,4 +191,5 @@ ol { padding-left: 20px; margin: 0; }
   .topbar, .layout { display: block; }
   .panel { margin: 12px; }
   .button-grid { grid-template-columns: repeat(2, 1fr); }
+  .approval-row, .run-row { grid-template-columns: 1fr; }
 }

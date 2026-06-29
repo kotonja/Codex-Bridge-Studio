@@ -5,6 +5,11 @@ const { createDashboardStatus } = require('./status');
 const { createSafetyView } = require('./safety-view');
 const { createScorePanel } = require('./report-view');
 const { createTransactionView } = require('./transaction-view');
+const Timeline = require('./timeline');
+const RunHistory = require('./run-history');
+const ApprovalQueue = require('./approval-queue');
+const CostView = require('./cost-view');
+const SafetyReport = require('./safety-report');
 
 const TIMELINE_STEPS = [
   'Memory',
@@ -28,6 +33,10 @@ function createDashboardState(env = {}, runtime = {}) {
     : createTransactionView(10);
   const latest = runtime.latest || {};
   const pendingApproval = runtime.pendingApproval || null;
+  const chatMessages = Array.isArray(runtime.chatMessages) ? runtime.chatMessages : [];
+  const timelineReport = Timeline.listTimeline(runtime, 60);
+  const runsReport = RunHistory.listRuns(runtime, 12);
+  const approvalsReport = ApprovalQueue.listApprovals(runtime, 'pending');
   const blockers = [];
   const warnings = [];
   if (!status.bridge.studioConnected) warnings.push('Studio is not connected; dashboard read/planning still works, but apply needs a fresh paired Studio place.');
@@ -42,8 +51,14 @@ function createDashboardState(env = {}, runtime = {}) {
     api: status.api,
     safety: {
       ...createSafetyView(),
+      ...SafetyReport.createDashboardSafetyReport(runtime),
       mutationsRequireExecutionKernel: true,
       approvalRequiredForApply: true,
+    },
+    chat: {
+      messageCount: chatMessages.length,
+      latestMessage: chatMessages.length ? chatMessages[chatMessages.length - 1] : null,
+      nextCommand: 'tools\\bridge.cmd dashboard chat "what can you do next?"',
     },
     latest: {
       goal: latest.goal || '',
@@ -52,13 +67,19 @@ function createDashboardState(env = {}, runtime = {}) {
       scores: createScorePanel(latest),
       transactions: transactions.transactions || [],
     },
-    timeline: TIMELINE_STEPS.map((name) => ({
+    legacyTimeline: TIMELINE_STEPS.map((name) => ({
       name,
       status: latest.timeline && latest.timeline[name] ? latest.timeline[name] : (name === 'Execute Apply' && pendingApproval ? 'pendingApproval' : 'idle'),
     })),
+    timeline: timelineReport.timeline,
+    runs: runsReport.runs,
+    approvals: approvalsReport.approvals,
+    cost: CostView.createCostView(runtime),
     pendingApproval,
     availableActions: [
       'status',
+      'dashboardChat',
+      'dashboardPipeline',
       'referenceAnalyze',
       'worldcompileCompile',
       'worldcompilePackage',

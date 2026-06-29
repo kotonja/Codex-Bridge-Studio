@@ -570,23 +570,37 @@ V80 Reference Fidelity Visual Comparison is the preferred route when the user as
 
 Routing priority for V80: pairing/recovery still wins; execution/apply/rollback stays V72; image/reference analysis stays V74; image-to-world/compile stays V76; reconstruction stays V75; explicit visual critique stays V65; comparison/match/fidelity/mismatch language routes to V80. V80 modes are explicit: `imageVisionBased` requires true reference vision, `pixelBased` requires actual Studio pixels, `profileBased` uses structured reference evidence, and `limited` means no pixel comparison was available. Memory writes store only redacted fidelity lessons and no raw image bytes.
 
-V82 Local AI Production Dashboard is the preferred human control room when the user wants a browser UI, control panel, dashboard, local AI UI, or production control room for the bridge. It is served by the Node bridge at `http://127.0.0.1:28123/dashboard` and is local-only, dependency-free, and plain HTML/CSS/JS. It shows bridge health, active Studio place, loaded plugin version, API configured status, safety state, reference input, production timeline, V72 execution preview/apply/verify/rollback, transaction receipts, visual/fidelity/QA/autopilot scores, and memory actions.
+V84 Dashboard AI Chat + Tool Timeline is the preferred human control room when the user wants a browser UI, AI chat, control panel, dashboard, local AI UI, one-click workflow, approval queue, run history, or production control room for the bridge. It is served by the Node bridge at `http://127.0.0.1:28123/dashboard` and is local-only, dependency-free, and plain HTML/CSS/JS. It shows bridge health, active Studio place, loaded plugin version, API configured status, safety state, dashboard chat, tool timeline, approval queue, workflow presets, reference input, V72 execution preview/apply/verify/rollback, transaction receipts, visual/fidelity/QA/autopilot scores, and memory actions.
 
 ```powershell
 .\tools\bridge.cmd dashboard status
 .\tools\bridge.cmd dashboard open
 .\tools\bridge.cmd dashboard url
 .\tools\bridge.cmd dashboard state
+.\tools\bridge.cmd dashboard chat "what can you do next?"
+.\tools\bridge.cmd dashboard history
+.\tools\bridge.cmd dashboard clear-chat
+.\tools\bridge.cmd dashboard timeline
+.\tools\bridge.cmd dashboard runs
+.\tools\bridge.cmd dashboard approvals
+.\tools\bridge.cmd dashboard approve <approvalId>
+.\tools\bridge.cmd dashboard reject <approvalId>
+.\tools\bridge.cmd dashboard cost
+.\tools\bridge.cmd dashboard pipeline "premium anime dungeon hub"
+.\tools\bridge.cmd dashboard presets
+.\tools\bridge.cmd dashboard safety
 .\tools\bridge.cmd dashboard self-check
+.\tools\bridge.cmd chat "what should I build next?"
+.\tools\bridge.cmd one_click_build "premium anime dungeon hub"
 .\tools\bridge.cmd ui dashboard
 .\tools\bridge.cmd open_dashboard
 .\tools\bridge.cmd control_room
 .\tools\bridge.cmd production dashboard
 ```
 
-V82 safety rules: never expose API keys in frontend JavaScript, HTML, dashboard state, MCP output, Roblox plugin, README, reports, or memory; only show `apiConfigured: true/false`. The dashboard must not run raw shell commands, arbitrary Luau, publish/upload/marketplace/DataStore/economy actions, or non-Codex mutations. Execute Apply is only available after Execute Preview and explicit dashboard approval, and real Studio mutation still goes through V72 transaction receipts. Rollback uses receipt transaction ids only and must only touch transaction-created Codex-owned objects. Reference/image input must remain honest: no fake image analysis and no raw image bytes stored by default.
+V84 safety rules: never expose API keys in frontend JavaScript, HTML, dashboard state, MCP output, Roblox plugin, README, reports, or memory; only show `apiConfigured: true/false`. Dashboard chat must call AI only through the local Node bridge, and if no API key is configured it must return local fallback/tool planning with `actualAiUsed: false`. The dashboard must not run raw shell commands, arbitrary Luau, publish/upload/marketplace/DataStore/economy actions, or non-Codex mutations. Execute Apply is only available after Execute Preview or a dashboard pipeline preview and explicit dashboard approval, and real Studio mutation still goes through V72 transaction receipts. Rollback uses receipt transaction ids only and must only touch transaction-created Codex-owned objects. Reference/image input must remain honest: no fake image analysis and no raw image bytes stored by default.
 
-Routing priority for V82: pairing/recovery still wins; dashboard/open/control-room/AI UI requests route to V82; execution/apply/rollback language stays V72; API run requests stay V73; fidelity/reference/worldcompile/visual/specialist requests stay with their specialist routes.
+Routing priority for V84: pairing/recovery still wins; dashboard/open/control-room/chat/timeline/approval/runs/cost/safety/one-click workflow requests route to V84; execution/apply/rollback language stays V72; direct API run requests stay V73; fidelity/reference/worldcompile/visual/specialist requests stay with their specialist routes.
 
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 

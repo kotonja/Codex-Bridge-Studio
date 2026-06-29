@@ -14,7 +14,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.82.0';
+const VERSION = '0.84.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -531,6 +531,19 @@ const toolHandlers = {
   dashboard_url: async () => ({ ok: true, version: VERSION, url: Dashboard.DASHBOARD_URL, localOnly: true }),
   dashboard_open: async () => ({ ok: true, version: VERSION, url: Dashboard.DASHBOARD_URL, localOnly: true, nextCommand: 'tools\\bridge.cmd dashboard open' }),
   dashboard_self_check: async () => Dashboard.selfCheck(),
+  dashboard_chat: async (args) => requestBridge('POST', '/dashboard/chat', { message: args.message || args.text || args.goal || '' }, 30000),
+  dashboard_history: async () => requestBridge('GET', '/dashboard/chat/history', undefined, 2500),
+  dashboard_clear_chat: async () => requestBridge('POST', '/dashboard/chat/clear', {}, 2500),
+  dashboard_timeline: async () => requestBridge('GET', '/dashboard/timeline', undefined, 2500),
+  dashboard_runs: async () => requestBridge('GET', '/dashboard/runs', undefined, 2500),
+  dashboard_run: async (args) => requestBridge('GET', `/dashboard/run/${encodeURIComponent(args.runId || args.id || '')}`, undefined, 2500),
+  dashboard_approvals: async () => requestBridge('GET', '/dashboard/approvals', undefined, 2500),
+  dashboard_approve: async (args) => requestBridge('POST', `/dashboard/approvals/${encodeURIComponent(args.approvalId || args.id || '')}/approve`, {}, 45000),
+  dashboard_reject: async (args) => requestBridge('POST', `/dashboard/approvals/${encodeURIComponent(args.approvalId || args.id || '')}/reject`, { reason: args.reason || 'mcpDashboardReject' }, 2500),
+  dashboard_cost: async () => requestBridge('GET', '/dashboard/cost', undefined, 2500),
+  dashboard_pipeline: async (args) => requestBridge('POST', '/dashboard/pipeline', { goal: args.goal || args.intent || args.message || '', preset: args.preset, planOnly: args.planOnly === true }, 60000),
+  dashboard_presets: async () => requestBridge('GET', '/dashboard/pipeline/presets', undefined, 2500),
+  dashboard_safety: async () => requestBridge('GET', '/dashboard/safety', undefined, 2500),
   execute_status: async () => requestBridge('GET', '/codex/execution/status', undefined, 2500),
   execute_roots: async () => requestBridge('GET', '/codex/execution/roots', undefined, 2500),
   execute_preview: async (args) => requestBridge('GET', `/codex/execution/preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox production build')}`, undefined, 3500),
@@ -782,11 +795,24 @@ const toolDefinitions = [
   ['generate_pro_vfx', 'Generate a pro VFX preset from intent and available asset kits.', { intent: { type: 'string' }, targetPath: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['motion_vfx_generate', 'Generate a synchronized motion/VFX package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
   ['ability_generate', 'Generate a Codex-owned ability package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
-  ['dashboard_status', 'Return V82 local dashboard bridge/Studio/API/safety status without exposing secrets.', {}],
-  ['dashboard_state', 'Return the V82 local production dashboard state: active place, pending approval, scores, transactions, warnings, and next command.', {}],
+  ['dashboard_status', 'Return V84 local dashboard bridge/Studio/API/safety status without exposing secrets.', {}],
+  ['dashboard_state', 'Return the V84 local production dashboard state: active place, chat, timeline, approvals, runs, scores, transactions, warnings, and next command.', {}],
   ['dashboard_url', 'Return the local-only dashboard URL.', {}],
   ['dashboard_open', 'Return dashboard open guidance and URL. Use tools\\bridge.cmd dashboard open to launch the browser.', {}],
-  ['dashboard_self_check', 'Run V82 dashboard module/security/router self-checks.', {}],
+  ['dashboard_chat', 'Send a message to V84 dashboard AI chat through the local bridge. Does not mutate Studio.', { message: { type: 'string' }, text: { type: 'string' }, goal: { type: 'string' } }],
+  ['dashboard_history', 'Return V84 dashboard chat history.', {}],
+  ['dashboard_clear_chat', 'Clear V84 dashboard chat history.', {}],
+  ['dashboard_timeline', 'Return V84 dashboard tool timeline.', {}],
+  ['dashboard_runs', 'Return V84 dashboard run history.', {}],
+  ['dashboard_run', 'Return one V84 dashboard run by id.', { runId: { type: 'string' }, id: { type: 'string' } }],
+  ['dashboard_approvals', 'Return V84 dashboard approval queue.', {}],
+  ['dashboard_approve', 'Approve one V84 dashboard approval item. Applies only through V72 execution.', { approvalId: { type: 'string' }, id: { type: 'string' } }],
+  ['dashboard_reject', 'Reject one V84 dashboard approval item.', { approvalId: { type: 'string' }, id: { type: 'string' }, reason: { type: 'string' } }],
+  ['dashboard_cost', 'Return V84 dashboard cost/API configuration summary without secrets.', {}],
+  ['dashboard_pipeline', 'Run a V84 dashboard one-click workflow preview. Stops at approval before apply.', { goal: { type: 'string' }, intent: { type: 'string' }, message: { type: 'string' }, preset: { type: 'string' }, planOnly: { type: 'boolean' } }],
+  ['dashboard_presets', 'List V84 dashboard one-click workflow presets.', {}],
+  ['dashboard_safety', 'Return V84 dashboard safety and local-only policy report.', {}],
+  ['dashboard_self_check', 'Run V84 dashboard chat/timeline/security/router self-checks.', {}],
   ['execute_status', 'Return V72 Production Execution Kernel readiness, roots, capabilities, and safety policy.', {}],
   ['execute_roots', 'Return V72 Codex-owned execution roots and rollback-safe path policy.', {}],
   ['execute_preview', 'Preview a V72 transaction-backed real Studio build plan without mutating Studio.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],

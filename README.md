@@ -1,4 +1,4 @@
-# Codex Studio Bridge V78.0
+# Codex Studio Bridge V84.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -1301,29 +1301,43 @@ Invoke-RestMethod http://127.0.0.1:28123/codex/commands `
 
 Full Trust Autopilot is the default local workflow: local StudioBridge mutations run directly and are audited. External/account-level risks such as publish/upload, monetization, DataStore/save/economy mutation, and broad destructive wipes remain blocked or manual.
 
-## V82 Local AI Production Dashboard
+## V84 Dashboard AI Chat + Tool Timeline
 
-V82 adds a dependency-free local browser control room at:
+V84 upgrades the dependency-free local browser control room at:
 
 ```text
 http://127.0.0.1:28123/dashboard
 ```
 
-Use it when you want bridge health, active Studio place, API configured status, reference intake, worldcompile, V72 execution preview/apply/verify/rollback, visual critique, fidelity score, QA launch score, autopilot report, memory, and transaction receipts without typing long CLI commands.
+Use it when you want bridge health, active Studio place, API configured status, dashboard AI chat, tool timeline, approval queue, run history, workflow presets, reference intake, worldcompile, V72 execution preview/apply/verify/rollback, visual critique, fidelity score, QA launch score, autopilot report, memory, and transaction receipts without typing long CLI commands. If `OPENAI_API_KEY` is not configured, dashboard chat returns local fallback/tool planning with `actualAiUsed: false`.
 
 ```powershell
 .\tools\bridge.cmd dashboard status
 .\tools\bridge.cmd dashboard open
 .\tools\bridge.cmd dashboard url
 .\tools\bridge.cmd dashboard state
+.\tools\bridge.cmd dashboard chat "what can you do next?"
+.\tools\bridge.cmd dashboard history
+.\tools\bridge.cmd dashboard clear-chat
+.\tools\bridge.cmd dashboard timeline
+.\tools\bridge.cmd dashboard runs
+.\tools\bridge.cmd dashboard approvals
+.\tools\bridge.cmd dashboard approve <approvalId>
+.\tools\bridge.cmd dashboard reject <approvalId>
+.\tools\bridge.cmd dashboard cost
+.\tools\bridge.cmd dashboard pipeline "dark purple anime dungeon gate"
+.\tools\bridge.cmd dashboard presets
+.\tools\bridge.cmd dashboard safety
 .\tools\bridge.cmd dashboard self-check
+.\tools\bridge.cmd chat "what should I build next?"
+.\tools\bridge.cmd one_click_build "premium anime dungeon hub"
 .\tools\bridge.cmd open_dashboard
 .\tools\bridge.cmd control_room
 ```
 
 The dashboard is local-only and serves plain HTML/CSS/JS from this repo. It does not use a CDN, does not require `npm install`, and never sends an API key to the frontend, Roblox plugin, HTML, state response, or MCP output. It may show only `apiConfigured: true/false`.
 
-Apply is intentionally gated inside the dashboard: run Execute Preview first, review the apply panel, then approve Execute Apply. Real Studio mutations still go through the V72 Execution Kernel and must create receipts. Rollback uses transaction ids/receipts only and must only touch transaction-created Codex-owned objects. Reference/image paths are analyzed honestly; raw image bytes are not stored by default.
+Apply is intentionally gated inside the dashboard: run Execute Preview or a dashboard pipeline first, review the approval queue, then approve Execute Apply. Real Studio mutations still go through the V72 Execution Kernel and must create receipts. Rollback uses transaction ids/receipts only and must only touch transaction-created Codex-owned objects. Reference/image paths are analyzed honestly; raw image bytes are not stored by default.
 
 ## Notes
 

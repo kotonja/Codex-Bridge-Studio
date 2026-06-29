@@ -22,7 +22,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.82.0';
+const VERSION = '0.84.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -4071,16 +4071,23 @@ const V46_TOOL_CATEGORIES = [
   },
   {
     id: 'dashboard',
-    title: 'V82 Local AI Production Dashboard',
+    title: 'V84 Dashboard AI Chat + Tool Timeline',
     safety: 'localOnlyBrowserControlRoomWithExecutionKernelApproval',
     readiness: ['bridge'],
     commands: [
       { command: 'tools\\bridge.cmd dashboard status', example: 'tools\\bridge.cmd dashboard status', bestFor: 'Show dashboard bridge/Studio/API/safety status without opening a browser.' },
       { command: 'tools\\bridge.cmd dashboard open', example: 'tools\\bridge.cmd dashboard open', bestFor: 'Open the local-only browser control room at http://127.0.0.1:28123/dashboard.' },
       { command: 'tools\\bridge.cmd dashboard url', example: 'tools\\bridge.cmd dashboard url', bestFor: 'Print the dashboard URL for manual browser open.' },
-      { command: 'tools\\bridge.cmd dashboard state', example: 'tools\\bridge.cmd dashboard state', bestFor: 'Return structured dashboard state: place, plugin, API configured flag, safety, pending apply review, scores, and transactions.' },
-      { command: 'tools\\bridge.cmd dashboard self-check', example: 'tools\\bridge.cmd dashboard self-check', bestFor: 'Run dependency-free dashboard module/router/security checks.' },
-      { command: 'tools\\bridge.cmd open_dashboard', example: 'tools\\bridge.cmd open_dashboard', bestFor: 'Direct alias for opening the V82 dashboard.' },
+      { command: 'tools\\bridge.cmd dashboard state', example: 'tools\\bridge.cmd dashboard state', bestFor: 'Return structured dashboard state: place, chat, timeline, approvals, runs, API configured flag, safety, scores, and transactions.' },
+      { command: 'tools\\bridge.cmd dashboard chat <message>', example: 'tools\\bridge.cmd dashboard chat "what can you do next?"', bestFor: 'Ask the local dashboard assistant for routing, tool plan, pipeline, approvals, and next command.' },
+      { command: 'tools\\bridge.cmd dashboard timeline', example: 'tools\\bridge.cmd dashboard timeline', bestFor: 'Show the structured V84 tool timeline.' },
+      { command: 'tools\\bridge.cmd dashboard approvals', example: 'tools\\bridge.cmd dashboard approvals', bestFor: 'List dashboard approval queue items before any apply.' },
+      { command: 'tools\\bridge.cmd dashboard pipeline <goal>', example: 'tools\\bridge.cmd dashboard pipeline "premium anime dungeon hub"', bestFor: 'Run a one-click preview workflow that stops at approval before Execute Apply.' },
+      { command: 'tools\\bridge.cmd dashboard runs', example: 'tools\\bridge.cmd dashboard runs', bestFor: 'List dashboard chat and pipeline run history.' },
+      { command: 'tools\\bridge.cmd dashboard cost', example: 'tools\\bridge.cmd dashboard cost', bestFor: 'Show API configured/cost summary without exposing secrets.' },
+      { command: 'tools\\bridge.cmd dashboard safety', example: 'tools\\bridge.cmd dashboard safety', bestFor: 'Show local-only dashboard safety policy and approval gates.' },
+      { command: 'tools\\bridge.cmd dashboard self-check', example: 'tools\\bridge.cmd dashboard self-check', bestFor: 'Run dependency-free V84 dashboard chat/timeline/router/security checks.' },
+      { command: 'tools\\bridge.cmd open_dashboard', example: 'tools\\bridge.cmd open_dashboard', bestFor: 'Direct alias for opening the V84 dashboard.' },
       { command: 'tools\\bridge.cmd control_room', example: 'tools\\bridge.cmd control_room', bestFor: 'Direct alias for opening the production control room.' },
     ],
   },
@@ -6673,6 +6680,77 @@ async function route(req, res) {
   if (req.method === 'POST' && path === '/dashboard/run') {
     const body = await readBody(req);
     sendJson(res, 200, await Dashboard.run(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/chat') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.chat(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/chat/history') {
+    sendJson(res, 200, Dashboard.chatHistory({ limit: Number(requestUrl.searchParams.get('limit') || 60) }));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/chat/clear') {
+    sendJson(res, 200, Dashboard.clearChat());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/timeline') {
+    sendJson(res, 200, Dashboard.timeline({ limit: Number(requestUrl.searchParams.get('limit') || 80) }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/runs') {
+    sendJson(res, 200, Dashboard.runs({ limit: Number(requestUrl.searchParams.get('limit') || 25) }));
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/dashboard/run/')) {
+    sendJson(res, 200, Dashboard.runDetail(decodeURIComponent(path.slice('/dashboard/run/'.length))));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/approvals') {
+    sendJson(res, 200, Dashboard.approvals({ status: requestUrl.searchParams.get('status') || 'pending' }));
+    return;
+  }
+
+  const dashboardApproveMatch = path.match(/^\/dashboard\/approvals\/([^/]+)\/approve$/);
+  if (req.method === 'POST' && dashboardApproveMatch) {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.approveApproval({ ...body, approvalId: decodeURIComponent(dashboardApproveMatch[1]) }, dashboardEnv()));
+    return;
+  }
+
+  const dashboardRejectMatch = path.match(/^\/dashboard\/approvals\/([^/]+)\/reject$/);
+  if (req.method === 'POST' && dashboardRejectMatch) {
+    const body = await readBody(req);
+    sendJson(res, 200, Dashboard.rejectApproval({ ...body, approvalId: decodeURIComponent(dashboardRejectMatch[1]) }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/cost') {
+    sendJson(res, 200, Dashboard.cost());
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/pipeline') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.pipeline(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/pipeline/presets') {
+    sendJson(res, 200, Dashboard.presets());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/safety') {
+    sendJson(res, 200, Dashboard.safety());
     return;
   }
 

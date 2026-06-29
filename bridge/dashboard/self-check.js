@@ -24,6 +24,15 @@ async function runSelfCheck() {
     'command-runner.js',
     'run-controller.js',
     'approval-controller.js',
+    'chat.js',
+    'chat-history.js',
+    'timeline.js',
+    'run-history.js',
+    'approval-queue.js',
+    'pipeline-presets.js',
+    'pipeline-runner.js',
+    'cost-view.js',
+    'safety-report.js',
     'transaction-view.js',
     'report-view.js',
     'safety-view.js',
@@ -65,8 +74,29 @@ async function runSelfCheck() {
   const preview = await Dashboard.command({ action: 'executePreview', goal: 'dashboard tiny Codex preview' });
   assert(preview.ok, 'executePreview should work offline');
   assert(Dashboard.getRuntime().pendingApproval, 'preview should create pending approval');
+  const approvals = Dashboard.approvals();
+  assert(approvals.approvals.length >= 1, 'preview should create approval queue item');
   const cancel = Dashboard.cancel({ reason: 'self-check' });
   assert.equal(cancel.ok, true);
+
+  const chat = await Dashboard.chat({ message: 'dashboard chat status' });
+  assert.equal(chat.ok, true);
+  assert.equal(chat.routeCategory, 'dashboard');
+  assert.equal(chat.api.keyExposed, false);
+  assert(Array.isArray(chat.toolTimeline), 'chat should return tool timeline');
+  const history = Dashboard.chatHistory();
+  assert(history.messages.length >= 2, 'chat history should include user and assistant messages');
+  const presets = Dashboard.presets();
+  assert(presets.presets.some((preset) => preset.id === 'referenceToWorldPreview'), 'pipeline presets should include referenceToWorldPreview');
+  const pipeline = await Dashboard.pipeline({ goal: 'premium anime dashboard self check', planOnly: true });
+  assert.equal(pipeline.ok, true);
+  assert.equal(pipeline.planOnly, true);
+  const safety = Dashboard.safety();
+  assert.equal(safety.dashboardChatNoMutation, true);
+  const cost = Dashboard.cost();
+  assert.equal(cost.apiKeyExposed, false);
+  const timeline = Dashboard.timeline();
+  assert(Array.isArray(timeline.timeline), 'timeline should be structured');
 
   const redacted = redact({
     token: 'abc',
@@ -88,6 +118,17 @@ async function runSelfCheck() {
     'dashboard status': 'dashboard',
     'open ai ui': 'dashboard',
     'show ai control panel': 'dashboard',
+    'chat with bridge': 'dashboard',
+    'dashboard chat': 'dashboard',
+    'open ai chat': 'dashboard',
+    'show tool timeline': 'dashboard',
+    'show approvals': 'dashboard',
+    'approve dashboard run': 'dashboard',
+    'dashboard pipeline': 'dashboard',
+    'one click build': 'dashboard',
+    'show dashboard runs': 'dashboard',
+    'show dashboard safety': 'dashboard',
+    'show dashboard cost': 'dashboard',
     'build this for real': 'execution',
     'use api': 'ai',
     'compare to reference': 'fidelity',
@@ -108,6 +149,10 @@ async function runSelfCheck() {
     actionCount: ACTIONS.length,
     localOnly: true,
     noSecretFrontend: true,
+    chatFallbackWorks: true,
+    timelineStructured: true,
+    approvalQueueWorks: true,
+    pipelinePresetsWork: true,
     commandRunnerWhitelist: true,
     unknownActionBlocked: true,
     riskyActionBlocked: true,

@@ -22,8 +22,8 @@ const WorldCompiler = require('../bridge/world-compiler');
 const Fidelity = require('../bridge/fidelity');
 const Dashboard = require('../bridge/dashboard');
 
-const HELPER_VERSION = '0.82.0';
-const MCP_PROXY_VERSION = '0.82.0';
+const HELPER_VERSION = '0.84.0';
+const MCP_PROXY_VERSION = '0.84.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -58,6 +58,24 @@ const MCP_PROXY_TOOLS = [
   'generate_pro_vfx',
   'motion_vfx_generate',
   'ability_generate',
+  'dashboard_status',
+  'dashboard_state',
+  'dashboard_url',
+  'dashboard_open',
+  'dashboard_chat',
+  'dashboard_history',
+  'dashboard_clear_chat',
+  'dashboard_timeline',
+  'dashboard_runs',
+  'dashboard_run',
+  'dashboard_approvals',
+  'dashboard_approve',
+  'dashboard_reject',
+  'dashboard_cost',
+  'dashboard_pipeline',
+  'dashboard_presets',
+  'dashboard_safety',
+  'dashboard_self_check',
   'audio_inventory',
   'audio_audit',
   'audio_plan',
@@ -1210,13 +1228,26 @@ Usage:
   node tools/bridge.js dashboard open
   node tools/bridge.js dashboard url
   node tools/bridge.js dashboard state
+  node tools/bridge.js dashboard chat "<message>"
+  node tools/bridge.js dashboard history
+  node tools/bridge.js dashboard clear-chat
+  node tools/bridge.js dashboard timeline
+  node tools/bridge.js dashboard runs
+  node tools/bridge.js dashboard approvals
+  node tools/bridge.js dashboard approve <approvalId>
+  node tools/bridge.js dashboard reject <approvalId>
+  node tools/bridge.js dashboard cost
+  node tools/bridge.js dashboard pipeline "<goal>"
+  node tools/bridge.js dashboard presets
+  node tools/bridge.js dashboard safety
   node tools/bridge.js dashboard self-check
   node tools/bridge.js dashboard quick
   node tools/bridge.js dashboard refresh
   node tools/bridge.js dashboard full
   node tools/bridge.js dashboard next
   node tools/bridge.js dashboard digest
-  node tools/bridge.js dashboard history
+  node tools/bridge.js chat "<message>"
+  node tools/bridge.js one_click_build "<goal>"
   node tools/bridge.js cache status
   node tools/bridge.js cache warm
   node tools/bridge.js cache clear
@@ -9916,6 +9947,81 @@ async function runDashboard(subcommand = 'compact', args = []) {
     print(state);
     return;
   }
+  if (mode === 'chat') {
+    await ensureBridgeRunning('dashboard chat');
+    const message = args.join(' ').trim();
+    if (!message) throw new Error('dashboard chat requires <message>.');
+    print(await request('/dashboard/chat', { method: 'POST', body: JSON.stringify({ message }), timeoutMs: 30000 }));
+    return;
+  }
+  if (mode === 'history') {
+    await ensureBridgeRunning('dashboard history');
+    print(await request('/dashboard/chat/history', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'clear-chat' || mode === 'clear') {
+    await ensureBridgeRunning('dashboard clear-chat');
+    print(await request('/dashboard/chat/clear', { method: 'POST', body: JSON.stringify({}), timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'timeline') {
+    await ensureBridgeRunning('dashboard timeline');
+    print(await request('/dashboard/timeline', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'runs') {
+    await ensureBridgeRunning('dashboard runs');
+    print(await request('/dashboard/runs', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'run') {
+    await ensureBridgeRunning('dashboard run');
+    const runId = args[0];
+    if (!runId) throw new Error('dashboard run requires <runId>.');
+    print(await request(`/dashboard/run/${encodeURIComponent(runId)}`, { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'approvals') {
+    await ensureBridgeRunning('dashboard approvals');
+    print(await request('/dashboard/approvals', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'approve') {
+    await ensureBridgeRunning('dashboard approve');
+    const approvalId = args[0];
+    if (!approvalId) throw new Error('dashboard approve requires <approvalId>.');
+    print(await request(`/dashboard/approvals/${encodeURIComponent(approvalId)}/approve`, { method: 'POST', body: JSON.stringify({}), timeoutMs: 45000 }));
+    return;
+  }
+  if (mode === 'reject') {
+    await ensureBridgeRunning('dashboard reject');
+    const approvalId = args[0];
+    if (!approvalId) throw new Error('dashboard reject requires <approvalId>.');
+    print(await request(`/dashboard/approvals/${encodeURIComponent(approvalId)}/reject`, { method: 'POST', body: JSON.stringify({ reason: args.slice(1).join(' ') || 'dashboardCliReject' }), timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'cost') {
+    await ensureBridgeRunning('dashboard cost');
+    print(await request('/dashboard/cost', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'pipeline' || mode === 'run-pipeline') {
+    await ensureBridgeRunning('dashboard pipeline');
+    const goal = args.join(' ').trim();
+    if (!goal) throw new Error('dashboard pipeline requires <goal>.');
+    print(await request('/dashboard/pipeline', { method: 'POST', body: JSON.stringify({ goal }), timeoutMs: 60000 }));
+    return;
+  }
+  if (mode === 'presets') {
+    await ensureBridgeRunning('dashboard presets');
+    print(await request('/dashboard/pipeline/presets', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'safety') {
+    await ensureBridgeRunning('dashboard safety');
+    print(await request('/dashboard/safety', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
   if (mode === 'open') {
     const bridge = await ensureBridgeRunning('dashboard open');
     let opened = false;
@@ -10050,7 +10156,7 @@ async function runDashboard(subcommand = 'compact', args = []) {
     });
     return;
   }
-  throw new Error('dashboard command must be status, open, url, state, self-check, quick, refresh, full, next, digest, history, compact, or summary.');
+  throw new Error('dashboard command must be status, open, url, state, chat, history, clear-chat, timeline, runs, run, approvals, approve, reject, cost, pipeline, presets, safety, self-check, quick, refresh, full, next, digest, compact, or summary.');
 }
 
 async function runCache(subcommand = 'status') {
@@ -13558,7 +13664,26 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'chat') {
+    await runDashboard('chat', args);
+    return;
+  }
+
+  if (command === 'ai' && (args[0] || '').toLowerCase() === 'chat') {
+    await runDashboard('chat', args.slice(1));
+    return;
+  }
+
+  if (command === 'one_click_build' || command === 'one-click-build') {
+    await runDashboard('pipeline', args);
+    return;
+  }
+
   if (command === 'open_dashboard' || command === 'open-dashboard' || command === 'control_room' || command === 'control-room') {
+    if ((args[0] || '').toLowerCase() === 'chat') {
+      await runDashboard('chat', args.slice(1));
+      return;
+    }
     await runDashboard('open', args);
     return;
   }

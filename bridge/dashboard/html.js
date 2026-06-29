@@ -28,7 +28,7 @@ function dashboardHtml() {
 
   <main class="layout">
     <section class="panel goal-panel">
-      <h2>Goal / Chat</h2>
+      <h2>Goal</h2>
       <textarea id="goal" placeholder="premium anime dungeon hub, dark purple gate, floating crystals..."></textarea>
       <div class="button-grid">
         <button data-action="memoryRecommend">Plan</button>
@@ -40,6 +40,20 @@ function dashboardHtml() {
         <button data-action="fidelityCompare">Fidelity Compare</button>
         <button data-action="memoryLearn">Memory Learn</button>
       </div>
+    </section>
+
+    <section class="panel chat-panel">
+      <h2>AI Chat</h2>
+      <div id="chatMessages" class="chat-messages"></div>
+      <div class="chat-row">
+        <input id="chatInput" placeholder="Ask the bridge what to do next">
+        <button id="sendChat">Send</button>
+      </div>
+      <div class="button-row">
+        <button id="clearChat">Clear</button>
+        <button id="refreshTimeline">Timeline</button>
+      </div>
+      <p class="note">Chat routes through the local bridge. The browser never receives an API key.</p>
     </section>
 
     <section class="panel reference-panel">
@@ -54,17 +68,38 @@ function dashboardHtml() {
     </section>
 
     <section class="panel timeline-panel">
-      <h2>Production Timeline</h2>
+      <h2>Tool Timeline</h2>
       <ol id="timeline"></ol>
     </section>
 
     <section class="panel approval-panel">
-      <h2>Approval</h2>
+      <h2>Approvals</h2>
       <div id="pending">No pending action.</div>
+      <div id="approvals"></div>
       <div class="button-row">
         <button id="approve">Approve</button>
         <button id="cancel">Reject</button>
       </div>
+    </section>
+
+    <section class="panel pipeline-panel">
+      <h2>One-Click Workflows</h2>
+      <select id="presetSelect"></select>
+      <div class="button-row">
+        <button id="runPipeline">Run Preview Pipeline</button>
+        <button id="planPipeline">Plan Only</button>
+      </div>
+      <div id="presets"></div>
+    </section>
+
+    <section class="panel runs-panel">
+      <h2>Run History</h2>
+      <div id="runs"></div>
+    </section>
+
+    <section class="panel safety-panel">
+      <h2>Cost / Safety</h2>
+      <div id="costSafety"></div>
     </section>
 
     <section class="panel transaction-panel">
