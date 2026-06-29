@@ -8,6 +8,27 @@ const { createVisionPrompt, extractJsonObject } = require('./vision-tool-contrac
 const MAX_IMAGE_BYTES = Number(process.env.CODEX_STUDIO_IMAGE_MAX_BYTES || 8 * 1024 * 1024);
 const DEFAULT_TIMEOUT_MS = Number(process.env.CODEX_STUDIO_IMAGE_API_TIMEOUT_MS || 30000);
 
+function summarizeRequestError(error) {
+  if (error && error.name === 'AbortError') return 'OpenAI vision request timed out.';
+  const parts = [String(error && error.message || error || 'unknown request error')];
+  const cause = error && error.cause;
+  if (cause && (cause.code || cause.message)) {
+    parts.push(`cause=${cause.code || 'unknown'}:${cause.message || ''}`);
+  }
+  return parts.join(' | ');
+}
+
+function requestErrorBlockers(error) {
+  const cause = error && error.cause;
+  if (cause && cause.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
+    return [
+      'OpenAI vision request failed because Node could not verify the TLS certificate chain.',
+      'Set NODE_OPTIONS=--use-system-ca for this shell or supervisor process, then rerun the image command.',
+    ];
+  }
+  return ['OpenAI vision request failed before a structured response was returned.'];
+}
+
 function outputTextFromResponsesApi(data = {}) {
   if (typeof data.output_text === 'string') return data.output_text;
   const chunks = [];
@@ -127,9 +148,9 @@ async function requestImageVision(metadata = {}, options = {}) {
       actualVisionUsed: false,
       configured: true,
       provider: 'openai.responses',
-      errorSummary: redactString(error && error.name === 'AbortError' ? 'OpenAI vision request timed out.' : String(error && error.message || error)).slice(0, 500),
+      errorSummary: redactString(summarizeRequestError(error)).slice(0, 500),
       warnings: [],
-      blockers: ['OpenAI vision request failed before a structured response was returned.'],
+      blockers: requestErrorBlockers(error),
     };
   } finally {
     clearTimeout(timeout);
