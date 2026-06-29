@@ -2,7 +2,7 @@
 -- Confidence and uncertainty scoring lives in bridge/reconstruction.
 return {
 	name = "CodexReconstructionQuality",
-	version = "0.76.0",
+	version = "0.78.0",
 	requiresConfidence = true,
 }
 

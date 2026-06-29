@@ -20,7 +20,7 @@ const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
 const WorldCompiler = require('./world-compiler');
 
-const VERSION = '0.76.0';
+const VERSION = '0.78.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -2343,7 +2343,7 @@ function requireStudioToken(req, res) {
     sendError(res, 409, 'token_place_mismatch', 'Studio token belongs to a different place. Clear pairing in this Studio window and pair again.', {
       ...mismatch,
       recovery: [
-        'Open this Studio windowâ€™s Codex Studio Bridge panel.',
+        'Open this Studio windowÃ¢â‚¬â„¢s Codex Studio Bridge panel.',
         'Click Clear Pairing, then enter tools\\bridge.cmd pair code.',
         'Run tools\\bridge.cmd places and confirm this place has connected=true.',
       ],
@@ -6558,6 +6558,12 @@ async function route(req, res) {
     return;
   }
 
+  if (req.method === 'GET' && path === '/codex/ai/reference-image') {
+    const source = requestUrl.searchParams.get('source') || requestUrl.searchParams.get('path') || requestUrl.searchParams.get('q') || requestUrl.searchParams.get('goal') || '';
+    sendJson(res, 200, await ReferenceLab.analyzeImageFile(source, { source: 'serverHttp.aiReferenceImage' }));
+    return;
+  }
+
   if (req.method === 'GET' && path === '/codex/ai/runs') {
     sendJson(res, 200, AiOrchestrator.listRuns(Number(requestUrl.searchParams.get('limit') || 50)));
     return;
@@ -6588,6 +6594,9 @@ async function route(req, res) {
       || '';
     const map = {
       intake: () => ReferenceLab.getIntakeReport(source, { source: 'serverHttp.reference.intake' }),
+      image: () => ReferenceLab.analyzeImageFile(source, { source: 'serverHttp.reference.image' }),
+      'analyze-image': () => ReferenceLab.analyzeImageFile(source, { source: 'serverHttp.reference.analyzeImage' }),
+      'image-intake': () => ReferenceLab.getImageIntakeReport(source, { source: 'serverHttp.reference.imageIntake' }),
       analyze: () => ReferenceLab.analyzeReference(source, { source: 'serverHttp.reference.analyze' }),
       style: () => ReferenceLab.getStyleProfile(source),
       scene: () => ReferenceLab.getSceneUnderstanding(source),
@@ -6673,6 +6682,7 @@ async function route(req, res) {
       plan: () => WorldCompiler.getWorldCompilerPlan(source, { source: 'serverHttp.worldcompile.plan' }),
       compile: () => WorldCompiler.getWorldCompilerCompileReport(source, { source: 'serverHttp.worldcompile.compile' }),
       package: () => WorldCompiler.getWorldCompilerPackage(source, { source: 'serverHttp.worldcompile.package' }),
+      image: () => WorldCompiler.getWorldCompilerImageReport(source, { source: 'serverHttp.worldcompile.image' }),
       worldgen: () => WorldCompiler.getWorldCompilerWorldgenBridge(source, { source: 'serverHttp.worldcompile.worldgen' }),
       assetkit: () => WorldCompiler.getWorldCompilerAssetKitBridge(source, { source: 'serverHttp.worldcompile.assetkit' }),
       cinematic: () => WorldCompiler.getWorldCompilerCinematicBridge(source, { source: 'serverHttp.worldcompile.cinematic' }),

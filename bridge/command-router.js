@@ -52,10 +52,10 @@ function createRoute(rawQuery = '', options = {}) {
     || ((has('api', 'openai api', 'ai') && has('orchestrator', 'reference intake', 'build this', 'production', 'premium run', 'run with', 'use')));
   const reconstructionSignal = has('infer the inside', 'generate the inside', 'what is behind this', 'infer the back side', 'infer the backside', 'make the unseen side', 'create floorplan from image', 'infer floorplan', 'missing structure', 'structural reconstruction', 'reconstruct this building', 'turn outside into interior', 'make interior from exterior', 'infer rooms', 'infer routes', 'infer playable layout', 'what does the reference not show', 'fill in missing parts')
     || ((has('reconstruct', 'reconstruction', 'infer', 'missing', 'unseen', 'backside', 'back side', 'inside', 'interior', 'floorplan', 'floor plan', 'rooms', 'routes') && has('structure', 'building', 'reference', 'image', 'exterior', 'layout', 'playable', 'behind', 'side', 'parts')));
-  const referenceSignal = has('analyze this reference', 'analyze reference', 'image reference', 'use this image as reference', 'understand this image', 'turn this image into a style bible', 'extract style from this', 'what is in this image', 'what does this reference imply', 'make from this reference', 'reference lab', 'moodboard analysis', 'concept art analysis', 'screenshot reference', 'read this image for roblox', 'infer the style from this image')
+  const referenceSignal = has('analyze this reference', 'analyze reference', 'analyze image file', 'reference image file', 'image reference', 'use this image as reference', 'understand this image', 'turn this image into a style bible', 'extract style from this', 'what is in this image', 'what does this reference imply', 'make from this reference', 'reference lab', 'moodboard analysis', 'concept art analysis', 'screenshot reference', 'read this image for roblox', 'infer the style from this image')
     || ((has('reference', 'image', 'moodboard', 'concept art', 'screenshot', 'sketch') && has('analyze', 'understand', 'extract', 'style bible', 'what is in', 'imply', 'read this', 'make from')))
     || (has('premium reference') && !has('memory'));
-  const worldcompileSignal = has('turn this image into a world', 'image to world', 'reference to world', 'build from this reference', 'make this reference playable', 'turn this concept into a playable map', 'make a playable world from this', 'compile this reference', 'turn this screenshot into a roblox map', 'build this image as a game world', 'make a roblox world from this image', 'turn concept art into roblox', 'reference playable world', 'generate playable map from reference')
+  const worldcompileSignal = has('worldcompile image', 'turn this image into a world', 'image to world', 'reference to world', 'build from this image', 'build from this reference', 'make this reference playable', 'turn this concept into a playable map', 'make a playable world from this', 'compile this reference', 'turn this screenshot into a roblox map', 'build this image as a game world', 'make a roblox world from this image', 'turn concept art into roblox', 'reference playable world', 'generate playable map from reference')
     || ((has('reference', 'image', 'screenshot', 'concept', 'concept art', 'moodboard') && has('playable', 'world', 'map', 'compile', 'build from', 'turn into', 'roblox map', 'roblox world')))
     || ((has('playable world', 'playable map') && has('reference', 'image', 'concept')));
   const memorySignal = has('production memory', 'project memory', 'style memory', 'remember this', 'remember that', 'recall', 'learn from report', 'learn this report', 'what did we learn', 'did we learn', 'lessons learned', 'use previous style', 'previous style', 'reuse previous style', 'save this style', 'what worked best', 'what failed before', 'best previous score', 'score history', 'issue patterns', 'reference memory', 'memory recommend', 'premium memory')
@@ -137,6 +137,7 @@ function createRoute(rawQuery = '', options = {}) {
       commands: ['tools\\bridge.cmd codex-context', 'tools\\bridge.cmd watch now', 'tools\\bridge.cmd watch errors'],
     });
   } else if (worldcompileSignal) {
+    const imageMode = has('worldcompile image', 'image to world', 'turn this image into a world', 'build from this image', 'build this image as a game world', 'make a roblox world from this image', 'turn this screenshot into a roblox map');
     setRoute({
       category: 'worldcompile',
       title: 'V76 Image / Reference-to-Playable World Compiler',
@@ -144,9 +145,9 @@ function createRoute(rawQuery = '', options = {}) {
       safety: 'planOnlyUntilV72Execution',
       reason: 'Reference/image/concept plus playable world/build/compile language detected. Use V76 to connect Reference Lab, Reconstruction, Worldgen, Asset Forge, Cinematic, QA, Memory, and V72 preview.',
       commands: [
-        `tools\\bridge.cmd worldcompile compile ${quoteForCommand(intent)}`,
-        `tools\\bridge.cmd worldcompile package ${quoteForCommand(intent)}`,
-        `tools\\bridge.cmd worldcompile execute-preview ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd worldcompile ${imageMode ? 'image' : 'compile'} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd worldcompile ${imageMode ? 'image' : 'package'} ${quoteForCommand(intent)}`,
+        imageMode ? `tools\\bridge.cmd execute preview ${quoteForCommand(intent)}` : `tools\\bridge.cmd worldcompile execute-preview ${quoteForCommand(intent)}`,
       ],
     });
   } else if (reconstructionSignal) {
@@ -172,7 +173,9 @@ function createRoute(rawQuery = '', options = {}) {
       ],
     });
   } else if (referenceSignal) {
-    const action = has('style bible', 'extract style', 'style from') ? 'style'
+    const imageMode = has('analyze image file', 'reference image file', 'use this image as reference', 'understand this image', 'read this image for roblox', 'what is in this image');
+    const action = imageMode ? 'image'
+      : has('style bible', 'extract style', 'style from') ? 'style'
       : has('what is in', 'objects') ? 'objects'
         : has('materials') ? 'materials'
           : has('layout') ? 'layout'

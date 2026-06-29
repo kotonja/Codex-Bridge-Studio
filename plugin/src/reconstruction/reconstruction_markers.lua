@@ -2,7 +2,7 @@
 -- Execution markers are produced through the V72 preview/apply kernel only.
 return {
 	name = "CodexReconstructionMarkers",
-	version = "0.76.0",
+	version = "0.78.0",
 	mutatesStudioDirectly = false,
 }
 

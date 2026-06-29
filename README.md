@@ -1,4 +1,4 @@
-# Codex Studio Bridge V76.0
+# Codex Studio Bridge V78.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -419,6 +419,22 @@ V76 is the end-to-end compiler that turns a reference note, local image path, sc
 ```
 
 V76 reports `actualVisionUsed: false` unless real image/API vision analysis happened. Missing or unreadable paths return structured `unavailable` blockers. Raw image bytes are not stored in memory by default. The generated package includes reference profile, reconstruction profile, worldgen graph, asset kit plan, cinematic plan, QA plan, V72 execution preview plan, reference-fidelity score, playability score, warnings, blockers, assumptions, manual-required items, and exact next commands.
+
+## V78 Real Image File Vision Trial
+
+V78 makes local image-file mode explicit. Use it when the user gives an actual `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, or `.bmp` path and wants Codex to analyze it or compile it into a playable world package. Missing paths return `mode: unavailable`. Readable images return `mode: metadataOnly` and `actualVisionUsed: false` when `OPENAI_API_KEY` is not configured. `actualVisionUsed: true` is only allowed after a real bounded OpenAI vision request succeeds. Raw image bytes and base64 are never stored in reports, memory, logs, manifests, README, AGENTS, or the plugin.
+
+```powershell
+.\tools\bridge.cmd reference image "<imagePath>"
+.\tools\bridge.cmd reference analyze-image "<imagePath>"
+.\tools\bridge.cmd ai reference-image "<imagePath>"
+.\tools\bridge.cmd worldcompile image "<imagePath>"
+.\tools\bridge.cmd image_to_world "<imagePath>"
+.\tools\bridge.cmd image trial "<imagePath>"
+.\tools\bridge.cmd image self-check
+```
+
+`worldcompile image` runs Reference Lab image analysis, structural reconstruction, worldgen, asset kit, cinematic, QA, and V72 execution-preview packaging, but it does not apply Studio mutations. Real Studio builds still go through `execute preview`, `execute apply`, `execute verify`, and `execute rollback`.
 
 Recommended V76 production flow:
 

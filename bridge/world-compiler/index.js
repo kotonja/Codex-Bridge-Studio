@@ -4,6 +4,7 @@ const { VERSION, PIPELINE, base, quote } = require('./schema');
 const { getStatus } = require('./status');
 const { resolveIntake } = require('./intake-resolver');
 const { buildPackage, createCompileReport } = require('./package-builder');
+const { getWorldCompilerImageReport } = require('./image-bridge');
 const { saveManifest } = require('./manifest-store');
 const { rememberWorldCompilerPackage } = require('./memory-integration');
 
@@ -153,6 +154,7 @@ module.exports = {
   getWorldCompilerCompileReport,
   getWorldCompilerExecutionPreview,
   getWorldCompilerIntakeReport,
+  getWorldCompilerImageReport,
   getWorldCompilerManifest,
   getWorldCompilerPackage,
   getWorldCompilerPlan,

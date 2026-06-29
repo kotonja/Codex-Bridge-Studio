@@ -45,7 +45,7 @@ function run() {
   }
   const goal = 'premium anime dungeon hub';
   const status = Worldgen.createStatus();
-  assert.equal(status.version, '0.76.0');
+  assert.equal(status.version, '0.78.0');
   assert.equal(status.ok, true);
   assert.equal(status.integrations.visualCritic, true);
   const styles = Worldgen.getStyleCatalog();
@@ -86,8 +86,8 @@ function run() {
   assertRoute('visual critique', 'visual');
   assertRoute('generate purple sword slash vfx', 'vfx');
   assertRoute('new pairing code', 'pairing');
-  assert.equal(Visual.createStatus().version, '0.76.0');
-  assert.equal(Premium.createPremiumManifest(goal).version, '0.76.0');
+  assert.equal(Visual.createStatus().version, '0.78.0');
+  assert.equal(Premium.createPremiumManifest(goal).version, '0.78.0');
   return {
     ok: true,
     version: Worldgen.VERSION,

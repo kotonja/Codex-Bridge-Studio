@@ -20,8 +20,8 @@ const ReferenceLab = require('../bridge/reference-lab');
 const Reconstruction = require('../bridge/reconstruction');
 const WorldCompiler = require('../bridge/world-compiler');
 
-const HELPER_VERSION = '0.76.0';
-const MCP_PROXY_VERSION = '0.76.0';
+const HELPER_VERSION = '0.78.0';
+const MCP_PROXY_VERSION = '0.78.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -204,11 +204,14 @@ const MCP_PROXY_TOOLS = [
   'ai_approve',
   'ai_cancel',
   'ai_reference',
+  'ai_reference_image',
   'ai_cost',
   'ai_runs',
   'ai_report',
   'reference_status',
   'reference_intake',
+  'reference_image',
+  'reference_analyze_image',
   'reference_analyze',
   'reference_style',
   'reference_scene',
@@ -239,6 +242,8 @@ const MCP_PROXY_TOOLS = [
   'reconstruct_remember',
   'worldcompile_status',
   'worldcompile_intake',
+  'worldcompile_image',
+  'image_to_world',
   'worldcompile_plan',
   'worldcompile_compile',
   'worldcompile_package',
@@ -550,6 +555,7 @@ Usage:
   node tools/bridge.js worldcompile status
   node tools/bridge.js worldcompile intake "<reference-or-goal>"
   node tools/bridge.js worldcompile plan "<reference-or-goal>"
+  node tools/bridge.js worldcompile image "<imagePath>"
   node tools/bridge.js worldcompile compile "<reference-or-goal>"
   node tools/bridge.js worldcompile package "<reference-or-goal>"
   node tools/bridge.js worldcompile worldgen "<reference-or-goal>"
@@ -561,7 +567,12 @@ Usage:
   node tools/bridge.js worldcompile remember "<reference-or-goal>"
   node tools/bridge.js worldcompile manifest "<reference-or-goal>"
   node tools/bridge.js worldcompile self-check
-  node tools/bridge.js image_to_world "<reference-or-goal>"
+  node tools/bridge.js reference image "<imagePath>"
+  node tools/bridge.js reference analyze-image "<imagePath>"
+  node tools/bridge.js ai reference-image "<imagePath>"
+  node tools/bridge.js image trial "<imagePath>"
+  node tools/bridge.js image self-check
+  node tools/bridge.js image_to_world "<imagePath>"
   node tools/bridge.js reference_to_world "<reference-or-goal>"
   node tools/bridge.js compile_world "<reference-or-goal>"
   node tools/bridge.js build_from_reference "<reference-or-goal>"
@@ -6743,6 +6754,14 @@ async function runReference(subcommand = 'status', args = []) {
     print(ReferenceLab.getIntakeReport(goal, { source: 'tools.bridge.reference.intake' }));
     return;
   }
+  if (mode === 'image' || mode === 'image-file' || mode === 'analyze-image' || mode === 'reference-image') {
+    print(await ReferenceLab.analyzeImageFile(goal, { source: 'tools.bridge.reference.image' }));
+    return;
+  }
+  if (mode === 'image-intake') {
+    print(ReferenceLab.getImageIntakeReport(goal, { source: 'tools.bridge.reference.imageIntake' }));
+    return;
+  }
   if (mode === 'analyze' || mode === 'analysis') {
     print(await ReferenceLab.analyzeReference(goal, { source: 'tools.bridge.reference.analyze' }));
     return;
@@ -6792,7 +6811,7 @@ async function runReference(subcommand = 'status', args = []) {
     print(runNodeJsonScript('tests/self-check-reference-lab.js'));
     return;
   }
-  throw new Error('reference command must be status, intake, analyze, style, scene, materials, objects, layout, gameplay, missing, compare, manifest, remember, or self-check.');
+  throw new Error('reference command must be status, intake, image, analyze-image, analyze, style, scene, materials, objects, layout, gameplay, missing, compare, manifest, remember, or self-check.');
 }
 
 async function runReconstruction(subcommand = 'status', args = []) {
@@ -6886,6 +6905,10 @@ async function runWorldCompiler(subcommand = 'status', args = []) {
     print(await WorldCompiler.getWorldCompilerIntakeReport(goal, { source: 'tools.bridge.worldcompile.intake' }));
     return;
   }
+  if (mode === 'image' || mode === 'image-file' || mode === 'reference-image') {
+    print(await WorldCompiler.getWorldCompilerImageReport(goal, { source: 'tools.bridge.worldcompile.image' }));
+    return;
+  }
   if (mode === 'plan') {
     print(await WorldCompiler.getWorldCompilerPlan(goal, { source: 'tools.bridge.worldcompile.plan' }));
     return;
@@ -6934,7 +6957,7 @@ async function runWorldCompiler(subcommand = 'status', args = []) {
     print(runNodeJsonScript('tests/self-check-world-compiler.js'));
     return;
   }
-  throw new Error('worldcompile command must be status, intake, plan, compile, package, worldgen, assetkit, cinematic, qa, execute-preview, score, remember, manifest, or self-check.');
+  throw new Error('worldcompile command must be status, intake, image, plan, compile, package, worldgen, assetkit, cinematic, qa, execute-preview, score, remember, manifest, or self-check.');
 }
 
 async function runAi(subcommand = 'status', args = []) {
@@ -6983,6 +7006,10 @@ async function runAi(subcommand = 'status', args = []) {
     print(await ReferenceLab.analyzeReference(cleanGoal(), { source: 'tools.bridge.ai.reference' }));
     return;
   }
+  if (mode === 'reference-image' || mode === 'image' || mode === 'analyze-image') {
+    print(await ReferenceLab.analyzeImageFile(cleanGoal(), { source: 'tools.bridge.ai.referenceImage' }));
+    return;
+  }
   if (mode === 'intake') {
     print(ReferenceLab.getIntakeReport(cleanGoal(), { source: 'tools.bridge.ai.intake' }));
     return;
@@ -7004,7 +7031,29 @@ async function runAi(subcommand = 'status', args = []) {
     print(runNodeJsonScript('tests/self-check-ai-orchestrator.js'));
     return;
   }
-  throw new Error('ai command must be status, config, models, tools, plan, run, continue, approve, cancel, reference, cost, runs, report, or self-check.');
+  throw new Error('ai command must be status, config, models, tools, plan, run, continue, approve, cancel, reference, reference-image, cost, runs, report, or self-check.');
+}
+
+async function runImage(subcommand = 'status', args = []) {
+  const mode = String(subcommand || 'status').toLowerCase();
+  const target = args.join(' ').trim();
+  if (mode === 'status') {
+    print(ReferenceLab.getStatus());
+    return;
+  }
+  if (mode === 'trial' || mode === 'world' || mode === 'to-world') {
+    print(await WorldCompiler.getWorldCompilerImageReport(target, { source: 'tools.bridge.image.trial' }));
+    return;
+  }
+  if (mode === 'analyze' || mode === 'reference' || mode === 'image') {
+    print(await ReferenceLab.analyzeImageFile(target, { source: 'tools.bridge.image.analyze' }));
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-image-vision.js'));
+    return;
+  }
+  throw new Error('image command must be status, trial, analyze, or self-check.');
 }
 
 async function runPremium(subcommand = 'status', args = []) {
@@ -12218,6 +12267,11 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'reference_image' || command === 'reference-image' || command === 'analyze_image' || command === 'analyze-image') {
+    await runReference('image', args);
+    return;
+  }
+
   if (command === 'reconstruct' || command === 'reconstruction') {
     await runReconstruction(args[0] || 'status', args.slice(1));
     return;
@@ -12249,7 +12303,12 @@ async function main(argv) {
   }
 
   if (command === 'image_to_world' || command === 'image-to-world' || command === 'reference_to_world' || command === 'reference-to-world' || command === 'compile_world' || command === 'compile-world' || command === 'build_from_reference' || command === 'build-from-reference' || command === 'playable_reference' || command === 'playable-reference') {
-    await runWorldCompiler('compile', args);
+    await runWorldCompiler('image', args);
+    return;
+  }
+
+  if (command === 'image') {
+    await runImage(args[0] || 'status', args.slice(1));
     return;
   }
 

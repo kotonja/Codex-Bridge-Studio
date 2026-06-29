@@ -533,6 +533,20 @@ V76 Image / Reference-to-Playable World Compiler is the preferred route when the
 
 Routing priority for V76: pairing/recovery still wins; execution/apply/rollback stays V72; pure reference analysis stays V74 unless the user says build/compile/playable/world; missing interior/backside/floorplan stays V75; explicit specialists stay with their systems; whole premium builds stay Premium Director unless reference/image/compile/playable language is present. V76 reports `actualVisionUsed: false` unless real image/API analysis happened, does not store raw image bytes by default, returns `unavailable` for missing paths, and always exposes confidence, assumptions, warnings, blockers, manualRequired, and nextCommand.
 
+V78 Real Image File Vision Trial is the explicit route when the user provides an actual local image file path and wants real image analysis or image-to-world compilation. Use these commands instead of generic `reference analyze` when a path points to `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, or `.bmp`:
+
+```powershell
+.\tools\bridge.cmd reference image "<imagePath>"
+.\tools\bridge.cmd reference analyze-image "<imagePath>"
+.\tools\bridge.cmd ai reference-image "<imagePath>"
+.\tools\bridge.cmd worldcompile image "<imagePath>"
+.\tools\bridge.cmd image_to_world "<imagePath>"
+.\tools\bridge.cmd image trial "<imagePath>"
+.\tools\bridge.cmd image self-check
+```
+
+V78 rules: missing paths return `mode: unavailable`, readable images without `OPENAI_API_KEY` return `mode: metadataOnly` and `actualVisionUsed: false`, and `actualVisionUsed: true` is only valid after a real bounded API vision request succeeds. Do not store raw image bytes or base64 in memory/reports/logs/manifests. `worldcompile image` is still preview-only; any real Studio build must go through V72 `execute preview/apply/verify/rollback`.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

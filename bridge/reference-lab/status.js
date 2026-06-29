@@ -18,7 +18,7 @@ function getStatus() {
     },
     warnings: keyInfo.configured ? [] : ['No API key configured; image files use metadata/note-only analysis.'],
     blockers: [],
-    nextCommand: 'tools\\bridge.cmd reference intake "premium anime dungeon gate reference"',
+    nextCommand: 'tools\\bridge.cmd reference image "<local-image-path>"',
     version: VERSION,
   });
 }

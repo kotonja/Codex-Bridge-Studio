@@ -47,7 +47,7 @@ async function runSelfCheck() {
   for (const file of REQUIRED_MODULES) assert(fs.existsSync(path.join(dir, file)), `Missing reference lab module: ${file}`);
 
   const status = ReferenceLab.getStatus();
-  assert.equal(status.version, '0.76.0');
+  assert.equal(status.version, '0.78.0');
   assert.equal(status.safety.doesNotFakeImageAnalysis, true);
 
   const note = 'dark purple anime dungeon gate with glowing portal';
@@ -126,7 +126,7 @@ async function runSelfCheck() {
 
   return {
     ok: true,
-    version: '0.76.0',
+    version: '0.78.0',
     checked: [
       'modules',
       'status',

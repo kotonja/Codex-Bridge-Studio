@@ -1,5 +1,5 @@
 local ReferenceQuality = {
-	version = "0.76.0",
+	version = "0.78.0",
 	noFakeVisionClaims = true,
 	rawImageStoredByDefault = false,
 	apiKeyInPlugin = false,

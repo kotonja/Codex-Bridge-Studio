@@ -3,6 +3,8 @@
 const { VERSION, base, stableReferenceId, safeText } = require('./schema');
 const { getStatus } = require('./status');
 const { getIntakeReport } = require('./intake');
+const { getImageIntakeReport } = require('./image-intake');
+const { analyzeImageFile } = require('./vision-request');
 const { classifySource } = require('./media-policy');
 const { analyzeNote } = require('./note-analyzer');
 const { maybeAnalyzeImage } = require('./api-image-analyzer');
@@ -225,9 +227,11 @@ async function remember(input, options = {}) {
 
 module.exports = {
   VERSION,
+  analyzeImageFile,
   analyzeReference,
   compareReferences,
   getGameplayInterpretation,
+  getImageIntakeReport,
   getIntakeReport,
   getLayoutHypotheses,
   getManifest,

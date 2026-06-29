@@ -3,7 +3,7 @@
 const path = require('node:path');
 const crypto = require('node:crypto');
 
-const VERSION = '0.76.0';
+const VERSION = '0.78.0';
 const STORE_ROOT = path.join(process.cwd(), '.codex-studio', 'reference-lab-v74');
 const DIRS = {
   intake: path.join(STORE_ROOT, 'intake'),
@@ -13,6 +13,9 @@ const DIRS = {
 
 const CAPABILITIES = [
   'referenceIntake',
+  'localImageFileIntake',
+  'explicitApiVisionWhenConfigured',
+  'metadataOnlyFallback',
   'noteOnlyAnalysis',
   'apiImageAnalysisWhenConfigured',
   'styleExtraction',

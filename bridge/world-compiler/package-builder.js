@@ -1,6 +1,6 @@
 'use strict';
 
-const { base, clamp01, clampScore, PIPELINE, quote, stableCompilerId } = require('./schema');
+const { base, clamp01, clampScore, PIPELINE, quote, safeGoal, stableCompilerId } = require('./schema');
 const { resolveIntake } = require('./intake-resolver');
 const { createReferenceBridge } = require('./reference-bridge');
 const { createReconstructionBridge } = require('./reconstruction-bridge');
@@ -71,7 +71,25 @@ function scorePackage(parts) {
 }
 
 async function buildPackage(input = '', options = {}) {
-  const intake = resolveIntake(input, { ...options, storeIntake: options.storeIntake !== false });
+  const explicitReference = options.referenceReport;
+  const intake = explicitReference ? base({
+    goal: safeGoal(input),
+    compilerId: stableCompilerId(safeGoal(input)),
+    inputMode: explicitReference.actualVisionUsed ? 'apiVision' : 'localImage',
+    available: true,
+    intake: {
+      mode: explicitReference.mode,
+      referenceId: explicitReference.referenceId,
+      imageMetadata: explicitReference.imageMetadata,
+      privacy: explicitReference.privacy,
+    },
+    actualVisionUsed: Boolean(explicitReference.actualVisionUsed),
+    confidence: explicitReference.actualVisionUsed ? (explicitReference.confidence || 0.72) : 0.42,
+    warnings: explicitReference.warnings || [],
+    blockers: explicitReference.blockers || [],
+    manualRequired: [],
+    nextCommand: `tools\\bridge.cmd worldcompile plan ${quote(safeGoal(input))}`,
+  }) : resolveIntake(input, { ...options, storeIntake: options.storeIntake !== false });
   const goal = intake.goal;
   const compilerId = intake.compilerId || stableCompilerId(goal);
   if (!intake.available) {
@@ -104,7 +122,7 @@ async function buildPackage(input = '', options = {}) {
   }
 
   const reference = await createReferenceBridge(goal, options);
-  const reconstruction = await createReconstructionBridge(goal);
+  const reconstruction = await createReconstructionBridge(goal, options);
   const premiumPlan = createPremiumBridge(goal, reference, reconstruction);
   const worldgen = createWorldgenBridge(goal, reconstruction);
   const assetForge = createAssetForgeBridge(goal, reference, reconstruction, worldgen);

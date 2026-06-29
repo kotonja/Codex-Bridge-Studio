@@ -2,8 +2,11 @@
 
 const Reconstruction = require('../reconstruction');
 
-async function createReconstructionBridge(goal) {
-  const report = await Reconstruction.createInferenceReport(goal, { source: 'worldCompiler.reconstruction' });
+async function createReconstructionBridge(goal, options = {}) {
+  const report = await Reconstruction.createInferenceReport(goal, {
+    source: 'worldCompiler.reconstruction',
+    referenceReport: options.referenceReport,
+  });
   return {
     ok: true,
     reconstructionId: report.reconstructionId,

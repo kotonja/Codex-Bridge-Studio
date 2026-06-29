@@ -16,7 +16,7 @@ function createBuildPlan(parsed, manifestPath) {
     attributes: {
       CodexGenerated: true,
       CodexSystem: 'CinematicDirector',
-      CodexVersion: '0.76.0',
+      CodexVersion: '0.78.0',
       CodexGoal: parsed.goal,
       CodexMomentType: parsed.momentType,
     },

@@ -2,7 +2,7 @@
 
 const path = require('node:path');
 
-const VERSION = '0.76.0';
+const VERSION = '0.78.0';
 const STORE_ROOT = path.join(process.cwd(), '.codex-studio', 'ai-runs-v73');
 const DIRS = {
   runs: path.join(STORE_ROOT, 'runs'),

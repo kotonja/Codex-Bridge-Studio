@@ -38,7 +38,7 @@ async function runSelfCheck() {
 
   const goal = 'dark purple anime dungeon gate with glowing portal';
   const status = WorldCompiler.getStatus();
-  assert(status.version === '0.76.0', 'status version should be 0.76.0');
+  assert(status.version === '0.78.0', 'status version should be 0.78.0');
   assert(status.safety && status.safety.doesNotFakeImageAnalysis === true, 'status must expose no-fake-analysis safety');
 
   const intake = await WorldCompiler.getWorldCompilerIntakeReport(goal);
@@ -106,7 +106,7 @@ async function runSelfCheck() {
 
   return {
     ok: true,
-    version: '0.76.0',
+    version: '0.78.0',
     checkedModules: requiredFiles.length,
     status: status.status,
     sampleGoal: goal,

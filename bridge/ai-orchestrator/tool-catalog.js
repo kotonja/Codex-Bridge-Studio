@@ -12,6 +12,8 @@ const TOOL_CATALOG = [
   ['execute_apply', 'Apply a V72 execution plan through transaction receipts.', true, 'v72Mutation', 'tools\\bridge.cmd execute apply "<goal>"'],
   ['execute_verify', 'Verify a V72 transaction receipt.', false, 'v72Verification', 'tools\\bridge.cmd execute verify <transactionId>'],
   ['execute_rollback', 'Rollback a V72 transaction-scoped CodexGenerated object set.', true, 'v72Rollback', 'tools\\bridge.cmd execute rollback <transactionId>'],
+  ['reference_image', 'Analyze a local image file with metadata-only fallback or real API vision when configured.', false, 'readOnlyExplicitImageVision', 'tools\\bridge.cmd reference image "<imagePath>"'],
+  ['worldcompile_image', 'Compile a local image reference into a playable-world package and V72 preview without applying.', false, 'readOnlyImageToWorldCompile', 'tools\\bridge.cmd worldcompile image "<imagePath>"'],
   ['visual_critique', 'Run visual evidence critique.', false, 'readOnlyVisualEvidence', 'tools\\bridge.cmd visual critique "<goal>"'],
   ['qa_launch', 'Run launch-readiness planning/evidence report.', false, 'readOnlyQaEvidence', 'tools\\bridge.cmd qa launch "<goal>"'],
   ['autopilot_report', 'Read closed-loop production report.', false, 'readOnlyAutopilotReport', 'tools\\bridge.cmd autopilot report "<goal>"'],

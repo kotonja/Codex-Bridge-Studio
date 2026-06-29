@@ -22,7 +22,7 @@ function getStatus() {
     },
     warnings: [],
     blockers: [],
-    nextCommand: 'tools\\bridge.cmd worldcompile compile "dark anime dungeon gate reference"',
+    nextCommand: 'tools\\bridge.cmd worldcompile image "<local-image-path>"',
     version: VERSION,
   });
 }

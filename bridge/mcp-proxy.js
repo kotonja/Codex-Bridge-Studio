@@ -12,7 +12,7 @@ const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
 const WorldCompiler = require('./world-compiler');
 
-const VERSION = '0.76.0';
+const VERSION = '0.78.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -549,11 +549,14 @@ const toolHandlers = {
   ai_approve: async (args) => AiOrchestrator.approveRun(args.runId || args.id || ''),
   ai_cancel: async (args) => AiOrchestrator.cancelRun(args.runId || args.id || ''),
   ai_reference: async (args) => ReferenceLab.analyzeReference(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.aiReference', metadata: redacted(args.metadata || {}) }),
+  ai_reference_image: async (args) => ReferenceLab.analyzeImageFile(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.aiReferenceImage', metadata: redacted(args.metadata || {}) }),
   ai_cost: async () => AiOrchestrator.getCostReport(),
   ai_runs: async (args) => AiOrchestrator.listRuns(Number(args.limit || 50)),
   ai_report: async (args) => AiOrchestrator.getRunReport(args.runId || args.id || ''),
   reference_status: async () => ReferenceLab.getStatus(),
   reference_intake: async (args) => ReferenceLab.getIntakeReport(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reference.intake', metadata: redacted(args.metadata || {}) }),
+  reference_image: async (args) => ReferenceLab.analyzeImageFile(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reference.image', metadata: redacted(args.metadata || {}) }),
+  reference_analyze_image: async (args) => ReferenceLab.analyzeImageFile(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reference.analyzeImage', metadata: redacted(args.metadata || {}) }),
   reference_analyze: async (args) => ReferenceLab.analyzeReference(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reference.analyze', metadata: redacted(args.metadata || {}) }),
   reference_style: async (args) => ReferenceLab.getStyleProfile(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
   reference_scene: async (args) => ReferenceLab.getSceneUnderstanding(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
@@ -584,6 +587,8 @@ const toolHandlers = {
   reconstruct_remember: async (args) => Reconstruction.remember(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reconstruct.remember', metadata: redacted(args.metadata || {}) }),
   worldcompile_status: async () => WorldCompiler.getStatus(),
   worldcompile_intake: async (args) => WorldCompiler.getWorldCompilerIntakeReport(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.intake', metadata: redacted(args.metadata || {}) }),
+  worldcompile_image: async (args) => WorldCompiler.getWorldCompilerImageReport(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.image', metadata: redacted(args.metadata || {}) }),
+  image_to_world: async (args) => WorldCompiler.getWorldCompilerImageReport(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.imageToWorld', metadata: redacted(args.metadata || {}) }),
   worldcompile_plan: async (args) => WorldCompiler.getWorldCompilerPlan(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.plan', metadata: redacted(args.metadata || {}) }),
   worldcompile_compile: async (args) => WorldCompiler.getWorldCompilerCompileReport(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.compile', metadata: redacted(args.metadata || {}) }),
   worldcompile_package: async (args) => WorldCompiler.getWorldCompilerPackage(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.package', metadata: redacted(args.metadata || {}) }),
@@ -786,11 +791,14 @@ const toolDefinitions = [
   ['ai_approve', 'Approve the next local V73 run step; external/account risks still remain blocked/manual.', { runId: { type: 'string' }, id: { type: 'string' } }],
   ['ai_cancel', 'Cancel a stored V73 run.', { runId: { type: 'string' }, id: { type: 'string' } }],
   ['ai_reference', 'Analyze a reference through V74 Reference Lab; no fake image or pixel claims.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' } }],
+  ['ai_reference_image', 'Run explicit V78 local image-file analysis through the API orchestrator when configured, otherwise metadata-only.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' } }],
   ['ai_cost', 'Return local estimated run cost summary.', {}],
   ['ai_runs', 'List recent V73 AI production runs.', { limit: { type: 'number' } }],
   ['ai_report', 'Return a stored V73 AI run report.', { runId: { type: 'string' }, id: { type: 'string' } }],
   ['reference_status', 'Return V74 Reference Lab readiness, privacy, no-fake-analysis policy, and next command.', {}],
   ['reference_intake', 'Classify a note/path/folder/image reference without storing raw image bytes.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' } }],
+  ['reference_image', 'Analyze a local image file explicitly; uses real API vision only when configured and available.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' } }],
+  ['reference_analyze_image', 'Alias for V78 explicit local image-file analysis with honest metadata/API vision status.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' } }],
   ['reference_analyze', 'Turn a reference note/path into style, scene, material, object, layout, gameplay, missing-view, and production hints.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
   ['reference_style', 'Extract a Roblox-ready reference style profile.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
   ['reference_scene', 'Infer reference scene structure, scale, focal points, props, and gameplay use cases.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
@@ -821,6 +829,8 @@ const toolDefinitions = [
   ['reconstruct_remember', 'Store a redacted V75 reconstruction profile in Production Memory; no raw image bytes.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['worldcompile_status', 'Return V76 Image / Reference-to-Playable World Compiler readiness, safety policy, and next command.', {}],
   ['worldcompile_intake', 'Classify a reference note/path/folder/image for playable-world compile without storing raw image bytes.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_image', 'Compile an explicit local image file into a playable-world package and V72 execution preview without applying.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['image_to_world', 'Alias for V78 explicit local image-file to worldcompile package flow.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['worldcompile_plan', 'Plan the V76 pipeline from reference to playable Roblox world package; no Studio mutation.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['worldcompile_compile', 'Compile a reference/concept into reference, reconstruction, worldgen, asset kit, cinematic, QA, and V72 preview reports.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['worldcompile_package', 'Return/save the full V76 playable-world package manifest; still plan/preview only.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],

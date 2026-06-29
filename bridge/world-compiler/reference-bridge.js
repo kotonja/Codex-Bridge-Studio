@@ -3,7 +3,7 @@
 const ReferenceLab = require('../reference-lab');
 
 async function createReferenceBridge(goal, options = {}) {
-  const reference = await ReferenceLab.analyzeReference(goal, {
+  const reference = options.referenceReport || await ReferenceLab.analyzeReference(goal, {
     source: options.source || 'worldCompiler.reference',
     storeIntake: options.storeIntake !== false,
   });

@@ -3,7 +3,7 @@
 
 local ExecutionSchema = {}
 
-ExecutionSchema.version = "0.76.0"
+ExecutionSchema.version = "0.78.0"
 ExecutionSchema.workspaceRoots = {
 	"Workspace.CodexProduction",
 	"Workspace.CodexWorldgen",
