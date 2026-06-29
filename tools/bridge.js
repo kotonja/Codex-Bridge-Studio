@@ -81,6 +81,7 @@ const MCP_PROXY_TOOLS = [
   'dashboard_image_history',
   'dashboard_image_delete',
   'dashboard_image_self_check',
+  'dashboard_image_tls_check',
   'dashboard_self_check',
   'audio_inventory',
   'audio_audit',
@@ -222,6 +223,8 @@ const MCP_PROXY_TOOLS = [
   'execute_manifest',
   'ai_status',
   'ai_config',
+  'ai_tls_check',
+  'ai_connectivity',
   'ai_models',
   'ai_tools',
   'ai_plan',
@@ -540,6 +543,8 @@ Usage:
   node tools/bridge.js recall "<query>"
   node tools/bridge.js ai status
   node tools/bridge.js ai config
+  node tools/bridge.js ai tls-check
+  node tools/bridge.js ai connectivity
   node tools/bridge.js ai models
   node tools/bridge.js ai tools
   node tools/bridge.js ai plan "<goal>"
@@ -7091,6 +7096,10 @@ async function runAi(subcommand = 'status', args = []) {
     print(AiOrchestrator.getConfig());
     return;
   }
+  if (mode === 'tls-check' || mode === 'tls' || mode === 'connectivity') {
+    print(await AiOrchestrator.getConnectivityReport({ source: `tools.bridge.ai.${mode}` }));
+    return;
+  }
   if (mode === 'models') {
     print(AiOrchestrator.getModelCatalog());
     return;
@@ -7151,7 +7160,7 @@ async function runAi(subcommand = 'status', args = []) {
     print(runNodeJsonScript('tests/self-check-ai-orchestrator.js'));
     return;
   }
-  throw new Error('ai command must be status, config, models, tools, plan, run, continue, approve, cancel, reference, reference-image, cost, runs, report, or self-check.');
+  throw new Error('ai command must be status, config, tls-check, connectivity, models, tools, plan, run, continue, approve, cancel, reference, reference-image, cost, runs, report, or self-check.');
 }
 
 async function runImage(subcommand = 'status', args = []) {
@@ -10034,6 +10043,11 @@ async function runDashboard(subcommand = 'compact', args = []) {
     print(await request('/dashboard/safety', { timeoutMs: FAST_TIMEOUT_MS }));
     return;
   }
+  if ((mode === 'image' || mode === 'reference-image') && (args[0] || '').toLowerCase() === 'tls-check') {
+    await ensureBridgeRunning('dashboard image-tls-check');
+    print(await request('/dashboard/image/tls-check', { timeoutMs: 15000 }));
+    return;
+  }
   if (mode === 'image-intake' || mode === 'image' || mode === 'reference-image') {
     await ensureBridgeRunning('dashboard image-intake');
     const imagePath = args.join(' ').trim();
@@ -10060,6 +10074,11 @@ async function runDashboard(subcommand = 'compact', args = []) {
   if (mode === 'image-history') {
     await ensureBridgeRunning('dashboard image-history');
     print(await request('/dashboard/image/history', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'image-tls-check' || mode === 'image-connectivity') {
+    await ensureBridgeRunning('dashboard image-tls-check');
+    print(await request('/dashboard/image/tls-check', { timeoutMs: 15000 }));
     return;
   }
   if (mode === 'image-delete') {

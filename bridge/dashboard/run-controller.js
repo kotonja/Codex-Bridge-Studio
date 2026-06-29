@@ -39,6 +39,7 @@ function remember(runtime, action, result, goal) {
     dashboardImageIntake: 'Reference',
     dashboardImageAnalyze: 'Reference',
     dashboardImageWorldcompile: 'Worldcompile',
+    dashboardImageTlsCheck: 'Reference',
     reconstructInfer: 'Reconstruction',
     worldcompileCompile: 'Worldcompile',
     worldcompilePackage: 'Worldcompile',

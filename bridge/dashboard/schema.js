@@ -11,6 +11,7 @@ const ACTIONS = [
   'dashboardImageIntake',
   'dashboardImageAnalyze',
   'dashboardImageWorldcompile',
+  'dashboardImageTlsCheck',
   'referenceAnalyze',
   'reconstructInfer',
   'worldcompileCompile',

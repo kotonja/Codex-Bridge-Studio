@@ -606,6 +606,16 @@ V84 Dashboard AI Chat + Tool Timeline is the preferred human control room when t
 
 V86 Dashboard Image Upload + Real Vision Pipeline extends the same control room with file upload/path intake, metadata display, image history, honest vision mode badges, image analysis, image-to-worldcompile, execution preview, fidelity, QA, memory, and rollback follow-through. Use `dashboard image-intake` for local file paths or the browser file picker for upload. Image records live under `.codex-studio/reference-intake-v86/` and include sha256/size/extension/mode/`actualVisionUsed`; reports and memory must never include raw image bytes or base64. If `OPENAI_API_KEY` is missing, the correct result is `metadataOnly` with `actualVisionUsed: false`; never claim real image vision without a real API vision call.
 
+V86.1 Vision TLS Diagnostics is the first recovery step when dashboard/reference image analysis reports `apiVisionFailed`, `tlsCertificateError`, DNS, timeout, auth, or certificate chain issues:
+
+```powershell
+.\tools\bridge.cmd ai tls-check
+.\tools\bridge.cmd ai connectivity
+.\tools\bridge.cmd dashboard image-tls-check
+```
+
+Safe local API config lives only in the Node workspace environment or ignored `.codex-studio/secrets.local.json`, for example `{ "openaiApiKey": "...", "extraCaCerts": "C:\\path\\to\\trusted-root-ca.pem" }`. Do not commit that file, do not print keys, and do not put keys in Roblox/plugin/frontend/memory/logs. If a proxy/security product breaks certificate verification, configure `NODE_EXTRA_CA_CERTS` or `extraCaCerts` with a public PEM root CA. Never use or recommend `NODE_TLS_REJECT_UNAUTHORIZED=0`; StudioBridge blocks that unsafe bypass. Metadata-only fallback is still useful but is not real vision and must keep `actualVisionUsed: false`.
+
 V84/V86 safety rules: never expose API keys in frontend JavaScript, HTML, dashboard state, MCP output, Roblox plugin, README, reports, or memory; only show `apiConfigured: true/false`. Dashboard chat must call AI only through the local Node bridge, and if no API key is configured it must return local fallback/tool planning with `actualAiUsed: false`. The dashboard must not run raw shell commands, arbitrary Luau, publish/upload/marketplace/DataStore/economy actions, or non-Codex mutations. Execute Apply is only available after Execute Preview or a dashboard pipeline preview and explicit dashboard approval, and real Studio mutation still goes through V72 transaction receipts. Rollback uses receipt transaction ids only and must only touch transaction-created Codex-owned objects. Reference/image input must remain honest: no fake image analysis and no raw image bytes stored by default.
 
 Routing priority for V86: pairing/recovery still wins; dashboard/open/control-room/chat/timeline/approval/runs/cost/safety/one-click workflow and dashboard-specific image upload/analyze/worldcompile requests route to dashboard; plain `analyze image file` stays Reference Lab; plain `image to world` stays Worldcompile; execution/apply/rollback language stays V72; direct API run requests stay V73; fidelity/reference/worldcompile/visual/specialist requests stay with their specialist routes.

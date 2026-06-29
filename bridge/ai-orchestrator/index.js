@@ -11,6 +11,7 @@ const { intakeReference } = require('./reference-intake');
 const { approveMutation } = require('./approval-gates');
 const { costReport } = require('./cost-tracker');
 const { getRunReport } = require('./report');
+const Connectivity = require('./connectivity');
 const Store = require('./run-store');
 
 async function getProductionPlan(goal, options = {}) {
@@ -68,6 +69,8 @@ module.exports = {
   getConfig,
   getCostReport,
   getFunctionSchemas,
+  getConnectivityReport: Connectivity.getConnectivityReport,
+  getConnectivitySummary: Connectivity.getConnectivitySummary,
   getModelCatalog,
   getProductionPlan,
   getRunReport,

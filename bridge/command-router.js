@@ -50,6 +50,8 @@ function createRoute(rawQuery = '', options = {}) {
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
   const aiSignal = has('use api', 'run with api', 'ai orchestrator', 'api orchestrator', 'use openai api', 'ai build this', 'run ai production', 'ai reference intake', 'analyze this reference with api', 'use api to build premium', 'api premium run')
     || ((has('api', 'openai api', 'ai') && has('orchestrator', 'reference intake', 'build this', 'production', 'premium run', 'run with', 'use')));
+  const aiConnectivitySignal = has('ai tls-check', 'api tls-check', 'api tls check', 'openai tls check', 'vision tls', 'image tls', 'api connectivity', 'openai connectivity', 'certificate error', 'tls certificate error')
+    || ((has('tls', 'certificate', 'connectivity', 'ca cert', 'extra ca') && has('api', 'openai', 'vision', 'image', 'ai')));
   const reconstructionSignal = has('infer the inside', 'generate the inside', 'what is behind this', 'infer the back side', 'infer the backside', 'make the unseen side', 'create floorplan from image', 'infer floorplan', 'missing structure', 'structural reconstruction', 'reconstruct this building', 'turn outside into interior', 'make interior from exterior', 'infer rooms', 'infer routes', 'infer playable layout', 'what does the reference not show', 'fill in missing parts')
     || ((has('reconstruct', 'reconstruction', 'infer', 'missing', 'unseen', 'backside', 'back side', 'inside', 'interior', 'floorplan', 'floor plan', 'rooms', 'routes') && has('structure', 'building', 'reference', 'image', 'exterior', 'layout', 'playable', 'behind', 'side', 'parts')));
   const referenceSignal = has('analyze this reference', 'analyze reference', 'analyze image file', 'reference image file', 'image reference', 'use this image as reference', 'understand this image', 'turn this image into a style bible', 'extract style from this', 'what is in this image', 'what does this reference imply', 'make from this reference', 'reference lab', 'moodboard analysis', 'concept art analysis', 'screenshot reference', 'read this image for roblox', 'infer the style from this image')
@@ -136,6 +138,15 @@ function createRoute(rawQuery = '', options = {}) {
       safety: has('reset', 'new') ? 'localPairReset' : 'readOnly',
       reason: has('reset', 'new') ? 'The request asks for a fresh pairing code.' : 'The request asks to view the current pairing code.',
       commands: [has('reset', 'new') ? 'tools\\bridge.cmd pair reset' : 'tools\\bridge.cmd pair code', 'tools\\bridge.cmd pair guide'],
+    });
+  } else if (aiConnectivitySignal) {
+    setRoute({
+      category: 'ai',
+      title: 'API Vision TLS Diagnostics',
+      confidence: 0.94,
+      safety: 'readOnlyNoSecrets',
+      reason: 'API/TLS/certificate connectivity language detected. Run V86.1 diagnostics; do not disable TLS verification.',
+      commands: ['tools\\bridge.cmd ai tls-check', 'tools\\bridge.cmd dashboard image-tls-check'],
     });
   } else if (dashboardImageSignal) {
     const dashboardCommand = has('analyze') ? `tools\\bridge.cmd dashboard image-analyze ${quoteForCommand(intent)}`

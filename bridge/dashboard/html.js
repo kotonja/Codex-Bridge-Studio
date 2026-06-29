@@ -84,7 +84,9 @@ function dashboardHtml() {
         <button id="imageDelete">Delete Ref</button>
       </div>
       <p class="note">Vision: <span id="imageMode">unavailable</span> | API: <span id="imageApi">unknown</span> | actualVisionUsed: <span id="imageVisionUsed">false</span></p>
+      <p class="note">TLS: <span id="imageTlsStatus">unknown</span> | extra CA: <span id="imageExtraCa">none</span></p>
       <p class="note">Privacy: raw image bytes stay local, are not stored in memory/reports, and API keys never go to the browser.</p>
+      <div id="imageRemediation" class="image-remediation"></div>
       <div id="imageMetadata" class="image-meta"></div>
       <div id="imageHistory" class="image-history"></div>
     </section>

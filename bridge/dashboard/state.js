@@ -11,6 +11,7 @@ const ApprovalQueue = require('./approval-queue');
 const CostView = require('./cost-view');
 const SafetyReport = require('./safety-report');
 const ImagePipeline = require('./image-pipeline');
+const { getConnectivitySummary } = require('../ai-orchestrator/connectivity');
 
 const TIMELINE_STEPS = [
   'Memory',
@@ -38,6 +39,7 @@ function createDashboardState(env = {}, runtime = {}) {
   const timelineReport = Timeline.listTimeline(runtime, 60);
   const runsReport = RunHistory.listRuns(runtime, 12);
   const approvalsReport = ApprovalQueue.listApprovals(runtime, 'pending');
+  const visionConnectivity = getConnectivitySummary();
   const blockers = [];
   const warnings = [];
   if (!status.bridge.studioConnected) warnings.push('Studio is not connected; dashboard read/planning still works, but apply needs a fresh paired Studio place.');
@@ -50,6 +52,7 @@ function createDashboardState(env = {}, runtime = {}) {
     bridge: status.bridge,
     studio: status.studio,
     api: status.api,
+    visionConnectivity,
     safety: {
       ...createSafetyView(),
       ...SafetyReport.createDashboardSafetyReport(runtime),
@@ -86,6 +89,7 @@ function createDashboardState(env = {}, runtime = {}) {
       'dashboardImageIntake',
       'dashboardImageAnalyze',
       'dashboardImageWorldcompile',
+      'dashboardImageTlsCheck',
       'referenceAnalyze',
       'worldcompileCompile',
       'worldcompilePackage',

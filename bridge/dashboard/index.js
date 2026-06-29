@@ -20,6 +20,7 @@ const CostView = require('./cost-view');
 const SafetyReport = require('./safety-report');
 const ImageIntake = require('./image-intake');
 const ImagePipeline = require('./image-pipeline');
+const AiOrchestrator = require('../ai-orchestrator');
 
 const runtime = createRuntimeState();
 
@@ -189,6 +190,10 @@ function imageDelete(referenceId) {
   return result;
 }
 
+function imageTlsCheck() {
+  return AiOrchestrator.getConnectivityReport({ source: 'dashboard.imageTlsCheck' });
+}
+
 function transactions(limit = 12, options = {}) {
   const view = createTransactionView(limit, options);
   runtime.latest.transactions = view.transactions;
@@ -245,6 +250,7 @@ module.exports = {
   imageHistory,
   imageReference,
   imageDelete,
+  imageTlsCheck,
   transactions,
   report,
   safety,

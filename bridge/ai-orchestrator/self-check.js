@@ -24,6 +24,7 @@ async function runSelfCheck() {
     'index.js', 'schema.js', 'status.js', 'config.js', 'secret-policy.js', 'model-catalog.js', 'tool-catalog.js',
     'function-schemas.js', 'prompt-pack.js', 'response-contracts.js', 'run-store.js', 'run-state.js',
     'tool-runner.js', 'planner.js', 'reference-intake.js', 'approval-gates.js', 'cost-tracker.js',
+    'connectivity.js',
     'safety-policy.js', 'report.js', 'self-check.js',
   ];
   for (const file of required) assert(fs.existsSync(path.join(__dirname, file)), `Missing AI module ${file}`);
@@ -32,6 +33,9 @@ async function runSelfCheck() {
   assert.equal(status.pluginHasApiKey, false);
   const config = Ai.getConfig();
   assert.equal(config.pluginHasApiKey, false);
+  const connectivity = Ai.getConnectivitySummary();
+  assert(connectivity && typeof connectivity.status === 'string', 'AI connectivity summary missing status');
+  assert.equal(assertNoSecretText(JSON.stringify(connectivity), 'connectivitySummary').ok, true);
   const schemas = getFunctionSchemas();
   const requiredTools = ['memory_recommend', 'premium_plan', 'worldgen_graph', 'assetforge_kit', 'cinematic_timeline', 'execute_preview', 'execute_apply', 'execute_verify', 'execute_rollback', 'visual_critique', 'qa_launch', 'autopilot_report', 'memory_learn'];
   const schemaNames = schemas.schemas.map((schema) => schema.name);
@@ -86,7 +90,7 @@ async function runSelfCheck() {
     ok: true,
     version: VERSION,
     configured: getApiKeyInfo().configured,
-    checked: ['modules', 'status', 'config', 'secretRedaction', 'toolCatalog', 'functionSchemas', 'offlinePlan', 'referenceIntake', 'runState', 'approvalGates', 'router', 'specialistVersions'],
+    checked: ['modules', 'status', 'config', 'connectivitySummary', 'secretRedaction', 'toolCatalog', 'functionSchemas', 'offlinePlan', 'referenceIntake', 'runState', 'approvalGates', 'router', 'specialistVersions'],
     redaction: redact({ apiKey: getApiKeyInfo().key || 'none' }),
     nextCommand: 'tools\\bridge.cmd ai status',
   };

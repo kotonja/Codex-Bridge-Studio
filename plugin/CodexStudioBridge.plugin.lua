@@ -20798,6 +20798,10 @@ if commandType == "runAutopilotProductionLoop" then
 		return V73.getAiOrchestratorConfig(payload)
 	end
 
+	if commandType == "getAiTlsConnectivityReport" or commandType == "getAiConnectivityReport" then
+		return V73.getAiConnectivityReport(payload)
+	end
+
 	if commandType == "getAiModelCatalog" then
 		return V73.getAiModelCatalog(payload)
 	end
@@ -21112,6 +21116,7 @@ if commandType == "runAutopilotProductionLoop" then
 		dashboard_image_analyze = "analyzeDashboardImage",
 		dashboard_image_worldcompile = "worldcompileDashboardImage",
 		dashboard_image_history = "getDashboardImageHistory",
+		dashboard_image_tls_check = "getDashboardImageTlsCheck",
 		dashboard_image_delete = "deleteDashboardImageReference",
 		dashboard_image_self_check = "getDashboardSelfCheck",
 		open_dashboard = "getDashboardUrl",
@@ -21165,6 +21170,10 @@ if commandType == "runAutopilotProductionLoop" then
 
 	if commandType == "getDashboardImageReference" then
 		return V82.getDashboardImageReference(payload)
+	end
+
+	if commandType == "getDashboardImageTlsCheck" then
+		return V82.getDashboardImageTlsCheck(payload)
 	end
 
 	if commandType == "intakeDashboardImage" then
@@ -36655,6 +36664,26 @@ function V73.getAiOrchestratorConfig(payload)
 	return result
 end
 
+function V73.getAiConnectivityReport(payload)
+	local result = V73.base(payload, "connectivity")
+	result.configured = false
+	result.actualVisionUsed = false
+	result.visionConnectivity = {
+		status = "nodeHelperRequired",
+		apiKeyVisibleToPlugin = false,
+		tlsCheckRunsInNodeHelper = true,
+		extraCaCertsVisibleToPlugin = false,
+	}
+	result.safeRemediation = {
+		"Run tools\\bridge.cmd ai tls-check from the local helper.",
+		"Configure NODE_EXTRA_CA_CERTS or .codex-studio/secrets.local.json extraCaCerts only in the local Node workspace.",
+		"Do not use NODE_TLS_REJECT_UNAUTHORIZED=0.",
+	}
+	result.warnings = { "Roblox plugin cannot and should not inspect local API keys or CA files; use the Node helper for V86.1 TLS diagnostics." }
+	result.nextCommand = "tools\\bridge.cmd ai tls-check"
+	return result
+end
+
 function V73.getAiModelCatalog(payload)
 	local result = V73.base(payload, "models")
 	result.models = V73.modelCatalog
@@ -37769,6 +37798,10 @@ end
 
 function V82.getDashboardImageReference(payload)
 	return V82.manualDashboardAction(payload, "image-reference")
+end
+
+function V82.getDashboardImageTlsCheck(payload)
+	return V82.manualDashboardAction(payload, "image-tls-check")
 end
 
 function V82.intakeDashboardImage(payload)

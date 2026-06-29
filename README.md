@@ -1345,6 +1345,16 @@ The dashboard is local-only and serves plain HTML/CSS/JS from this repo. It does
 
 V86 adds dashboard image upload/file intake. Browser uploads and CLI path intake are copied into `.codex-studio/reference-intake-v86/` with metadata, sha256, mode, `actualVisionUsed`, and privacy status. Reports and memory must never contain raw image bytes/base64. Without `OPENAI_API_KEY`, analysis stays `metadataOnly` with `actualVisionUsed: false`; with a real configured API call, the mode may become `apiVision`. Worldcompile image routes create packages/previews only; apply still requires the dashboard approval gate and V72 transaction receipts.
 
+V86.1 adds safe API vision TLS diagnostics. Use these when image analysis says `apiVisionFailed`, `tlsCertificateError`, DNS, timeout, auth, or certificate chain failure:
+
+```powershell
+.\tools\bridge.cmd ai tls-check
+.\tools\bridge.cmd ai connectivity
+.\tools\bridge.cmd dashboard image-tls-check
+```
+
+API keys stay Node-only: set `OPENAI_API_KEY` in the local shell/supervisor environment or use ignored `.codex-studio/secrets.local.json` with `{ "openaiApiKey": "...", "extraCaCerts": "C:\\path\\to\\trusted-root-ca.pem" }`. The local secrets file is ignored and must never be committed. If a proxy/security product replaces TLS certificates, export only the trusted public root CA as PEM and configure `NODE_EXTRA_CA_CERTS` or `extraCaCerts`. Do not use `NODE_TLS_REJECT_UNAUTHORIZED=0`; StudioBridge detects that unsafe bypass and refuses API vision. Metadata-only fallback remains valid planning evidence, but it is not real image vision and must keep `actualVisionUsed: false`.
+
 Apply is intentionally gated inside the dashboard: run Execute Preview or a dashboard pipeline first, review the approval queue, then approve Execute Apply. Real Studio mutations still go through the V72 Execution Kernel and must create receipts. Rollback uses transaction ids/receipts only and must only touch transaction-created Codex-owned objects. Reference/image paths are analyzed honestly; raw image bytes are not stored by default.
 
 ## Notes

@@ -23,6 +23,9 @@ function summarizeAnalysis(report = {}) {
       sceneType: report.sceneUnderstanding.sceneType || null,
       focalPoints: Array.isArray(report.sceneUnderstanding.focalPoints) ? report.sceneUnderstanding.focalPoints.slice(0, 8) : [],
     } : null,
+    errorType: report.errorType || (report.apiVision && report.apiVision.errorType) || null,
+    safeRemediation: Array.isArray(report.safeRemediation) ? report.safeRemediation.slice(0, 8)
+      : (report.apiVision && Array.isArray(report.apiVision.safeRemediation) ? report.apiVision.safeRemediation.slice(0, 8) : []),
     objects: Array.isArray(report.objectCandidates) ? report.objectCandidates.slice(0, 8).map((item) => item.name || item.label || item.type || 'object') : [],
     warnings: Array.isArray(report.warnings) ? report.warnings.slice(0, 8) : [],
     blockers: Array.isArray(report.blockers) ? report.blockers.slice(0, 8) : [],
@@ -92,6 +95,9 @@ async function analyze(input = {}, options = {}) {
     mode: updated.mode,
     apiConfigured: Boolean(updated.apiConfigured),
     actualVisionUsed: Boolean(updated.actualVisionUsed),
+    errorType: analysis.errorType || (analysis.apiVision && analysis.apiVision.errorType) || null,
+    safeRemediation: Array.isArray(analysis.safeRemediation) ? analysis.safeRemediation.slice(0, 8)
+      : (analysis.apiVision && Array.isArray(analysis.apiVision.safeRemediation) ? analysis.apiVision.safeRemediation.slice(0, 8) : []),
     analysis,
     analysisSummary: summary,
     privacy: privacyReport(),
@@ -165,6 +171,9 @@ async function worldcompile(input = {}, options = {}) {
     mode: updated.mode,
     apiConfigured: Boolean(updated.apiConfigured),
     actualVisionUsed: Boolean(updated.actualVisionUsed),
+    errorType: world.errorType || (world.imageAnalysis && (world.imageAnalysis.errorType || (world.imageAnalysis.apiVision && world.imageAnalysis.apiVision.errorType))) || null,
+    safeRemediation: Array.isArray(world.safeRemediation) ? world.safeRemediation.slice(0, 8)
+      : (world.imageAnalysis && Array.isArray(world.imageAnalysis.safeRemediation) ? world.imageAnalysis.safeRemediation.slice(0, 8) : []),
     worldcompile: world,
     imageAnalysis: world.imageAnalysis || null,
     package: world.package || null,

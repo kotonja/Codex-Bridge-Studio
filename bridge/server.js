@@ -559,6 +559,8 @@ const supportedCommands = new Set([
   'bakeExecutionManifest',
   'getAiOrchestratorStatus',
   'getAiOrchestratorConfig',
+  'getAiTlsConnectivityReport',
+  'getAiConnectivityReport',
   'getAiModelCatalog',
   'getAiToolCatalog',
   'getAiProductionPlan',
@@ -639,6 +641,7 @@ const supportedCommands = new Set([
   'submitDashboardReference',
   'getDashboardImageHistory',
   'getDashboardImageReference',
+  'getDashboardImageTlsCheck',
   'intakeDashboardImage',
   'analyzeDashboardImage',
   'worldcompileDashboardImage',
@@ -2124,6 +2127,8 @@ const CACHEABLE_TTLS = new Map([
   ['audio_live', 15_000],
   ['getAiOrchestratorStatus', 15_000],
   ['getAiOrchestratorConfig', 15_000],
+  ['getAiTlsConnectivityReport', 15_000],
+  ['getAiConnectivityReport', 15_000],
   ['getAiModelCatalog', 120_000],
   ['getAiToolCatalog', 120_000],
   ['getAiProductionPlan', 30_000],
@@ -4151,6 +4156,7 @@ const V46_TOOL_CATEGORIES = [
       { command: 'tools\\bridge.cmd dashboard image-analyze <imagePath-or-referenceId>', example: 'tools\\bridge.cmd dashboard image-analyze dash_img_abc123', bestFor: 'Analyze a dashboard image reference using metadata-only or real API vision when configured.' },
       { command: 'tools\\bridge.cmd dashboard image-worldcompile <imagePath-or-referenceId>', example: 'tools\\bridge.cmd dashboard image-worldcompile dash_img_abc123', bestFor: 'Compile a dashboard image reference into a V76 world package and V72 execution preview without applying.' },
       { command: 'tools\\bridge.cmd dashboard image-history', example: 'tools\\bridge.cmd dashboard image-history', bestFor: 'List local V86 dashboard image references and latest vision mode.' },
+      { command: 'tools\\bridge.cmd dashboard image-tls-check', example: 'tools\\bridge.cmd dashboard image-tls-check', bestFor: 'Run V86.1 image/API TLS diagnostics with safe remediation and no secret output.' },
       { command: 'tools\\bridge.cmd dashboard image-delete <referenceId>', example: 'tools\\bridge.cmd dashboard image-delete dash_img_abc123', bestFor: 'Delete only one local V86 image reference from .codex-studio/reference-intake-v86.' },
       { command: 'tools\\bridge.cmd dashboard image-self-check', example: 'tools\\bridge.cmd dashboard image-self-check', bestFor: 'Run V86 dashboard image pipeline privacy and metadata-only checks.' },
       { command: 'tools\\bridge.cmd dashboard self-check', example: 'tools\\bridge.cmd dashboard self-check', bestFor: 'Run dependency-free V84 dashboard chat/timeline/router/security checks.' },
@@ -4219,6 +4225,8 @@ const V46_TOOL_CATEGORIES = [
     commands: [
       { command: 'tools\\bridge.cmd ai status', example: 'tools\\bridge.cmd ai status', bestFor: 'Check local API orchestration readiness without exposing secrets.' },
       { command: 'tools\\bridge.cmd ai config', example: 'tools\\bridge.cmd ai config', bestFor: 'Show redacted Node-side model, store, and key-source policy.' },
+      { command: 'tools\\bridge.cmd ai tls-check', example: 'tools\\bridge.cmd ai tls-check', bestFor: 'Test OpenAI host TLS/certificate connectivity, auth response, and extra CA config without exposing secrets.' },
+      { command: 'tools\\bridge.cmd ai connectivity', example: 'tools\\bridge.cmd ai connectivity', bestFor: 'Alias for V86.1 API connectivity diagnostics: TLS, DNS, timeout, auth, and local CA status.' },
       { command: 'tools\\bridge.cmd ai tools', example: 'tools\\bridge.cmd ai tools', bestFor: 'List specialist tools the AI orchestrator may call.' },
       { command: 'tools\\bridge.cmd ai plan <goal>', example: 'tools\\bridge.cmd ai plan "premium anime boss lobby"', bestFor: 'Create an API-backed or offline fallback production plan without mutating Studio.' },
       { command: 'tools\\bridge.cmd ai run <goal>', example: 'tools\\bridge.cmd ai run "premium anime boss lobby"', bestFor: 'Create a bounded run state with approval/transaction gates.' },
@@ -6775,6 +6783,11 @@ async function route(req, res) {
     return;
   }
 
+  if (req.method === 'GET' && path === '/dashboard/image/tls-check') {
+    sendJson(res, 200, await AiOrchestrator.getConnectivityReport({ source: 'dashboard.image.tlsCheck' }));
+    return;
+  }
+
   const dashboardImageMatch = path.match(/^\/dashboard\/image\/([^/]+)$/);
   if (dashboardImageMatch && req.method === 'GET') {
     sendJson(res, 200, Dashboard.imageReference(decodeURIComponent(dashboardImageMatch[1])));
@@ -7115,6 +7128,11 @@ async function route(req, res) {
 
   if (req.method === 'GET' && path === '/codex/ai/config') {
     sendJson(res, 200, AiOrchestrator.getConfig());
+    return;
+  }
+
+  if (req.method === 'GET' && (path === '/codex/ai/tls-check' || path === '/codex/ai/connectivity')) {
+    sendJson(res, 200, await AiOrchestrator.getConnectivityReport({ source: 'serverHttp' }));
     return;
   }
 

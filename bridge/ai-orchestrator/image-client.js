@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const { DEFAULT_MODEL } = require('./schema');
 const { getApiKeyInfo, redact, redactString } = require('./secret-policy');
+const { requestOpenAi, safeRemediation } = require('./connectivity');
 const { createVisionPrompt, extractJsonObject } = require('./vision-tool-contract');
 
 const MAX_IMAGE_BYTES = Number(process.env.CODEX_STUDIO_IMAGE_MAX_BYTES || 8 * 1024 * 1024);
@@ -18,14 +19,16 @@ function summarizeRequestError(error) {
   return parts.join(' | ');
 }
 
-function requestErrorBlockers(error) {
-  const cause = error && error.cause;
-  if (cause && cause.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
+function requestErrorBlockers(errorType) {
+  if (errorType === 'tlsCertificateError') {
     return [
       'OpenAI vision request failed because Node could not verify the TLS certificate chain.',
-      'Set NODE_OPTIONS=--use-system-ca for this shell or supervisor process, then rerun the image command.',
+      'If behind a proxy or security product, export the trusted root CA as PEM and configure NODE_EXTRA_CA_CERTS or .codex-studio/secrets.local.json extraCaCerts.',
+      'Do not use NODE_TLS_REJECT_UNAUTHORIZED=0.',
     ];
   }
+  if (errorType === 'unsafeTlsDisabled') return ['NODE_TLS_REJECT_UNAUTHORIZED=0 is set; StudioBridge refuses to use unsafe TLS bypass mode.'];
+  if (errorType === 'extraCaCertsInvalid') return ['The configured extraCaCerts path is invalid; fix or remove it before API vision can run.'];
   return ['OpenAI vision request failed before a structured response was returned.'];
 }
 
@@ -76,19 +79,6 @@ async function requestImageVision(metadata = {}, options = {}) {
       nextCommand: 'Compress the image under 8 MB, then rerun tools\\bridge.cmd reference analyze-image "<imagePath>".',
     };
   }
-  if (typeof fetch !== 'function') {
-    return {
-      ok: false,
-      status: 'apiVisionFailed',
-      actualVisionUsed: false,
-      configured: true,
-      warnings: [],
-      blockers: ['This Node runtime does not expose fetch; cannot call the vision API without adding dependencies.'],
-    };
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Number(options.timeoutMs || DEFAULT_TIMEOUT_MS));
   try {
     const imageBytes = fs.readFileSync(absolutePath);
     const body = {
@@ -102,16 +92,31 @@ async function requestImageVision(metadata = {}, options = {}) {
       }],
       max_output_tokens: Number(options.maxOutputTokens || 1800),
     };
-    const response = await fetch('https://api.openai.com/v1/responses', {
+    const response = await requestOpenAi({
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${keyInfo.key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
+      apiPath: '/v1/responses',
+      body,
+      apiKey: keyInfo.key,
+      timeoutMs: Number(options.timeoutMs || DEFAULT_TIMEOUT_MS),
     });
-    const text = await response.text();
+    if (response.errorType) {
+      return {
+        ok: false,
+        status: 'apiVisionFailed',
+        actualVisionUsed: false,
+        configured: true,
+        provider: 'openai.responses',
+        errorType: response.errorType,
+        errorSummary: redactString(response.errorSummary || 'OpenAI vision request failed.').slice(0, 500),
+        warnings: response.errorType === 'unsafeTlsDisabled' ? ['Unsafe TLS bypass detected; request was not sent.'] : [],
+        blockers: requestErrorBlockers(response.errorType),
+        safeRemediation: response.errorType === 'tlsCertificateError' || response.errorType === 'unsafeTlsDisabled' || response.errorType === 'extraCaCertsInvalid'
+          ? safeRemediation()
+          : [],
+        nextCommand: 'tools\\bridge.cmd ai tls-check',
+      };
+    }
+    const text = response.text || '';
     if (!response.ok) {
       return {
         ok: false,
@@ -119,13 +124,15 @@ async function requestImageVision(metadata = {}, options = {}) {
         actualVisionUsed: false,
         configured: true,
         provider: 'openai.responses',
-        httpStatus: response.status,
+        httpStatus: response.statusCode,
+        errorType: response.statusCode === 401 || response.statusCode === 403 ? 'authError' : 'apiResponseError',
         errorSummary: redactString(text).slice(0, 500),
         warnings: [],
-        blockers: [`OpenAI vision request failed with HTTP ${response.status}.`],
+        blockers: [`OpenAI vision request failed with HTTP ${response.statusCode}.`],
+        nextCommand: 'tools\\bridge.cmd ai tls-check',
       };
     }
-    const parsed = JSON.parse(text);
+    const parsed = response.json || JSON.parse(text);
     const outputText = outputTextFromResponsesApi(parsed);
     const structured = extractJsonObject(outputText);
     return {
@@ -148,12 +155,12 @@ async function requestImageVision(metadata = {}, options = {}) {
       actualVisionUsed: false,
       configured: true,
       provider: 'openai.responses',
+      errorType: 'requestError',
       errorSummary: redactString(summarizeRequestError(error)).slice(0, 500),
       warnings: [],
-      blockers: requestErrorBlockers(error),
+      blockers: requestErrorBlockers('requestError'),
+      nextCommand: 'tools\\bridge.cmd ai tls-check',
     };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 

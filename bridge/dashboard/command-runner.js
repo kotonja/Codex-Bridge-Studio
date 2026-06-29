@@ -65,6 +65,9 @@ async function runAllowedAction(action, args = {}, options = {}) {
     case 'dashboardImageWorldcompile':
       result = args.precomputed || await ImagePipeline.worldcompile(args.referenceId || args.id || args.imagePath || args.path || args.source || goal, { source: 'dashboard.imageWorldcompile' });
       break;
+    case 'dashboardImageTlsCheck':
+      result = args.precomputed || await require('../ai-orchestrator').getConnectivityReport({ source: 'dashboard.command.imageTlsCheck' });
+      break;
     case 'referenceAnalyze':
       result = await ReferenceLab.analyzeReference(args.source || args.path || args.imagePath || goal, { source: 'dashboard.referenceAnalyze' });
       break;

@@ -10,18 +10,33 @@ const SECRET_PATTERNS = [
   /OPENAI_API_KEY\s*[:=]\s*["']?[^"'\s]+/gi,
 ];
 
-function readLocalSecret() {
+function getSecretFilePath(env = process.env) {
+  const override = typeof env.CODEX_STUDIO_LOCAL_SECRET_FILE === 'string' && env.CODEX_STUDIO_LOCAL_SECRET_FILE.trim()
+    ? env.CODEX_STUDIO_LOCAL_SECRET_FILE.trim()
+    : '';
+  return override ? path.resolve(process.cwd(), override) : SECRET_FILE;
+}
+
+function readLocalSecret(env = process.env) {
+  const parsed = readLocalSecretConfig(env);
+  if (typeof parsed.openaiApiKey === 'string' && parsed.openaiApiKey.trim()) return parsed.openaiApiKey.trim();
+  if (typeof parsed.OPENAI_API_KEY === 'string' && parsed.OPENAI_API_KEY.trim()) return parsed.OPENAI_API_KEY.trim();
+  return null;
+}
+
+function readLocalSecretConfig(env = process.env) {
   try {
-    const parsed = JSON.parse(fs.readFileSync(SECRET_FILE, 'utf8'));
-    return typeof parsed.OPENAI_API_KEY === 'string' ? parsed.OPENAI_API_KEY : null;
+    const parsed = JSON.parse(fs.readFileSync(getSecretFilePath(env), 'utf8'));
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   } catch {
-    return null;
+    return {};
   }
 }
 
 function getApiKeyInfo(env = process.env) {
   const envKey = typeof env.OPENAI_API_KEY === 'string' && env.OPENAI_API_KEY.trim() ? env.OPENAI_API_KEY.trim() : null;
-  const localKey = envKey ? null : readLocalSecret();
+  const ignoreLocalSecrets = String(env.CODEX_STUDIO_IGNORE_LOCAL_SECRETS || '').trim() === '1';
+  const localKey = envKey || ignoreLocalSecrets ? null : readLocalSecret(env);
   const key = envKey || localKey || null;
   return {
     configured: Boolean(key),
@@ -29,7 +44,7 @@ function getApiKeyInfo(env = process.env) {
     apiKeySource: envKey ? 'env:OPENAI_API_KEY' : (localKey ? 'localIgnoredSecret' : 'none'),
     keyPresent: Boolean(key),
     keyLast4: key ? key.slice(-4) : null,
-    secretFile: SECRET_FILE,
+    secretFile: getSecretFilePath(env),
     storeRoot: STORE_ROOT,
     pluginHasApiKey: false,
   };
@@ -76,6 +91,8 @@ module.exports = {
   SECRET_FILE,
   assertNoSecretText,
   getApiKeyInfo,
+  getSecretFilePath,
+  readLocalSecretConfig,
   redact,
   redactString,
 };

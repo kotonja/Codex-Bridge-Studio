@@ -189,15 +189,25 @@
   function renderImages(state) {
     const images = state.images || (state.latest && state.latest.images) || {};
     const latest = images.latest || null;
+    const visionConnectivity = state.visionConnectivity || {};
+    const extraCa = visionConnectivity.extraCaCerts || {};
     $('imageMode').textContent = latest ? (latest.mode || 'metadataOnly') : 'unavailable';
     $('imageApi').textContent = latest && latest.apiConfigured ? 'configured' : 'fallback';
     $('imageVisionUsed').textContent = latest && latest.actualVisionUsed ? 'true' : 'false';
+    $('imageTlsStatus').textContent = visionConnectivity.status || 'unknown';
+    $('imageExtraCa').textContent = extraCa.configured ? (extraCa.loadedLocalExtraCaCerts ? 'loaded' : 'configured') : 'none';
+    const remediation = []
+      .concat(latest && latest.analysisSummary && latest.analysisSummary.safeRemediation ? latest.analysisSummary.safeRemediation : [])
+      .concat(visionConnectivity.blockers || [])
+      .concat(visionConnectivity.warnings || []);
+    $('imageRemediation').textContent = remediation.length ? remediation.slice(0, 5).join('\n') : 'No image/TLS remediation needed.';
     if (latest) {
       $('imageMetadata').textContent = [
         `referenceId: ${latest.referenceId}`,
         `file: ${latest.originalName || '-'}`,
         `bytes: ${latest.byteSize || 0}`,
         `sha256: ${latest.sha256 || '-'}`,
+        `errorType: ${latest.analysisSummary && latest.analysisSummary.errorType ? latest.analysisSummary.errorType : '-'}`,
         `stored: ${latest.storedPath || '-'}`,
         `next: ${latest.nextCommand || '-'}`,
       ].join('\n');

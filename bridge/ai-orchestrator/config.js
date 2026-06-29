@@ -2,9 +2,11 @@
 
 const { VERSION, DEFAULT_MODEL, MAX_STEPS, MAX_TOOL_CALLS, STORE_ROOT, nowIso } = require('./schema');
 const { getApiKeyInfo } = require('./secret-policy');
+const { getConnectivitySummary } = require('./connectivity');
 
 function getConfig() {
   const keyInfo = getApiKeyInfo();
+  const connectivity = getConnectivitySummary();
   return {
     ok: true,
     version: VERSION,
@@ -19,6 +21,12 @@ function getConfig() {
     maxToolCalls: MAX_TOOL_CALLS,
     storeRoot: STORE_ROOT,
     localSecretFile: '.codex-studio/secrets.local.json',
+    visionConnectivity: {
+      status: connectivity.status,
+      extraCaCertsConfigured: connectivity.extraCaCerts.configured,
+      nodeExtraCaCertsSet: connectivity.tls.nodeExtraCaCertsSet,
+      unsafeTlsDisabled: connectivity.tls.nodeTlsRejectUnauthorizedDisabled,
+    },
     safety: {
       keyInRobloxPlugin: false,
       keyCommittedToGit: false,

@@ -100,7 +100,7 @@ button:hover { border-color: var(--accent); }
 
 .note { margin-top: 10px; font-size: 12px; }
 
-.image-meta, .image-history {
+.image-meta, .image-history, .image-remediation {
   white-space: pre-wrap;
   word-break: break-word;
   color: var(--muted);
