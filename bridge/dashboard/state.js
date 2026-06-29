@@ -10,6 +10,7 @@ const RunHistory = require('./run-history');
 const ApprovalQueue = require('./approval-queue');
 const CostView = require('./cost-view');
 const SafetyReport = require('./safety-report');
+const ImagePipeline = require('./image-pipeline');
 
 const TIMELINE_STEPS = [
   'Memory',
@@ -66,7 +67,9 @@ function createDashboardState(env = {}, runtime = {}) {
       lastResult: latest.lastResult || null,
       scores: createScorePanel(latest),
       transactions: transactions.transactions || [],
+      images: runtime.latest && runtime.latest.images ? runtime.latest.images : ImagePipeline.stateSummary(),
     },
+    images: runtime.latest && runtime.latest.images ? runtime.latest.images : ImagePipeline.stateSummary(),
     legacyTimeline: TIMELINE_STEPS.map((name) => ({
       name,
       status: latest.timeline && latest.timeline[name] ? latest.timeline[name] : (name === 'Execute Apply' && pendingApproval ? 'pendingApproval' : 'idle'),
@@ -80,6 +83,9 @@ function createDashboardState(env = {}, runtime = {}) {
       'status',
       'dashboardChat',
       'dashboardPipeline',
+      'dashboardImageIntake',
+      'dashboardImageAnalyze',
+      'dashboardImageWorldcompile',
       'referenceAnalyze',
       'worldcompileCompile',
       'worldcompilePackage',

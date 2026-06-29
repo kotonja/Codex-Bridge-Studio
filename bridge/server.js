@@ -22,7 +22,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.84.0';
+const VERSION = '0.86.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -637,6 +637,12 @@ const supportedCommands = new Set([
   'cancelDashboardRun',
   'rollbackDashboardTransaction',
   'submitDashboardReference',
+  'getDashboardImageHistory',
+  'getDashboardImageReference',
+  'intakeDashboardImage',
+  'analyzeDashboardImage',
+  'worldcompileDashboardImage',
+  'deleteDashboardImageReference',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -2321,6 +2327,61 @@ function readBody(req) {
 
     req.on('error', reject);
   });
+}
+
+function readRawBody(req, maxBytes = MAX_BODY_BYTES) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > maxBytes) {
+        reject(Object.assign(new Error('Request body is too large'), { statusCode: 413 }));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+function parseMultipartFormData(req, buffer) {
+  const contentType = String(req.headers['content-type'] || '');
+  const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+  if (!boundaryMatch) {
+    throw Object.assign(new Error('multipart/form-data request is missing a boundary'), { statusCode: 400 });
+  }
+  const boundary = boundaryMatch[1] || boundaryMatch[2];
+  const raw = buffer.toString('binary');
+  const parts = raw.split(`--${boundary}`).slice(1, -1);
+  const fields = {};
+  const files = {};
+  for (let part of parts) {
+    if (part.startsWith('\r\n')) part = part.slice(2);
+    if (part.endsWith('\r\n')) part = part.slice(0, -2);
+    const splitAt = part.indexOf('\r\n\r\n');
+    if (splitAt < 0) continue;
+    const headerText = part.slice(0, splitAt);
+    let body = part.slice(splitAt + 4);
+    if (body.endsWith('\r\n')) body = body.slice(0, -2);
+    const disposition = headerText.match(/content-disposition:\s*form-data;([^\r\n]+)/i);
+    if (!disposition) continue;
+    const nameMatch = disposition[1].match(/name="([^"]+)"/i);
+    if (!nameMatch) continue;
+    const filenameMatch = disposition[1].match(/filename="([^"]*)"/i);
+    const name = nameMatch[1];
+    if (filenameMatch) {
+      files[name] = {
+        originalName: filenameMatch[1] || 'upload',
+        buffer: Buffer.from(body, 'binary'),
+      };
+    } else {
+      fields[name] = Buffer.from(body, 'binary').toString('utf8');
+    }
+  }
+  return { fields, files };
 }
 
 function findStudioByToken(token) {
@@ -4086,6 +4147,12 @@ const V46_TOOL_CATEGORIES = [
       { command: 'tools\\bridge.cmd dashboard runs', example: 'tools\\bridge.cmd dashboard runs', bestFor: 'List dashboard chat and pipeline run history.' },
       { command: 'tools\\bridge.cmd dashboard cost', example: 'tools\\bridge.cmd dashboard cost', bestFor: 'Show API configured/cost summary without exposing secrets.' },
       { command: 'tools\\bridge.cmd dashboard safety', example: 'tools\\bridge.cmd dashboard safety', bestFor: 'Show local-only dashboard safety policy and approval gates.' },
+      { command: 'tools\\bridge.cmd dashboard image-intake <imagePath>', example: 'tools\\bridge.cmd dashboard image-intake "C:\\path\\to\\reference.png"', bestFor: 'Intake a local reference image into the V86 dashboard image store with metadata and no raw bytes in reports.' },
+      { command: 'tools\\bridge.cmd dashboard image-analyze <imagePath-or-referenceId>', example: 'tools\\bridge.cmd dashboard image-analyze dash_img_abc123', bestFor: 'Analyze a dashboard image reference using metadata-only or real API vision when configured.' },
+      { command: 'tools\\bridge.cmd dashboard image-worldcompile <imagePath-or-referenceId>', example: 'tools\\bridge.cmd dashboard image-worldcompile dash_img_abc123', bestFor: 'Compile a dashboard image reference into a V76 world package and V72 execution preview without applying.' },
+      { command: 'tools\\bridge.cmd dashboard image-history', example: 'tools\\bridge.cmd dashboard image-history', bestFor: 'List local V86 dashboard image references and latest vision mode.' },
+      { command: 'tools\\bridge.cmd dashboard image-delete <referenceId>', example: 'tools\\bridge.cmd dashboard image-delete dash_img_abc123', bestFor: 'Delete only one local V86 image reference from .codex-studio/reference-intake-v86.' },
+      { command: 'tools\\bridge.cmd dashboard image-self-check', example: 'tools\\bridge.cmd dashboard image-self-check', bestFor: 'Run V86 dashboard image pipeline privacy and metadata-only checks.' },
       { command: 'tools\\bridge.cmd dashboard self-check', example: 'tools\\bridge.cmd dashboard self-check', bestFor: 'Run dependency-free V84 dashboard chat/timeline/router/security checks.' },
       { command: 'tools\\bridge.cmd open_dashboard', example: 'tools\\bridge.cmd open_dashboard', bestFor: 'Direct alias for opening the V84 dashboard.' },
       { command: 'tools\\bridge.cmd control_room', example: 'tools\\bridge.cmd control_room', bestFor: 'Direct alias for opening the production control room.' },
@@ -4596,6 +4663,8 @@ const V46_DIRECT_ALIASES = [
   'analyze_reference',
   'reference_lab',
   'image_reference',
+  'image_dashboard',
+  'upload_reference',
   'reference_status',
   'reference_intake',
   'reference_analyze',
@@ -6668,6 +6737,52 @@ async function route(req, res) {
 
   if (req.method === 'GET' && path === '/dashboard/state') {
     sendJson(res, 200, Dashboard.getState(dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/image/intake') {
+    const contentType = String(req.headers['content-type'] || '');
+    if (/multipart\/form-data/i.test(contentType)) {
+      const raw = await readRawBody(req, 10 * 1024 * 1024);
+      const parsed = parseMultipartFormData(req, raw);
+      const file = parsed.files.file || parsed.files.image || Object.values(parsed.files)[0];
+      if (!file) {
+        sendJson(res, 400, { ok: false, version: VERSION, status: 'unavailable', blockers: ['multipart upload did not include a file field.'] });
+        return;
+      }
+      sendJson(res, 200, await Dashboard.imageIntake({ ...parsed.fields, buffer: file.buffer, originalName: file.originalName }, dashboardEnv()));
+      return;
+    }
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.imageIntake(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/image/analyze') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.imageAnalyze(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/image/worldcompile') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.imageWorldcompile(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/image/history') {
+    sendJson(res, 200, Dashboard.imageHistory({ limit: Number(requestUrl.searchParams.get('limit') || 25) }));
+    return;
+  }
+
+  const dashboardImageMatch = path.match(/^\/dashboard\/image\/([^/]+)$/);
+  if (dashboardImageMatch && req.method === 'GET') {
+    sendJson(res, 200, Dashboard.imageReference(decodeURIComponent(dashboardImageMatch[1])));
+    return;
+  }
+
+  if (dashboardImageMatch && req.method === 'DELETE') {
+    sendJson(res, 200, Dashboard.imageDelete(decodeURIComponent(dashboardImageMatch[1])));
     return;
   }
 

@@ -69,6 +69,9 @@ function createRoute(rawQuery = '', options = {}) {
   const executionExplicitSignal = has('build this for real', 'apply the plan', 'create it in studio', 'make real objects', 'safe build', 'build real', 'execute plan', 'rollback build', 'show transactions', 'verify transaction', 'apply safe fixes', 'turn this plan into parts', 'make the world in studio')
     || ((has('execute', 'apply', 'rollback', 'transaction', 'receipt', 'verify') && has('plan', 'build', 'studio', 'objects', 'transaction', 'receipt', 'safe fixes')))
     || ((has('real', 'studio') && has('build', 'create', 'make')));
+  const dashboardImageSignal = has('upload image to dashboard', 'dashboard image upload', 'use image in dashboard', 'dashboard analyze image', 'dashboard image to world', 'one click image build', 'one-click image build', 'build image from dashboard', 'dashboard reference image', 'dashboard reference-image', 'dashboard image pipeline')
+    || ((has('dashboard', 'control room') && has('image', 'upload', 'file', 'reference') && has('analyze', 'world', 'worldcompile', 'build', 'intake', 'use', 'upload')))
+    || ((has('one click', 'one-click') && has('image') && has('build', 'pipeline')));
   const dashboardSignal = has('open dashboard', 'show dashboard', 'open control room', 'production dashboard', 'dashboard status', 'open ai ui', 'show ai control panel', 'ai control panel', 'control room', 'chat with bridge', 'dashboard chat', 'open ai chat', 'show tool timeline', 'show approvals', 'approve dashboard run', 'dashboard pipeline', 'one click build', 'one-click build', 'show dashboard runs', 'show dashboard safety', 'show dashboard cost')
     || ((has('dashboard', 'control room') && has('chat', 'timeline', 'approval', 'approvals', 'pipeline', 'runs', 'cost', 'safety', 'open', 'show')))
     || (has('one click', 'one-click') && has('build', 'pipeline'));
@@ -133,6 +136,18 @@ function createRoute(rawQuery = '', options = {}) {
       safety: has('reset', 'new') ? 'localPairReset' : 'readOnly',
       reason: has('reset', 'new') ? 'The request asks for a fresh pairing code.' : 'The request asks to view the current pairing code.',
       commands: [has('reset', 'new') ? 'tools\\bridge.cmd pair reset' : 'tools\\bridge.cmd pair code', 'tools\\bridge.cmd pair guide'],
+    });
+  } else if (dashboardImageSignal) {
+    const dashboardCommand = has('analyze') ? `tools\\bridge.cmd dashboard image-analyze ${quoteForCommand(intent)}`
+      : has('worldcompile', 'world', 'one click', 'one-click', 'build') ? `tools\\bridge.cmd dashboard image-worldcompile ${quoteForCommand(intent)}`
+        : `tools\\bridge.cmd dashboard image-intake ${quoteForCommand(intent)}`;
+    setRoute({
+      category: 'dashboard',
+      title: 'V86 Dashboard Image Upload + Real Vision Pipeline',
+      confidence: 0.98,
+      safety: 'localDashboardImageIntake',
+      reason: 'Dashboard-specific image upload/analyze/worldcompile language detected. Use the local dashboard image pipeline; apply remains gated through V72 execution approval.',
+      commands: [dashboardCommand, 'tools\\bridge.cmd dashboard image-history', 'tools\\bridge.cmd dashboard open'],
     });
   } else if (dashboardSignal) {
     const dashboardCommand = has('chat with bridge', 'dashboard chat', 'open ai chat') ? `tools\\bridge.cmd dashboard chat ${quoteForCommand(intent)}`

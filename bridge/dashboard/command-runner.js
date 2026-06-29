@@ -9,6 +9,7 @@ const Visual = require('../visual');
 const Fidelity = require('../fidelity');
 const QaSwarm = require('../qa-swarm');
 const Autopilot = require('../autopilot');
+const ImagePipeline = require('./image-pipeline');
 const { VERSION, actionAllowed, hasExternalRisk, nowIso, redact, resultSummary, safeGoal } = require('./schema');
 
 function extractGoal(args = {}) {
@@ -29,7 +30,9 @@ async function runAllowedAction(action, args = {}, options = {}) {
       nextCommand: 'tools\\bridge.cmd dashboard self-check',
     };
   }
-  if (hasExternalRisk(args)) {
+  const riskArgs = { ...args };
+  delete riskArgs.precomputed;
+  if (hasExternalRisk(riskArgs)) {
     return {
       ok: false,
       version: VERSION,
@@ -52,6 +55,15 @@ async function runAllowedAction(action, args = {}, options = {}) {
       break;
     case 'memoryRecommend':
       result = Memory.getMemoryRecommendations(goal);
+      break;
+    case 'dashboardImageIntake':
+      result = args.precomputed || { ok: false, version: VERSION, status: 'manualRequired', blockers: ['Use /dashboard/image/intake or tools\\bridge.cmd dashboard image-intake <imagePath>.'] };
+      break;
+    case 'dashboardImageAnalyze':
+      result = args.precomputed || await ImagePipeline.analyze(args.referenceId || args.id || args.imagePath || args.path || args.source || goal, { source: 'dashboard.imageAnalyze' });
+      break;
+    case 'dashboardImageWorldcompile':
+      result = args.precomputed || await ImagePipeline.worldcompile(args.referenceId || args.id || args.imagePath || args.path || args.source || goal, { source: 'dashboard.imageWorldcompile' });
       break;
     case 'referenceAnalyze':
       result = await ReferenceLab.analyzeReference(args.source || args.path || args.imagePath || goal, { source: 'dashboard.referenceAnalyze' });
@@ -137,6 +149,10 @@ async function runAllowedAction(action, args = {}, options = {}) {
     at: nowIso(),
     action,
     goal,
+    referenceId: result && result.referenceId ? result.referenceId : args.referenceId,
+    mode: result && result.mode ? result.mode : undefined,
+    apiConfigured: result && Object.prototype.hasOwnProperty.call(result, 'apiConfigured') ? result.apiConfigured : undefined,
+    actualVisionUsed: result && Object.prototype.hasOwnProperty.call(result, 'actualVisionUsed') ? result.actualVisionUsed : undefined,
     result,
     resultSummary: resultSummary(result),
     warnings: result && Array.isArray(result.warnings) ? result.warnings : [],

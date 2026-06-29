@@ -589,6 +589,12 @@ V84 Dashboard AI Chat + Tool Timeline is the preferred human control room when t
 .\tools\bridge.cmd dashboard pipeline "premium anime dungeon hub"
 .\tools\bridge.cmd dashboard presets
 .\tools\bridge.cmd dashboard safety
+.\tools\bridge.cmd dashboard image-intake "C:\path\to\reference.png"
+.\tools\bridge.cmd dashboard image-analyze <imagePath-or-referenceId>
+.\tools\bridge.cmd dashboard image-worldcompile <imagePath-or-referenceId>
+.\tools\bridge.cmd dashboard image-history
+.\tools\bridge.cmd dashboard image-delete <referenceId>
+.\tools\bridge.cmd dashboard image-self-check
 .\tools\bridge.cmd dashboard self-check
 .\tools\bridge.cmd chat "what should I build next?"
 .\tools\bridge.cmd one_click_build "premium anime dungeon hub"
@@ -598,9 +604,11 @@ V84 Dashboard AI Chat + Tool Timeline is the preferred human control room when t
 .\tools\bridge.cmd production dashboard
 ```
 
-V84 safety rules: never expose API keys in frontend JavaScript, HTML, dashboard state, MCP output, Roblox plugin, README, reports, or memory; only show `apiConfigured: true/false`. Dashboard chat must call AI only through the local Node bridge, and if no API key is configured it must return local fallback/tool planning with `actualAiUsed: false`. The dashboard must not run raw shell commands, arbitrary Luau, publish/upload/marketplace/DataStore/economy actions, or non-Codex mutations. Execute Apply is only available after Execute Preview or a dashboard pipeline preview and explicit dashboard approval, and real Studio mutation still goes through V72 transaction receipts. Rollback uses receipt transaction ids only and must only touch transaction-created Codex-owned objects. Reference/image input must remain honest: no fake image analysis and no raw image bytes stored by default.
+V86 Dashboard Image Upload + Real Vision Pipeline extends the same control room with file upload/path intake, metadata display, image history, honest vision mode badges, image analysis, image-to-worldcompile, execution preview, fidelity, QA, memory, and rollback follow-through. Use `dashboard image-intake` for local file paths or the browser file picker for upload. Image records live under `.codex-studio/reference-intake-v86/` and include sha256/size/extension/mode/`actualVisionUsed`; reports and memory must never include raw image bytes or base64. If `OPENAI_API_KEY` is missing, the correct result is `metadataOnly` with `actualVisionUsed: false`; never claim real image vision without a real API vision call.
 
-Routing priority for V84: pairing/recovery still wins; dashboard/open/control-room/chat/timeline/approval/runs/cost/safety/one-click workflow requests route to V84; execution/apply/rollback language stays V72; direct API run requests stay V73; fidelity/reference/worldcompile/visual/specialist requests stay with their specialist routes.
+V84/V86 safety rules: never expose API keys in frontend JavaScript, HTML, dashboard state, MCP output, Roblox plugin, README, reports, or memory; only show `apiConfigured: true/false`. Dashboard chat must call AI only through the local Node bridge, and if no API key is configured it must return local fallback/tool planning with `actualAiUsed: false`. The dashboard must not run raw shell commands, arbitrary Luau, publish/upload/marketplace/DataStore/economy actions, or non-Codex mutations. Execute Apply is only available after Execute Preview or a dashboard pipeline preview and explicit dashboard approval, and real Studio mutation still goes through V72 transaction receipts. Rollback uses receipt transaction ids only and must only touch transaction-created Codex-owned objects. Reference/image input must remain honest: no fake image analysis and no raw image bytes stored by default.
+
+Routing priority for V86: pairing/recovery still wins; dashboard/open/control-room/chat/timeline/approval/runs/cost/safety/one-click workflow and dashboard-specific image upload/analyze/worldcompile requests route to dashboard; plain `analyze image file` stays Reference Lab; plain `image to world` stays Worldcompile; execution/apply/rollback language stays V72; direct API run requests stay V73; fidelity/reference/worldcompile/visual/specialist requests stay with their specialist routes.
 
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 

@@ -18,6 +18,8 @@ const PipelineRunner = require('./pipeline-runner');
 const PipelinePresets = require('./pipeline-presets');
 const CostView = require('./cost-view');
 const SafetyReport = require('./safety-report');
+const ImageIntake = require('./image-intake');
+const ImagePipeline = require('./image-pipeline');
 
 const runtime = createRuntimeState();
 
@@ -137,6 +139,56 @@ async function reference(body = {}, env = {}) {
   return command({ action: 'referenceAnalyze', source, goal: body.goal || source }, env);
 }
 
+async function imageIntake(body = {}, env = {}) {
+  const result = ImageIntake.intake(body, env);
+  runtime.references.unshift({
+    at: nowIso(),
+    source: result.referenceId || body.imagePath || body.path || body.originalName || 'dashboard-upload',
+    kind: 'dashboardImage',
+    rawImageBytesStored: false,
+    mode: result.mode || 'unavailable',
+    actualVisionUsed: false,
+  });
+  runtime.references = runtime.references.slice(0, 25);
+  runtime.latest.images = ImagePipeline.stateSummary();
+  if (result.ok) {
+    return command({ action: 'dashboardImageIntake', goal: result.referenceId, referenceId: result.referenceId, precomputed: result }, env);
+  }
+  return result;
+}
+
+async function imageAnalyze(body = {}, env = {}) {
+  const result = await ImagePipeline.analyze(body, env);
+  runtime.latest.images = ImagePipeline.stateSummary();
+  if (result.ok) {
+    return command({ action: 'dashboardImageAnalyze', referenceId: result.referenceId || body.referenceId || body.id, imagePath: body.imagePath || body.path, goal: body.goal || body.source || result.referenceId || body.referenceId, precomputed: result }, env);
+  }
+  return result;
+}
+
+async function imageWorldcompile(body = {}, env = {}) {
+  const result = await ImagePipeline.worldcompile(body, env);
+  runtime.latest.images = ImagePipeline.stateSummary();
+  if (result.ok) {
+    return command({ action: 'dashboardImageWorldcompile', referenceId: result.referenceId || body.referenceId || body.id, imagePath: body.imagePath || body.path, goal: result.goal || body.goal || result.referenceId || body.referenceId, precomputed: result }, env);
+  }
+  return result;
+}
+
+function imageHistory(body = {}) {
+  return ImagePipeline.history(body.limit || 25);
+}
+
+function imageReference(referenceId) {
+  return ImagePipeline.get(referenceId);
+}
+
+function imageDelete(referenceId) {
+  const result = ImagePipeline.remove(referenceId);
+  runtime.latest.images = ImagePipeline.stateSummary();
+  return result;
+}
+
 function transactions(limit = 12, options = {}) {
   const view = createTransactionView(limit, options);
   runtime.latest.transactions = view.transactions;
@@ -153,6 +205,11 @@ function safety() {
 
 function selfCheck() {
   const { runSelfCheck } = require('./self-check');
+  return runSelfCheck();
+}
+
+function imageSelfCheck() {
+  const { runSelfCheck } = require('./image-self-check');
   return runSelfCheck();
 }
 
@@ -182,9 +239,16 @@ module.exports = {
   presets,
   rollback,
   reference,
+  imageIntake,
+  imageAnalyze,
+  imageWorldcompile,
+  imageHistory,
+  imageReference,
+  imageDelete,
   transactions,
   report,
   safety,
   selfCheck,
+  imageSelfCheck,
   redact,
 };

@@ -96,7 +96,22 @@ button:hover { border-color: var(--accent); }
   margin-top: 10px;
 }
 
+.button-row.wrap { flex-wrap: wrap; }
+
 .note { margin-top: 10px; font-size: 12px; }
+
+.image-meta, .image-history {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--muted);
+  background: #0d1218;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px;
+  margin-top: 10px;
+  max-height: 160px;
+  overflow: auto;
+}
 
 pre {
   white-space: pre-wrap;

@@ -67,6 +67,28 @@ function dashboardHtml() {
       <pre id="referenceResult"></pre>
     </section>
 
+    <section class="panel image-panel">
+      <h2>Image Pipeline</h2>
+      <input id="imageFile" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,.bmp,image/png,image/jpeg,image/webp,image/gif,image/bmp">
+      <input id="imagePath" placeholder="Optional local image path fallback">
+      <div class="button-row wrap">
+        <button id="imageIntake">Intake</button>
+        <button id="imageAnalyze">Analyze Image</button>
+        <button id="imageWorldcompile">Worldcompile Image</button>
+        <button id="imageExecutePreview">Execute Preview</button>
+      </div>
+      <div class="button-row wrap">
+        <button id="imageFidelity">Fidelity Compare</button>
+        <button id="imageQa">QA Launch</button>
+        <button id="imageMemory">Memory Learn</button>
+        <button id="imageDelete">Delete Ref</button>
+      </div>
+      <p class="note">Vision: <span id="imageMode">unavailable</span> | API: <span id="imageApi">unknown</span> | actualVisionUsed: <span id="imageVisionUsed">false</span></p>
+      <p class="note">Privacy: raw image bytes stay local, are not stored in memory/reports, and API keys never go to the browser.</p>
+      <div id="imageMetadata" class="image-meta"></div>
+      <div id="imageHistory" class="image-history"></div>
+    </section>
+
     <section class="panel timeline-panel">
       <h2>Tool Timeline</h2>
       <ol id="timeline"></ol>

@@ -9,9 +9,12 @@
   }
 
   async function api(path, options) {
+    const request = { ...(options || {}) };
+    const headers = { ...(request.headers || {}) };
+    if (request.body && !(request.body instanceof FormData) && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
     const response = await fetch(path, {
-      headers: { 'Content-Type': 'application/json' },
-      ...options,
+      ...request,
+      headers,
     });
     const text = await response.text();
     let body = {};
@@ -30,6 +33,10 @@
 
   function referenceValue() {
     return $('reference').value.trim() || goalValue();
+  }
+
+  function imageInputValue() {
+    return $('imagePath').value.trim();
   }
 
   function textNode(tag, className, value) {
@@ -179,6 +186,32 @@
     ].join('\n');
   }
 
+  function renderImages(state) {
+    const images = state.images || (state.latest && state.latest.images) || {};
+    const latest = images.latest || null;
+    $('imageMode').textContent = latest ? (latest.mode || 'metadataOnly') : 'unavailable';
+    $('imageApi').textContent = latest && latest.apiConfigured ? 'configured' : 'fallback';
+    $('imageVisionUsed').textContent = latest && latest.actualVisionUsed ? 'true' : 'false';
+    if (latest) {
+      $('imageMetadata').textContent = [
+        `referenceId: ${latest.referenceId}`,
+        `file: ${latest.originalName || '-'}`,
+        `bytes: ${latest.byteSize || 0}`,
+        `sha256: ${latest.sha256 || '-'}`,
+        `stored: ${latest.storedPath || '-'}`,
+        `next: ${latest.nextCommand || '-'}`,
+      ].join('\n');
+    } else {
+      $('imageMetadata').textContent = 'No dashboard image references yet.';
+    }
+    api('/dashboard/image/history').then((history) => {
+      const rows = (history.references || []).slice(0, 5).map((item) => `${item.referenceId} - ${item.mode || 'metadataOnly'} - ${item.originalName || item.storedPath || ''}`);
+      $('imageHistory').textContent = rows.length ? rows.join('\n') : 'No image history yet.';
+    }).catch((error) => {
+      $('imageHistory').textContent = error.message;
+    });
+  }
+
   function renderState(state) {
     $('version').textContent = state.version || '';
     $('connection').textContent = `Bridge: ${state.bridge && state.bridge.studioConnected ? 'connected' : 'not connected'}`;
@@ -194,6 +227,7 @@
     renderChat(state);
     renderCostSafety(state);
     renderPresets(state);
+    renderImages(state);
   }
 
   async function refresh() {
@@ -261,6 +295,48 @@
     await refresh();
   }
 
+  async function intakeImage() {
+    const file = $('imageFile').files && $('imageFile').files[0];
+    let result;
+    if (file) {
+      const form = new FormData();
+      form.append('file', file, file.name);
+      form.append('goal', goalValue());
+      result = await api('/dashboard/image/intake', { method: 'POST', body: form });
+    } else {
+      result = await api('/dashboard/image/intake', { method: 'POST', body: JSON.stringify({ imagePath: imageInputValue(), goal: goalValue() }) });
+    }
+    writeLog(result);
+    await refresh();
+  }
+
+  async function latestImageReferenceId() {
+    const history = await api('/dashboard/image/history');
+    const latest = (history.references || [])[0];
+    return latest ? latest.referenceId : imageInputValue();
+  }
+
+  async function analyzeImage() {
+    const referenceId = await latestImageReferenceId();
+    const result = await api('/dashboard/image/analyze', { method: 'POST', body: JSON.stringify({ referenceId, imagePath: imageInputValue(), goal: goalValue() }) });
+    writeLog(result);
+    await refresh();
+  }
+
+  async function worldcompileImage() {
+    const referenceId = await latestImageReferenceId();
+    const result = await api('/dashboard/image/worldcompile', { method: 'POST', body: JSON.stringify({ referenceId, imagePath: imageInputValue(), goal: goalValue() }) });
+    writeLog(result);
+    await refresh();
+  }
+
+  async function deleteImage() {
+    const referenceId = await latestImageReferenceId();
+    const result = await api(`/dashboard/image/${encodeURIComponent(referenceId)}`, { method: 'DELETE' });
+    writeLog(result);
+    await refresh();
+  }
+
   document.querySelectorAll('button[data-action]').forEach((button) => {
     button.addEventListener('click', () => sendCommand(button.dataset.action));
   });
@@ -271,6 +347,14 @@
     await refresh();
   });
   $('worldcompileReference').addEventListener('click', () => sendCommand('worldcompilePackage', { goal: referenceValue() }));
+  $('imageIntake').addEventListener('click', intakeImage);
+  $('imageAnalyze').addEventListener('click', analyzeImage);
+  $('imageWorldcompile').addEventListener('click', worldcompileImage);
+  $('imageExecutePreview').addEventListener('click', () => sendCommand('executePreview', { goal: goalValue() }));
+  $('imageFidelity').addEventListener('click', () => sendCommand('fidelityCompare', { goal: goalValue() }));
+  $('imageQa').addEventListener('click', () => sendCommand('qaLaunch', { goal: goalValue() }));
+  $('imageMemory').addEventListener('click', () => sendCommand('memoryLearn', { goal: goalValue() }));
+  $('imageDelete').addEventListener('click', deleteImage);
   $('sendChat').addEventListener('click', sendChat);
   $('chatInput').addEventListener('keydown', (event) => {
     if (event.key === 'Enter') sendChat();

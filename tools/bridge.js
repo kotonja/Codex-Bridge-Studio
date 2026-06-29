@@ -22,8 +22,8 @@ const WorldCompiler = require('../bridge/world-compiler');
 const Fidelity = require('../bridge/fidelity');
 const Dashboard = require('../bridge/dashboard');
 
-const HELPER_VERSION = '0.84.0';
-const MCP_PROXY_VERSION = '0.84.0';
+const HELPER_VERSION = '0.86.0';
+const MCP_PROXY_VERSION = '0.86.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -75,6 +75,12 @@ const MCP_PROXY_TOOLS = [
   'dashboard_pipeline',
   'dashboard_presets',
   'dashboard_safety',
+  'dashboard_image_intake',
+  'dashboard_image_analyze',
+  'dashboard_image_worldcompile',
+  'dashboard_image_history',
+  'dashboard_image_delete',
+  'dashboard_image_self_check',
   'dashboard_self_check',
   'audio_inventory',
   'audio_audit',
@@ -10028,6 +10034,56 @@ async function runDashboard(subcommand = 'compact', args = []) {
     print(await request('/dashboard/safety', { timeoutMs: FAST_TIMEOUT_MS }));
     return;
   }
+  if (mode === 'image-intake' || mode === 'image' || mode === 'reference-image') {
+    await ensureBridgeRunning('dashboard image-intake');
+    const imagePath = args.join(' ').trim();
+    if (!imagePath) throw new Error('dashboard image-intake requires <imagePath>.');
+    print(await request('/dashboard/image/intake', { method: 'POST', body: JSON.stringify({ imagePath }), timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'image-analyze') {
+    await ensureBridgeRunning('dashboard image-analyze');
+    const value = args.join(' ').trim();
+    if (!value) throw new Error('dashboard image-analyze requires <imagePath-or-referenceId>.');
+    const key = /^dash_img_/i.test(value) ? 'referenceId' : 'imagePath';
+    print(await request('/dashboard/image/analyze', { method: 'POST', body: JSON.stringify({ [key]: value }), timeoutMs: 30000 }));
+    return;
+  }
+  if (mode === 'image-worldcompile') {
+    await ensureBridgeRunning('dashboard image-worldcompile');
+    const value = args.join(' ').trim();
+    if (!value) throw new Error('dashboard image-worldcompile requires <imagePath-or-referenceId>.');
+    const key = /^dash_img_/i.test(value) ? 'referenceId' : 'imagePath';
+    print(await request('/dashboard/image/worldcompile', { method: 'POST', body: JSON.stringify({ [key]: value }), timeoutMs: 60000 }));
+    return;
+  }
+  if (mode === 'image-history') {
+    await ensureBridgeRunning('dashboard image-history');
+    print(await request('/dashboard/image/history', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'image-delete') {
+    await ensureBridgeRunning('dashboard image-delete');
+    const referenceId = args[0];
+    if (!referenceId) throw new Error('dashboard image-delete requires <referenceId>.');
+    print(await request(`/dashboard/image/${encodeURIComponent(referenceId)}`, { method: 'DELETE', timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'image-self-check' || mode === 'image-selfcheck') {
+    const script = path.join(process.cwd(), 'tests', 'self-check-dashboard-image.js');
+    const result = childProcess.spawnSync(process.execPath, [script], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      timeout: 20000,
+    });
+    if (result.error) throw result.error;
+    if (result.status !== 0) {
+      throw new Error(`dashboard image self-check failed: ${result.stderr || result.stdout}`);
+    }
+    const output = String(result.stdout || '').trim();
+    print(output ? JSON.parse(output) : { ok: true, version: HELPER_VERSION });
+    return;
+  }
   if (mode === 'open') {
     const bridge = await ensureBridgeRunning('dashboard open');
     let opened = false;
@@ -13652,6 +13708,11 @@ async function main(argv) {
       return;
     }
     await runUi(args[0] || 'audit', args.slice(1));
+    return;
+  }
+
+  if (command === 'image_dashboard' || command === 'image-dashboard' || command === 'upload_reference' || command === 'upload-reference') {
+    await runDashboard('image-intake', args);
     return;
   }
 

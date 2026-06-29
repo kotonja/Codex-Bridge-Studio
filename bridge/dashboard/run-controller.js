@@ -36,6 +36,9 @@ function remember(runtime, action, result, goal) {
   runtime.latest.nextCommand = clean.nextCommand;
   const key = {
     referenceAnalyze: 'Reference',
+    dashboardImageIntake: 'Reference',
+    dashboardImageAnalyze: 'Reference',
+    dashboardImageWorldcompile: 'Worldcompile',
     reconstructInfer: 'Reconstruction',
     worldcompileCompile: 'Worldcompile',
     worldcompilePackage: 'Worldcompile',
@@ -64,7 +67,7 @@ function remember(runtime, action, result, goal) {
 async function runDashboardCommand(runtime, body = {}, options = {}) {
   const action = String(body.action || body.command || '').trim();
   const args = body.args && typeof body.args === 'object' ? body.args : body;
-  const goal = safeGoal(args.goal || args.intent || args.text || args.query || args.source || args.path);
+  const goal = safeGoal(args.goal || args.intent || args.text || args.query || args.referenceId || args.source || args.path || args.imagePath);
   const result = await runAllowedAction(action, args, options);
   const remembered = remember(runtime, action, result, goal);
   if (action === 'executePreview' && result.ok !== false && result.result && result.result.transactionId) {

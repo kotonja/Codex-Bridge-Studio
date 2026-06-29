@@ -36,6 +36,12 @@ async function runSelfCheck() {
     'transaction-view.js',
     'report-view.js',
     'safety-view.js',
+    'image-privacy.js',
+    'image-store.js',
+    'image-intake.js',
+    'image-history.js',
+    'image-pipeline.js',
+    'image-self-check.js',
     'self-check.js',
   ];
   for (const file of required) {
@@ -56,6 +62,10 @@ async function runSelfCheck() {
   assertNoSecretText('html', html);
   assertNoSecretText('app.js', app);
   assertNoSecretText('styles.css', css);
+  assert(html.includes('id="imageFile"'), 'Dashboard HTML must expose local image file input');
+  assert(html.includes('id="imagePath"'), 'Dashboard HTML must expose manual image path fallback');
+  assert(app.includes('/dashboard/image/intake'), 'Dashboard JS must call image intake endpoint');
+  assert(app.includes('/dashboard/image/worldcompile'), 'Dashboard JS must call image worldcompile endpoint');
 
   const state = Dashboard.getState({
     health: { ok: true, version: VERSION, studioConnected: false, paired: false },
@@ -108,6 +118,8 @@ async function runSelfCheck() {
   assert.equal(cost.apiKeyExposed, false);
   const timeline = Dashboard.timeline();
   assert(Array.isArray(timeline.timeline), 'timeline should be structured');
+  const imageSelfCheck = await Dashboard.imageSelfCheck();
+  assert.equal(imageSelfCheck.ok, true);
 
   const redacted = redact({
     token: 'abc',
@@ -140,6 +152,13 @@ async function runSelfCheck() {
     'show dashboard runs': 'dashboard',
     'show dashboard safety': 'dashboard',
     'show dashboard cost': 'dashboard',
+    'upload image to dashboard': 'dashboard',
+    'dashboard image upload': 'dashboard',
+    'use image in dashboard': 'dashboard',
+    'dashboard analyze image': 'dashboard',
+    'dashboard image to world': 'dashboard',
+    'one click image build': 'dashboard',
+    'build image from dashboard': 'dashboard',
     'build this for real': 'execution',
     'use api': 'ai',
     'compare to reference': 'fidelity',
@@ -164,6 +183,7 @@ async function runSelfCheck() {
     timelineStructured: true,
     approvalQueueWorks: true,
     pipelinePresetsWork: true,
+    imagePipelineWorks: true,
     commandRunnerWhitelist: true,
     unknownActionBlocked: true,
     riskyActionBlocked: true,

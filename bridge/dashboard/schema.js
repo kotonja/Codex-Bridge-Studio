@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.84.0';
+const VERSION = '0.86.0';
 const DASHBOARD_PATH = '/dashboard';
 const DASHBOARD_URL = 'http://127.0.0.1:28123/dashboard';
 
@@ -8,6 +8,9 @@ const ACTIONS = [
   'status',
   'pluginHealth',
   'memoryRecommend',
+  'dashboardImageIntake',
+  'dashboardImageAnalyze',
+  'dashboardImageWorldcompile',
   'referenceAnalyze',
   'reconstructInfer',
   'worldcompileCompile',

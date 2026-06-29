@@ -69,6 +69,7 @@ function main() {
   const plugin = read('plugin/CodexStudioBridge.plugin.lua');
   const infoPath = path.join(ROOT, 'plugin/src/generated/bundle-info.json');
   const info = JSON.parse(read('plugin/src/generated/bundle-info.json'));
+  const expectedVersion = info.version || bundle.version;
 
   assert(fs.existsSync(pluginPath), 'Bundled plugin file does not exist.');
   assertNoFeff('plugin/CodexStudioBridge.plugin.lua');
@@ -78,7 +79,7 @@ function main() {
     assertNoFeff(path.relative(ROOT, file).replace(/\\/g, '/'));
   }
   assert(Buffer.byteLength(plugin, 'utf8') > 500000, 'Bundled plugin is suspiciously tiny.');
-  assert(plugin.includes('VERSION = "0.84.0"'), 'Bundled plugin does not contain VERSION = "0.84.0".');
+  assert(plugin.includes(`VERSION = "${expectedVersion}"`), `Bundled plugin does not contain VERSION = "${expectedVersion}".`);
   assert(plugin.includes('bridgeUrl') || plugin.includes('127.0.0.1') || plugin.includes('DEFAULT_PORT'), 'Bundled plugin lacks bridge URL/default port evidence.');
   assert(plugin.includes('/studio/pair') || plugin.toLowerCase().includes('pairing'), 'Bundled plugin lacks pairing endpoint/evidence.');
   assert(plugin.includes('/studio/heartbeat') || plugin.toLowerCase().includes('heartbeat'), 'Bundled plugin lacks heartbeat endpoint/evidence.');
@@ -95,7 +96,7 @@ function main() {
 
   console.log(JSON.stringify({
     ok: true,
-    version: '0.84.0',
+    version: expectedVersion,
     bundleBytes: info.bytes,
     bundleSha256: info.sha256,
     includedFileCount: info.includedFiles.length,

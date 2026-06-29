@@ -1,4 +1,4 @@
-# Codex Studio Bridge V84.0
+# Codex Studio Bridge V86.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -1328,6 +1328,12 @@ Use it when you want bridge health, active Studio place, API configured status, 
 .\tools\bridge.cmd dashboard pipeline "dark purple anime dungeon gate"
 .\tools\bridge.cmd dashboard presets
 .\tools\bridge.cmd dashboard safety
+.\tools\bridge.cmd dashboard image-intake "C:\path\to\reference.png"
+.\tools\bridge.cmd dashboard image-analyze <imagePath-or-referenceId>
+.\tools\bridge.cmd dashboard image-worldcompile <imagePath-or-referenceId>
+.\tools\bridge.cmd dashboard image-history
+.\tools\bridge.cmd dashboard image-delete <referenceId>
+.\tools\bridge.cmd dashboard image-self-check
 .\tools\bridge.cmd dashboard self-check
 .\tools\bridge.cmd chat "what should I build next?"
 .\tools\bridge.cmd one_click_build "premium anime dungeon hub"
@@ -1336,6 +1342,8 @@ Use it when you want bridge health, active Studio place, API configured status, 
 ```
 
 The dashboard is local-only and serves plain HTML/CSS/JS from this repo. It does not use a CDN, does not require `npm install`, and never sends an API key to the frontend, Roblox plugin, HTML, state response, or MCP output. It may show only `apiConfigured: true/false`.
+
+V86 adds dashboard image upload/file intake. Browser uploads and CLI path intake are copied into `.codex-studio/reference-intake-v86/` with metadata, sha256, mode, `actualVisionUsed`, and privacy status. Reports and memory must never contain raw image bytes/base64. Without `OPENAI_API_KEY`, analysis stays `metadataOnly` with `actualVisionUsed: false`; with a real configured API call, the mode may become `apiVision`. Worldcompile image routes create packages/previews only; apply still requires the dashboard approval gate and V72 transaction receipts.
 
 Apply is intentionally gated inside the dashboard: run Execute Preview or a dashboard pipeline first, review the approval queue, then approve Execute Apply. Real Studio mutations still go through the V72 Execution Kernel and must create receipts. Rollback uses transaction ids/receipts only and must only touch transaction-created Codex-owned objects. Reference/image paths are analyzed honestly; raw image bytes are not stored by default.
 

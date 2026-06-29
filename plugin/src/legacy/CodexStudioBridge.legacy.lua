@@ -1,7 +1,7 @@
 -- Codex Studio Bridge V82.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.84.0"
+local VERSION = "0.86.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0
@@ -21100,6 +21100,12 @@ if commandType == "runAutopilotProductionLoop" then
 		dashboard_url = "getDashboardUrl",
 		dashboard_open = "getDashboardUrl",
 		dashboard_self_check = "getDashboardSelfCheck",
+		dashboard_image_intake = "intakeDashboardImage",
+		dashboard_image_analyze = "analyzeDashboardImage",
+		dashboard_image_worldcompile = "worldcompileDashboardImage",
+		dashboard_image_history = "getDashboardImageHistory",
+		dashboard_image_delete = "deleteDashboardImageReference",
+		dashboard_image_self_check = "getDashboardSelfCheck",
 		open_dashboard = "getDashboardUrl",
 		control_room = "getDashboardUrl",
 	}
@@ -21143,6 +21149,30 @@ if commandType == "runAutopilotProductionLoop" then
 
 	if commandType == "submitDashboardReference" then
 		return V82.submitDashboardReference(payload)
+	end
+
+	if commandType == "getDashboardImageHistory" then
+		return V82.getDashboardImageHistory(payload)
+	end
+
+	if commandType == "getDashboardImageReference" then
+		return V82.getDashboardImageReference(payload)
+	end
+
+	if commandType == "intakeDashboardImage" then
+		return V82.intakeDashboardImage(payload)
+	end
+
+	if commandType == "analyzeDashboardImage" then
+		return V82.analyzeDashboardImage(payload)
+	end
+
+	if commandType == "worldcompileDashboardImage" then
+		return V82.worldcompileDashboardImage(payload)
+	end
+
+	if commandType == "deleteDashboardImageReference" then
+		return V82.deleteDashboardImageReference(payload)
 	end
 
 	if commandType == "getCreatorOsStatus" then
@@ -24447,7 +24477,7 @@ function V46.directAliases()
 		"generate_animation", "choreograph_animation", "ability_animation_plan", "motion_audit_animation", "sync_animation_vfx", "generate_animation_variant",
 		"audit_animation", "polish_animation", "retime_animation", "mirror_animation", "compare_animation", "fix_animation", "preview_animation", "scrub_animation", "capture_rig_view",
 		"generate_ability", "preview_ability", "test_ability", "audit_ability", "attach_ability",
-		"dashboard_status", "dashboard_state", "dashboard_url", "dashboard_open", "dashboard_self_check", "open_dashboard", "control_room",
+		"dashboard_status", "dashboard_state", "dashboard_url", "dashboard_open", "dashboard_self_check", "dashboard_image_intake", "dashboard_image_analyze", "dashboard_image_worldcompile", "dashboard_image_history", "dashboard_image_delete", "dashboard_image_self_check", "open_dashboard", "control_room",
 	}
 end
 
@@ -37561,6 +37591,9 @@ V82.actions = {
 	"status",
 	"pluginHealth",
 	"memoryRecommend",
+	"dashboardImageIntake",
+	"dashboardImageAnalyze",
+	"dashboardImageWorldcompile",
 	"referenceAnalyze",
 	"reconstructInfer",
 	"worldcompileCompile",
@@ -37720,6 +37753,30 @@ end
 
 function V82.submitDashboardReference(payload)
 	return V82.manualDashboardAction(payload, "reference")
+end
+
+function V82.getDashboardImageHistory(payload)
+	return V82.manualDashboardAction(payload, "image-history")
+end
+
+function V82.getDashboardImageReference(payload)
+	return V82.manualDashboardAction(payload, "image-reference")
+end
+
+function V82.intakeDashboardImage(payload)
+	return V82.manualDashboardAction(payload, "image-intake")
+end
+
+function V82.analyzeDashboardImage(payload)
+	return V82.manualDashboardAction(payload, "image-analyze")
+end
+
+function V82.worldcompileDashboardImage(payload)
+	return V82.manualDashboardAction(payload, "image-worldcompile")
+end
+
+function V82.deleteDashboardImageReference(payload)
+	return V82.manualDashboardAction(payload, "image-delete")
 end
 
 mutatingTypes = {

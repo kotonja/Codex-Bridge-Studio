@@ -14,7 +14,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.84.0';
+const VERSION = '0.86.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -544,6 +544,12 @@ const toolHandlers = {
   dashboard_pipeline: async (args) => requestBridge('POST', '/dashboard/pipeline', { goal: args.goal || args.intent || args.message || '', preset: args.preset, planOnly: args.planOnly === true }, 60000),
   dashboard_presets: async () => requestBridge('GET', '/dashboard/pipeline/presets', undefined, 2500),
   dashboard_safety: async () => requestBridge('GET', '/dashboard/safety', undefined, 2500),
+  dashboard_image_intake: async (args) => requestBridge('POST', '/dashboard/image/intake', { imagePath: args.imagePath || args.path || args.source || args.file || '' }, 5000),
+  dashboard_image_analyze: async (args) => requestBridge('POST', '/dashboard/image/analyze', { referenceId: args.referenceId || args.id, imagePath: args.imagePath || args.path || args.source || args.file }, 30000),
+  dashboard_image_worldcompile: async (args) => requestBridge('POST', '/dashboard/image/worldcompile', { referenceId: args.referenceId || args.id, imagePath: args.imagePath || args.path || args.source || args.file }, 60000),
+  dashboard_image_history: async () => requestBridge('GET', '/dashboard/image/history', undefined, 2500),
+  dashboard_image_delete: async (args) => requestBridge('DELETE', `/dashboard/image/${encodeURIComponent(args.referenceId || args.id || '')}`, undefined, 2500),
+  dashboard_image_self_check: async () => Dashboard.imageSelfCheck(),
   execute_status: async () => requestBridge('GET', '/codex/execution/status', undefined, 2500),
   execute_roots: async () => requestBridge('GET', '/codex/execution/roots', undefined, 2500),
   execute_preview: async (args) => requestBridge('GET', `/codex/execution/preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox production build')}`, undefined, 3500),
@@ -812,6 +818,12 @@ const toolDefinitions = [
   ['dashboard_pipeline', 'Run a V84 dashboard one-click workflow preview. Stops at approval before apply.', { goal: { type: 'string' }, intent: { type: 'string' }, message: { type: 'string' }, preset: { type: 'string' }, planOnly: { type: 'boolean' } }],
   ['dashboard_presets', 'List V84 dashboard one-click workflow presets.', {}],
   ['dashboard_safety', 'Return V84 dashboard safety and local-only policy report.', {}],
+  ['dashboard_image_intake', 'Intake a local image path into the V86 dashboard image pipeline without storing raw bytes in reports.', { imagePath: { type: 'string' }, path: { type: 'string' }, source: { type: 'string' } }],
+  ['dashboard_image_analyze', 'Analyze a V86 dashboard image reference using metadata-only or real API vision when configured.', { referenceId: { type: 'string' }, id: { type: 'string' }, imagePath: { type: 'string' }, path: { type: 'string' } }],
+  ['dashboard_image_worldcompile', 'Compile a V86 dashboard image reference into a worldcompile package and execution preview without applying.', { referenceId: { type: 'string' }, id: { type: 'string' }, imagePath: { type: 'string' }, path: { type: 'string' } }],
+  ['dashboard_image_history', 'Return V86 dashboard image reference history and latest mode/vision status.', {}],
+  ['dashboard_image_delete', 'Delete a V86 dashboard image reference only from the local reference-intake-v86 store.', { referenceId: { type: 'string' }, id: { type: 'string' } }],
+  ['dashboard_image_self_check', 'Run V86 dashboard image pipeline self-checks.', {}],
   ['dashboard_self_check', 'Run V84 dashboard chat/timeline/security/router self-checks.', {}],
   ['execute_status', 'Return V72 Production Execution Kernel readiness, roots, capabilities, and safety policy.', {}],
   ['execute_roots', 'Return V72 Codex-owned execution roots and rollback-safe path policy.', {}],
