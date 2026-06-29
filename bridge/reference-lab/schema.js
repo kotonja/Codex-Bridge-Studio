@@ -3,7 +3,7 @@
 const path = require('node:path');
 const crypto = require('node:crypto');
 
-const VERSION = '0.74.0';
+const VERSION = '0.75.0';
 const STORE_ROOT = path.join(process.cwd(), '.codex-studio', 'reference-lab-v74');
 const DIRS = {
   intake: path.join(STORE_ROOT, 'intake'),

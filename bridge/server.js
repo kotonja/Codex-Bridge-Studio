@@ -17,8 +17,9 @@ const Memory = require('./memory');
 const Execution = require('./execution');
 const AiOrchestrator = require('./ai-orchestrator');
 const ReferenceLab = require('./reference-lab');
+const Reconstruction = require('./reconstruction');
 
-const VERSION = '0.74.0';
+const VERSION = '0.75.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -581,6 +582,24 @@ const supportedCommands = new Set([
   'getReferenceManifest',
   'rememberReferenceProfile',
   'bakeReferenceManifest',
+  'getReconstructionStatus',
+  'getReconstructionInferenceReport',
+  'getStructuralReconstructionPlan',
+  'getInteriorInferencePlan',
+  'getExteriorCompletionPlan',
+  'getBacksideInferencePlan',
+  'getFloorplanInferencePlan',
+  'getRoomGraphPlan',
+  'getRouteInferencePlan',
+  'getGameplaySpacePlan',
+  'getCollisionInferencePlan',
+  'getReconstructionVariants',
+  'getWorldgenReconstructionBridge',
+  'getAssetForgeReconstructionBridge',
+  'getExecutionReconstructionPlan',
+  'getReconstructionManifest',
+  'rememberReconstructionProfile',
+  'bakeReconstructionManifest',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -2081,6 +2100,22 @@ const CACHEABLE_TTLS = new Map([
   ['getReferenceMissingViewReport', 30_000],
   ['getReferenceCompareReport', 30_000],
   ['getReferenceManifest', 30_000],
+  ['getReconstructionStatus', 15_000],
+  ['getReconstructionInferenceReport', 30_000],
+  ['getStructuralReconstructionPlan', 30_000],
+  ['getInteriorInferencePlan', 30_000],
+  ['getExteriorCompletionPlan', 30_000],
+  ['getBacksideInferencePlan', 30_000],
+  ['getFloorplanInferencePlan', 30_000],
+  ['getRoomGraphPlan', 30_000],
+  ['getRouteInferencePlan', 30_000],
+  ['getGameplaySpacePlan', 30_000],
+  ['getCollisionInferencePlan', 30_000],
+  ['getReconstructionVariants', 30_000],
+  ['getWorldgenReconstructionBridge', 30_000],
+  ['getAssetForgeReconstructionBridge', 30_000],
+  ['getExecutionReconstructionPlan', 30_000],
+  ['getReconstructionManifest', 30_000],
   ['getBuildStyleCatalog', 120_000],
   ['getBuildIntentPlan', 60_000],
   ['getBuildAssetKitReport', 120_000],
@@ -4066,6 +4101,28 @@ const V46_TOOL_CATEGORIES = [
       { command: 'tools\\bridge.cmd ref analyze <reference>', example: 'tools\\bridge.cmd ref analyze "premium lobby screenshot note"', bestFor: 'Short alias for Reference Lab analysis.' },
       { command: 'tools\\bridge.cmd premium reference <reference>', example: 'tools\\bridge.cmd premium reference "anime dungeon reference"', bestFor: 'Premium Director alias that routes through Reference Lab.' },
       { command: 'tools\\bridge.cmd ai reference <reference>', example: 'tools\\bridge.cmd ai reference "anime dungeon reference"', bestFor: 'AI alias that now uses V74 Reference Lab when available.' },
+    ],
+  },
+  {
+    id: 'reconstruction',
+    title: 'V75 Structural Reconstruction Engine',
+    safety: 'readOnlyMissingStructureInferenceV72ExecutionOnly',
+    readiness: ['bridge', 'referenceLab', 'worldgen', 'assetforge', 'executionKernel', 'memory'],
+    commands: [
+      { command: 'tools\\bridge.cmd reconstruct status', example: 'tools\\bridge.cmd reconstruct status', bestFor: 'Check V75 readiness, safety, and next command.' },
+      { command: 'tools\\bridge.cmd reconstruct infer <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct infer "haunted mansion exterior with purple portal"', bestFor: 'Infer missing views, interiors, routes, floorplans, gameplay spaces, and collision logic with confidence.' },
+      { command: 'tools\\bridge.cmd reconstruct interior <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct interior "dark purple anime dungeon gate"', bestFor: 'Infer interior rooms, purposes, vertical links, and inaccessible spaces from exterior/reference evidence.' },
+      { command: 'tools\\bridge.cmd reconstruct backside <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct backside "front-view mansion portal"', bestFor: 'Infer back side variants with uncertainty and alternatives instead of fake certainty.' },
+      { command: 'tools\\bridge.cmd reconstruct floorplan <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct floorplan "castle gate reference"', bestFor: 'Create an inferred floorplan with levels, rooms, connections, blockers, spawn, and objective candidates.' },
+      { command: 'tools\\bridge.cmd reconstruct rooms <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct rooms "portal mansion exterior"', bestFor: 'Return a room graph with roles, adjacency, gameplay use, asset needs, lighting, VFX, and QA risks.' },
+      { command: 'tools\\bridge.cmd reconstruct routes <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct routes "haunted mansion exterior"', bestFor: 'Generate spawn, objective, shop, quest, portal, reward, full-loop, secret, and mobile-safe routes.' },
+      { command: 'tools\\bridge.cmd reconstruct collisions <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct collisions "dungeon gate reference"', bestFor: 'Infer wall, blocker, no-collision VFX, proxy, and path-clearance collision zones.' },
+      { command: 'tools\\bridge.cmd reconstruct worldgen <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct worldgen "dungeon gate exterior"', bestFor: 'Convert reconstruction into V66-compatible zones, paths, landmarks, vistas, sockets, and QA routes.' },
+      { command: 'tools\\bridge.cmd reconstruct assetforge <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct assetforge "mansion portal exterior"', bestFor: 'Convert reconstruction into V67-compatible modular walls, doors/windows, trims, props, materials, sockets, and collision proxies.' },
+      { command: 'tools\\bridge.cmd reconstruct execute-plan <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct execute-plan "haunted mansion exterior"', bestFor: 'Return a V72 preview-only execution plan; no Studio mutation.' },
+      { command: 'tools\\bridge.cmd reconstruct remember <reference-or-goal>', example: 'tools\\bridge.cmd reconstruct remember "haunted mansion exterior"', bestFor: 'Store a redacted reconstruction profile in Production Memory.' },
+      { command: 'tools\\bridge.cmd premium reconstruct <reference-or-goal>', example: 'tools\\bridge.cmd premium reconstruct "anime dungeon gate"', bestFor: 'Premium Director alias for V75 reconstruction.' },
+      { command: 'tools\\bridge.cmd reference reconstruct <reference-or-goal>', example: 'tools\\bridge.cmd reference reconstruct "front-view dungeon gate"', bestFor: 'Reference Lab alias for missing-structure inference.' },
     ],
   },
   {
@@ -6525,6 +6582,49 @@ async function route(req, res) {
     const body = await readBody(req);
     const source = body.source || body.path || body.goal || body.intent || body.text || body.note || '';
     sendJson(res, 200, await ReferenceLab.remember(source, { ...body, source: 'serverHttp.reference.remember' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/reconstruction/status') {
+    sendJson(res, 200, Reconstruction.getStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/reconstruction/')) {
+    const endpoint = path.replace('/codex/reconstruction/', '');
+    const source = requestUrl.searchParams.get('source')
+      || requestUrl.searchParams.get('path')
+      || requestUrl.searchParams.get('q')
+      || requestUrl.searchParams.get('goal')
+      || requestUrl.searchParams.get('text')
+      || '';
+    const map = {
+      infer: () => Reconstruction.createInferenceReport(source, { source: 'serverHttp.reconstruction.infer' }),
+      structure: () => Reconstruction.getStructuralReconstructionPlan(source),
+      interior: () => Reconstruction.getInteriorInferencePlan(source),
+      exterior: () => Reconstruction.getExteriorCompletionPlan(source),
+      backside: () => Reconstruction.getBacksideInferencePlan(source),
+      floorplan: () => Reconstruction.getFloorplanInferencePlan(source),
+      rooms: () => Reconstruction.getRoomGraphPlan(source),
+      routes: () => Reconstruction.getRouteInferencePlan(source),
+      gameplay: () => Reconstruction.getGameplaySpacePlan(source),
+      collisions: () => Reconstruction.getCollisionInferencePlan(source),
+      variants: () => Reconstruction.getReconstructionVariants(source),
+      worldgen: () => Reconstruction.getWorldgenReconstructionBridge(source),
+      assetforge: () => Reconstruction.getAssetForgeReconstructionBridge(source),
+      'execute-plan': () => Reconstruction.getExecutionReconstructionPlan(source),
+      manifest: () => Reconstruction.getReconstructionManifest(source),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, await map[endpoint]());
+      return;
+    }
+  }
+
+  if (req.method === 'POST' && path === '/codex/reconstruction/remember') {
+    const body = await readBody(req);
+    const source = body.source || body.path || body.goal || body.intent || body.text || body.note || '';
+    sendJson(res, 200, await Reconstruction.remember(source, { ...body, source: 'serverHttp.reconstruction.remember' }));
     return;
   }
 

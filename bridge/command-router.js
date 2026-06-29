@@ -50,6 +50,8 @@ function createRoute(rawQuery = '', options = {}) {
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
   const aiSignal = has('use api', 'run with api', 'ai orchestrator', 'api orchestrator', 'use openai api', 'ai build this', 'run ai production', 'ai reference intake', 'analyze this reference with api', 'use api to build premium', 'api premium run')
     || ((has('api', 'openai api', 'ai') && has('orchestrator', 'reference intake', 'build this', 'production', 'premium run', 'run with', 'use')));
+  const reconstructionSignal = has('infer the inside', 'generate the inside', 'what is behind this', 'infer the back side', 'infer the backside', 'make the unseen side', 'create floorplan from image', 'infer floorplan', 'missing structure', 'structural reconstruction', 'reconstruct this building', 'turn outside into interior', 'make interior from exterior', 'infer rooms', 'infer routes', 'infer playable layout', 'what does the reference not show', 'fill in missing parts')
+    || ((has('reconstruct', 'reconstruction', 'infer', 'missing', 'unseen', 'backside', 'back side', 'inside', 'interior', 'floorplan', 'floor plan', 'rooms', 'routes') && has('structure', 'building', 'reference', 'image', 'exterior', 'layout', 'playable', 'behind', 'side', 'parts')));
   const referenceSignal = has('analyze this reference', 'analyze reference', 'image reference', 'use this image as reference', 'understand this image', 'turn this image into a style bible', 'extract style from this', 'what is in this image', 'what does this reference imply', 'make from this reference', 'reference lab', 'moodboard analysis', 'concept art analysis', 'screenshot reference', 'read this image for roblox', 'infer the style from this image')
     || ((has('reference', 'image', 'moodboard', 'concept art', 'screenshot', 'sketch') && has('analyze', 'understand', 'extract', 'style bible', 'what is in', 'imply', 'read this', 'make from')))
     || (has('premium reference') && !has('memory'));
@@ -130,6 +132,28 @@ function createRoute(rawQuery = '', options = {}) {
       confidence: 0.96,
       reason: 'Fast live context request.',
       commands: ['tools\\bridge.cmd codex-context', 'tools\\bridge.cmd watch now', 'tools\\bridge.cmd watch errors'],
+    });
+  } else if (reconstructionSignal) {
+    const action = has('floorplan', 'floor plan') ? 'floorplan'
+      : has('inside', 'interior', 'turn outside into interior', 'make interior from exterior') ? 'interior'
+        : has('back side', 'backside', 'behind') ? 'backside'
+          : has('routes', 'playable layout') ? 'routes'
+            : has('rooms') ? 'rooms'
+              : has('collisions', 'collision') ? 'collisions'
+                : has('worldgen') ? 'worldgen'
+                  : has('assetforge', 'assets') ? 'assetforge'
+                    : 'infer';
+    setRoute({
+      category: 'reconstruction',
+      title: 'V75 Structural Reconstruction Engine',
+      confidence: 0.96,
+      safety: 'readOnlyMissingStructureInference',
+      reason: 'Missing-view, interior, backside, floorplan, or playable-structure inference language detected. Use V75 before worldgen/execution.',
+      commands: [
+        `tools\\bridge.cmd reconstruct ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd reconstruct worldgen ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd reconstruct execute-plan ${quoteForCommand(intent)}`,
+      ],
     });
   } else if (referenceSignal) {
     const action = has('style bible', 'extract style', 'style from') ? 'style'
@@ -543,6 +567,10 @@ function catalog(version = null) {
     ['ai orchestrator', 'tools\\bridge.cmd ai status'],
     ['api premium run', 'tools\\bridge.cmd ai run "premium Roblox production goal"'],
     ['ai reference intake', 'tools\\bridge.cmd ai reference "<path-or-note>"'],
+    ['infer the inside', 'tools\\bridge.cmd reconstruct interior "<reference-or-goal>"'],
+    ['what is behind this', 'tools\\bridge.cmd reconstruct backside "<reference-or-goal>"'],
+    ['create floorplan from image', 'tools\\bridge.cmd reconstruct floorplan "<reference-or-goal>"'],
+    ['missing structure', 'tools\\bridge.cmd reconstruct infer "<reference-or-goal>"'],
     ['new pairing code', 'tools\\bridge.cmd pair reset'],
     ['show places', 'tools\\bridge.cmd places'],
     ['switch to RiftArena', 'tools\\bridge.cmd place use RiftArena'],

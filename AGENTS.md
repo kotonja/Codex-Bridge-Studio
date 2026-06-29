@@ -457,6 +457,53 @@ Recommended V74 production flow:
 .\tools\bridge.cmd execute preview "dark anime dungeon gate hub"
 ```
 
+V75 Structural Reconstruction Engine is the preferred route when the user asks what is behind, inside, above, below, or off-camera from a reference; asks to infer interiors from an exterior; asks for floorplans, room graphs, routes, collision zones, or missing structure; or says to reconstruct a building/map from a partial view. It consumes V74 Reference Lab evidence, then produces confidence-scored missing-view plans for V66 Worldgen, V67 Asset Forge, V72 Execution preview, V71 Memory, and Premium Director. It is read-only/planning-only by default and must not fake hidden geometry or exact floorplans.
+
+```powershell
+.\tools\bridge.cmd reconstruct status
+.\tools\bridge.cmd reconstruct infer "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct structure "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct interior "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct exterior "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct backside "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct floorplan "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct rooms "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct routes "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct gameplay "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct collisions "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct variants "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct worldgen "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct assetforge "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct execute-plan "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct manifest "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct remember "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct self-check
+.\tools\bridge.cmd infer_structure "haunted mansion exterior"
+.\tools\bridge.cmd infer_inside "haunted mansion exterior"
+.\tools\bridge.cmd infer_backside "haunted mansion exterior"
+.\tools\bridge.cmd infer_floorplan "haunted mansion exterior"
+.\tools\bridge.cmd missing_structure "haunted mansion exterior"
+.\tools\bridge.cmd structural_reconstruct "haunted mansion exterior"
+.\tools\bridge.cmd premium reconstruct "haunted mansion exterior"
+.\tools\bridge.cmd reference reconstruct "haunted mansion exterior"
+```
+
+Every V75 inference must include confidence, source evidence, reason, risk, alternatives, and whether additional reference is needed. When evidence is text-only or partial, V75 should return conservative alternatives such as `faithfulReference`, `gameplayFirst`, and `mobileOptimized`, with `actualVisionUsed: false` unless real image/API vision evidence was used. Real Roblox object creation must still route through V72 preview/apply/verify/rollback and should stay Codex-owned unless the user explicitly chooses an integration path.
+
+Recommended V75 production flow:
+
+```powershell
+.\tools\bridge.cmd reference analyze "haunted mansion exterior"
+.\tools\bridge.cmd reconstruct infer "haunted mansion exterior"
+.\tools\bridge.cmd reconstruct interior "haunted mansion exterior"
+.\tools\bridge.cmd reconstruct floorplan "haunted mansion exterior"
+.\tools\bridge.cmd reconstruct worldgen "haunted mansion exterior"
+.\tools\bridge.cmd reconstruct assetforge "haunted mansion exterior"
+.\tools\bridge.cmd execute preview "haunted mansion reconstructed hub"
+```
+
+Routing priority for V75: pairing/recovery still wins; explicit reference-only analysis stays with V74; explicit premium whole-game/lobby requests stay with Premium Director unless the user asks to infer/reconstruct/missing/interior/backside/floorplan; explicit map/layout generation still goes to Worldgen unless missing-view reconstruction is requested; explicit asset/prop generation still goes to Asset Forge unless structure inference is requested.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

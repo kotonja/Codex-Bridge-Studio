@@ -1,4 +1,4 @@
-# Codex Studio Bridge V74.0
+# Codex Studio Bridge V75.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -350,6 +350,43 @@ Example flow:
 .\tools\bridge.cmd worldgen graph "dark anime dungeon gate hub"
 .\tools\bridge.cmd assetforge kit "dark anime dungeon gate hub"
 .\tools\bridge.cmd execute preview "dark anime dungeon gate hub"
+```
+
+## V75 Structural Reconstruction Engine
+
+V75 answers the question V74 intentionally does not fake: what is probably behind, inside, under, above, or off-camera from a partial reference. It infers missing sides, backs of buildings, interiors from exteriors, floorplans, rooms, routes, vertical links, gameplay spaces, collision zones, and production bridges for Worldgen, Asset Forge, Execution, Memory, and Premium. It is read-only/planning-only by default and every inference includes confidence, source evidence, reason, risk, alternatives, and whether more reference is needed.
+
+```powershell
+.\tools\bridge.cmd reconstruct status
+.\tools\bridge.cmd reconstruct infer "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct interior "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct backside "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct floorplan "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct rooms "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct routes "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct gameplay "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct collisions "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct variants "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct worldgen "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct assetforge "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct execute-plan "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct remember "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reconstruct self-check
+.\tools\bridge.cmd infer_inside "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd infer_backside "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd infer_floorplan "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd premium reconstruct "haunted mansion exterior with purple portal"
+.\tools\bridge.cmd reference reconstruct "haunted mansion exterior with purple portal"
+```
+
+Reconstruction is honest about uncertainty. It must not claim a real floorplan exists unless the user supplied one or vision/API evidence truly supports it. When confidence is weak, it returns alternatives such as `faithfulReference`, `gameplayFirst`, and `mobileOptimized`, plus `needsUserReference` entries. Any real Roblox build still routes through V72:
+
+```powershell
+.\tools\bridge.cmd reference analyze "haunted mansion exterior"
+.\tools\bridge.cmd reconstruct infer "haunted mansion exterior"
+.\tools\bridge.cmd reconstruct floorplan "haunted mansion exterior"
+.\tools\bridge.cmd reconstruct worldgen "haunted mansion exterior"
+.\tools\bridge.cmd execute preview "haunted mansion reconstructed hub"
 ```
 
 For day-to-day connection and pairing help:

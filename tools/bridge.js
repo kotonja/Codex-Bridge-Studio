@@ -17,9 +17,10 @@ const Memory = require('../bridge/memory');
 const Execution = require('../bridge/execution');
 const AiOrchestrator = require('../bridge/ai-orchestrator');
 const ReferenceLab = require('../bridge/reference-lab');
+const Reconstruction = require('../bridge/reconstruction');
 
-const HELPER_VERSION = '0.74.0';
-const MCP_PROXY_VERSION = '0.74.0';
+const HELPER_VERSION = '0.75.0';
+const MCP_PROXY_VERSION = '0.75.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -218,6 +219,23 @@ const MCP_PROXY_TOOLS = [
   'reference_compare',
   'reference_manifest',
   'reference_remember',
+  'reconstruct_status',
+  'reconstruct_infer',
+  'reconstruct_structure',
+  'reconstruct_interior',
+  'reconstruct_exterior',
+  'reconstruct_backside',
+  'reconstruct_floorplan',
+  'reconstruct_rooms',
+  'reconstruct_routes',
+  'reconstruct_gameplay',
+  'reconstruct_collisions',
+  'reconstruct_variants',
+  'reconstruct_worldgen',
+  'reconstruct_assetforge',
+  'reconstruct_execute_plan',
+  'reconstruct_manifest',
+  'reconstruct_remember',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -491,6 +509,30 @@ Usage:
   node tools/bridge.js reference self-check
   node tools/bridge.js ref analyze "<path-or-note>"
   node tools/bridge.js analyze_reference "<path-or-note>"
+  node tools/bridge.js reconstruct status
+  node tools/bridge.js reconstruct infer "<reference-or-goal>"
+  node tools/bridge.js reconstruct structure "<reference-or-goal>"
+  node tools/bridge.js reconstruct interior "<reference-or-goal>"
+  node tools/bridge.js reconstruct exterior "<reference-or-goal>"
+  node tools/bridge.js reconstruct backside "<reference-or-goal>"
+  node tools/bridge.js reconstruct floorplan "<reference-or-goal>"
+  node tools/bridge.js reconstruct rooms "<reference-or-goal>"
+  node tools/bridge.js reconstruct routes "<reference-or-goal>"
+  node tools/bridge.js reconstruct gameplay "<reference-or-goal>"
+  node tools/bridge.js reconstruct collisions "<reference-or-goal>"
+  node tools/bridge.js reconstruct variants "<reference-or-goal>"
+  node tools/bridge.js reconstruct worldgen "<reference-or-goal>"
+  node tools/bridge.js reconstruct assetforge "<reference-or-goal>"
+  node tools/bridge.js reconstruct execute-plan "<reference-or-goal>"
+  node tools/bridge.js reconstruct manifest "<reference-or-goal>"
+  node tools/bridge.js reconstruct remember "<reference-or-goal>"
+  node tools/bridge.js reconstruct self-check
+  node tools/bridge.js infer_structure "<reference-or-goal>"
+  node tools/bridge.js infer_inside "<reference-or-goal>"
+  node tools/bridge.js infer_backside "<reference-or-goal>"
+  node tools/bridge.js infer_floorplan "<reference-or-goal>"
+  node tools/bridge.js missing_structure "<reference-or-goal>"
+  node tools/bridge.js structural_reconstruct "<reference-or-goal>"
   node tools/bridge.js execute status
   node tools/bridge.js execute roots
   node tools/bridge.js execute preview "<goal>"
@@ -6720,6 +6762,85 @@ async function runReference(subcommand = 'status', args = []) {
   throw new Error('reference command must be status, intake, analyze, style, scene, materials, objects, layout, gameplay, missing, compare, manifest, remember, or self-check.');
 }
 
+async function runReconstruction(subcommand = 'status', args = []) {
+  const mode = String(subcommand || 'status').toLowerCase();
+  const text = args.join(' ').trim();
+  const goal = text || 'haunted mansion exterior reference';
+  if (mode === 'status') {
+    print(Reconstruction.getStatus());
+    return;
+  }
+  if (mode === 'infer' || mode === 'inference' || mode === 'analyze') {
+    print(await Reconstruction.createInferenceReport(goal, { source: 'tools.bridge.reconstruct.infer' }));
+    return;
+  }
+  if (mode === 'structure' || mode === 'plan') {
+    print(await Reconstruction.getStructuralReconstructionPlan(goal));
+    return;
+  }
+  if (mode === 'interior' || mode === 'inside') {
+    print(await Reconstruction.getInteriorInferencePlan(goal));
+    return;
+  }
+  if (mode === 'exterior' || mode === 'outside') {
+    print(await Reconstruction.getExteriorCompletionPlan(goal));
+    return;
+  }
+  if (mode === 'backside' || mode === 'back' || mode === 'rear') {
+    print(await Reconstruction.getBacksideInferencePlan(goal));
+    return;
+  }
+  if (mode === 'floorplan' || mode === 'floor-plan') {
+    print(await Reconstruction.getFloorplanInferencePlan(goal));
+    return;
+  }
+  if (mode === 'rooms' || mode === 'room-graph' || mode === 'roomgraph') {
+    print(await Reconstruction.getRoomGraphPlan(goal));
+    return;
+  }
+  if (mode === 'routes' || mode === 'route') {
+    print(await Reconstruction.getRouteInferencePlan(goal));
+    return;
+  }
+  if (mode === 'gameplay' || mode === 'spaces') {
+    print(await Reconstruction.getGameplaySpacePlan(goal));
+    return;
+  }
+  if (mode === 'collisions' || mode === 'collision') {
+    print(await Reconstruction.getCollisionInferencePlan(goal));
+    return;
+  }
+  if (mode === 'variants' || mode === 'variant') {
+    print(await Reconstruction.getReconstructionVariants(goal));
+    return;
+  }
+  if (mode === 'worldgen') {
+    print(await Reconstruction.getWorldgenReconstructionBridge(goal));
+    return;
+  }
+  if (mode === 'assetforge' || mode === 'assets') {
+    print(await Reconstruction.getAssetForgeReconstructionBridge(goal));
+    return;
+  }
+  if (mode === 'execute-plan' || mode === 'execution' || mode === 'execute') {
+    print(await Reconstruction.getExecutionReconstructionPlan(goal));
+    return;
+  }
+  if (mode === 'manifest' || mode === 'bake') {
+    print(await Reconstruction.getReconstructionManifest(goal));
+    return;
+  }
+  if (mode === 'remember') {
+    print(await Reconstruction.remember(goal, { source: 'tools.bridge.reconstruct.remember' }));
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-reconstruction.js'));
+    return;
+  }
+  throw new Error('reconstruct command must be status, infer, structure, interior, exterior, backside, floorplan, rooms, routes, gameplay, collisions, variants, worldgen, assetforge, execute-plan, manifest, remember, or self-check.');
+}
+
 async function runAi(subcommand = 'status', args = []) {
   const cleanGoal = () => args.join(' ').trim() || 'premium Roblox production goal';
   const mode = String(subcommand || 'status').toLowerCase();
@@ -6804,6 +6925,11 @@ async function runPremium(subcommand = 'status', args = []) {
 
   if (subcommand === 'reference' || subcommand === 'ref') {
     await runReference('analyze', args);
+    return;
+  }
+
+  if (subcommand === 'reconstruct' || subcommand === 'reconstruction') {
+    await runReconstruction('infer', args);
     return;
   }
 
@@ -7082,7 +7208,7 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
-  throw new Error('premium command must be status, plan, style, assets, world, motion, reference, build, critique, qa, launch, autopilot, loop, auto, memory, learn, polish, director, score, bake, or self-check.');
+  throw new Error('premium command must be status, plan, style, assets, world, motion, reference, reconstruct, build, critique, qa, launch, autopilot, loop, auto, memory, learn, polish, director, score, bake, or self-check.');
 }
 
 async function visualEvidenceOptions(extra = {}) {
@@ -11974,12 +12100,41 @@ async function main(argv) {
   }
 
   if (command === 'reference' || command === 'ref') {
+    if (args[0] === 'reconstruct' || args[0] === 'reconstruction') {
+      await runReconstruction('infer', args.slice(1));
+      return;
+    }
     await runReference(args[0] || 'status', args.slice(1));
     return;
   }
 
   if (command === 'analyze_reference' || command === 'analyze-reference' || command === 'reference_lab' || command === 'reference-lab' || command === 'image_reference' || command === 'image-reference') {
     await runReference('analyze', args);
+    return;
+  }
+
+  if (command === 'reconstruct' || command === 'reconstruction') {
+    await runReconstruction(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'infer_structure' || command === 'infer-structure' || command === 'missing_structure' || command === 'missing-structure' || command === 'structural_reconstruct' || command === 'structural-reconstruct') {
+    await runReconstruction('infer', args);
+    return;
+  }
+
+  if (command === 'infer_inside' || command === 'infer-inside') {
+    await runReconstruction('interior', args);
+    return;
+  }
+
+  if (command === 'infer_backside' || command === 'infer-backside') {
+    await runReconstruction('backside', args);
+    return;
+  }
+
+  if (command === 'infer_floorplan' || command === 'infer-floorplan') {
+    await runReconstruction('floorplan', args);
     return;
   }
 

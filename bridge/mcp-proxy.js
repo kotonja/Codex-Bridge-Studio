@@ -9,8 +9,9 @@ const Execution = require('./execution');
 const Memory = require('./memory');
 const AiOrchestrator = require('./ai-orchestrator');
 const ReferenceLab = require('./reference-lab');
+const Reconstruction = require('./reconstruction');
 
-const VERSION = '0.74.0';
+const VERSION = '0.75.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -563,6 +564,23 @@ const toolHandlers = {
   reference_compare: async (args) => ReferenceLab.compareReferences(args.refA || args.a || args.sourceA || args.before || '', args.refB || args.b || args.sourceB || args.after || ''),
   reference_manifest: async (args) => ReferenceLab.getManifest(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
   reference_remember: async (args) => ReferenceLab.remember(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reference.remember', metadata: redacted(args.metadata || {}) }),
+  reconstruct_status: async () => Reconstruction.getStatus(),
+  reconstruct_infer: async (args) => Reconstruction.createInferenceReport(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reconstruct.infer', metadata: redacted(args.metadata || {}) }),
+  reconstruct_structure: async (args) => Reconstruction.getStructuralReconstructionPlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_interior: async (args) => Reconstruction.getInteriorInferencePlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_exterior: async (args) => Reconstruction.getExteriorCompletionPlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_backside: async (args) => Reconstruction.getBacksideInferencePlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_floorplan: async (args) => Reconstruction.getFloorplanInferencePlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_rooms: async (args) => Reconstruction.getRoomGraphPlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_routes: async (args) => Reconstruction.getRouteInferencePlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_gameplay: async (args) => Reconstruction.getGameplaySpacePlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_collisions: async (args) => Reconstruction.getCollisionInferencePlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_variants: async (args) => Reconstruction.getReconstructionVariants(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_worldgen: async (args) => Reconstruction.getWorldgenReconstructionBridge(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_assetforge: async (args) => Reconstruction.getAssetForgeReconstructionBridge(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_execute_plan: async (args) => Reconstruction.getExecutionReconstructionPlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_manifest: async (args) => Reconstruction.getReconstructionManifest(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reconstruct_remember: async (args) => Reconstruction.remember(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reconstruct.remember', metadata: redacted(args.metadata || {}) }),
   memory_status: async () => Memory.getProductionMemoryStatus(),
   memory_profile: async () => Memory.getProjectMemoryProfile(),
   memory_learn: async (args) => Memory.learnFromProductionReport(args.goal || args.intent || args.text || args.report || 'premium Roblox production goal', args),
@@ -770,6 +788,23 @@ const toolDefinitions = [
   ['reference_compare', 'Compare two reference notes/paths and return shared/different production language.', { refA: { type: 'string' }, refB: { type: 'string' }, a: { type: 'string' }, b: { type: 'string' } }],
   ['reference_manifest', 'Save/return a redacted V74 reference manifest for specialist planning.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
   ['reference_remember', 'Store a redacted V74 reference profile in Production Memory.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_status', 'Return V75 Structural Reconstruction readiness, capabilities, confidence policy, and next command.', {}],
+  ['reconstruct_infer', 'Infer missing views, interiors, floorplans, routes, gameplay spaces, collision zones, and production bridges with confidence.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_structure', 'Return the V75 structural shell/opening/playable-space plan.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_interior', 'Infer interior rooms, purposes, vertical links, and inaccessible spaces from exterior/reference evidence.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_exterior', 'Complete visible/unseen exterior shell, side walls, roof, and openings without claiming certainty.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_backside', 'Infer back side alternatives with confidence, reasons, and user-reference needs.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_floorplan', 'Return inferred levels, rooms, connections, blockers, spawn candidates, and objective candidates.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_rooms', 'Return the V75 room graph with roles, adjacency, asset needs, lighting needs, VFX needs, and QA risks.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_routes', 'Return spawn/objective/shop/quest/portal/reward/full-loop/secret/mobile-safe route plans.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_gameplay', 'Infer spawn, objective, loop, shop, quest, portal, combat, social, reward, cinematic, and mobile readability spaces.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_collisions', 'Infer walls, railings, blocked decor, no-collision VFX, collision proxies, and path clearances.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_variants', 'Return faithfulReference, gameplayFirst, and mobileOptimized reconstruction variants.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_worldgen', 'Convert V75 reconstruction into V66-compatible zones, paths, landmarks, vistas, blockers, sockets, and QA routes.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_assetforge', 'Convert V75 reconstruction into V67-compatible asset families, materials, sockets, collision proxies, doors/windows, trims, and props.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_execute_plan', 'Return a V72 preview-only execution plan for Codex-owned reconstruction markers/blockouts; does not mutate Studio.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_manifest', 'Save/return a redacted V75 reconstruction manifest for later worldgen/assetforge/execution planning.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['reconstruct_remember', 'Store a redacted V75 reconstruction profile in Production Memory; no raw image bytes.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['memory_status', 'Return V71 Production Memory readiness, local storage, and redaction policy.', {}],
   ['memory_profile', 'Return the local project memory profile and user taste profile.', {}],
   ['memory_learn', 'Learn redacted production memory from a goal or report summary.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, report: { type: 'object' } }],
