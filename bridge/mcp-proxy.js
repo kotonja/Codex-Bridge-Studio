@@ -12,8 +12,9 @@ const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
 const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
+const Dashboard = require('./dashboard');
 
-const VERSION = '0.80.0';
+const VERSION = '0.82.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -525,6 +526,11 @@ const toolHandlers = {
   generate_pro_vfx: async (args) => mutationCommand('generateProVfxFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', targetPath: args.targetPath, assetRoot: args.assetRoot }),
   motion_vfx_generate: async (args) => mutationCommand('generateMotionVfxPackage', { ...basePayload(args), intent: args.intent || args.text || '', rigPath: args.rigPath, targetPath: args.targetPath, assetRoot: args.assetRoot }),
   ability_generate: async (args) => mutationCommand('generateAbilityFromIntent', { ...basePayload(args), intent: args.intent || args.text || '', rigPath: args.rigPath, targetPath: args.targetPath }),
+  dashboard_status: async () => requestBridge('GET', '/dashboard/state', undefined, 2500),
+  dashboard_state: async () => requestBridge('GET', '/dashboard/state', undefined, 2500),
+  dashboard_url: async () => ({ ok: true, version: VERSION, url: Dashboard.DASHBOARD_URL, localOnly: true }),
+  dashboard_open: async () => ({ ok: true, version: VERSION, url: Dashboard.DASHBOARD_URL, localOnly: true, nextCommand: 'tools\\bridge.cmd dashboard open' }),
+  dashboard_self_check: async () => Dashboard.selfCheck(),
   execute_status: async () => requestBridge('GET', '/codex/execution/status', undefined, 2500),
   execute_roots: async () => requestBridge('GET', '/codex/execution/roots', undefined, 2500),
   execute_preview: async (args) => requestBridge('GET', `/codex/execution/preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox production build')}`, undefined, 3500),
@@ -776,6 +782,11 @@ const toolDefinitions = [
   ['generate_pro_vfx', 'Generate a pro VFX preset from intent and available asset kits.', { intent: { type: 'string' }, targetPath: { type: 'string' }, assetRoot: { type: 'string' } }],
   ['motion_vfx_generate', 'Generate a synchronized motion/VFX package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
   ['ability_generate', 'Generate a Codex-owned ability package.', { intent: { type: 'string' }, rigPath: { type: 'string' }, targetPath: { type: 'string' } }],
+  ['dashboard_status', 'Return V82 local dashboard bridge/Studio/API/safety status without exposing secrets.', {}],
+  ['dashboard_state', 'Return the V82 local production dashboard state: active place, pending approval, scores, transactions, warnings, and next command.', {}],
+  ['dashboard_url', 'Return the local-only dashboard URL.', {}],
+  ['dashboard_open', 'Return dashboard open guidance and URL. Use tools\\bridge.cmd dashboard open to launch the browser.', {}],
+  ['dashboard_self_check', 'Run V82 dashboard module/security/router self-checks.', {}],
   ['execute_status', 'Return V72 Production Execution Kernel readiness, roots, capabilities, and safety policy.', {}],
   ['execute_roots', 'Return V72 Codex-owned execution roots and rollback-safe path policy.', {}],
   ['execute_preview', 'Preview a V72 transaction-backed real Studio build plan without mutating Studio.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],

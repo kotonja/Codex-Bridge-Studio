@@ -20,8 +20,9 @@ const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
 const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
+const Dashboard = require('./dashboard');
 
-const VERSION = '0.80.0';
+const VERSION = '0.82.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -626,6 +627,16 @@ const supportedCommands = new Set([
   'getReferenceFidelityMemoryReport',
   'getReferenceFidelityManifest',
   'bakeReferenceFidelityManifest',
+  'getDashboardStatus',
+  'getDashboardState',
+  'getDashboardUrl',
+  'getDashboardSelfCheck',
+  'runDashboardCommand',
+  'runDashboardProductionRequest',
+  'approveDashboardRun',
+  'cancelDashboardRun',
+  'rollbackDashboardTransaction',
+  'submitDashboardReference',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -4059,6 +4070,21 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'dashboard',
+    title: 'V82 Local AI Production Dashboard',
+    safety: 'localOnlyBrowserControlRoomWithExecutionKernelApproval',
+    readiness: ['bridge'],
+    commands: [
+      { command: 'tools\\bridge.cmd dashboard status', example: 'tools\\bridge.cmd dashboard status', bestFor: 'Show dashboard bridge/Studio/API/safety status without opening a browser.' },
+      { command: 'tools\\bridge.cmd dashboard open', example: 'tools\\bridge.cmd dashboard open', bestFor: 'Open the local-only browser control room at http://127.0.0.1:28123/dashboard.' },
+      { command: 'tools\\bridge.cmd dashboard url', example: 'tools\\bridge.cmd dashboard url', bestFor: 'Print the dashboard URL for manual browser open.' },
+      { command: 'tools\\bridge.cmd dashboard state', example: 'tools\\bridge.cmd dashboard state', bestFor: 'Return structured dashboard state: place, plugin, API configured flag, safety, pending apply review, scores, and transactions.' },
+      { command: 'tools\\bridge.cmd dashboard self-check', example: 'tools\\bridge.cmd dashboard self-check', bestFor: 'Run dependency-free dashboard module/router/security checks.' },
+      { command: 'tools\\bridge.cmd open_dashboard', example: 'tools\\bridge.cmd open_dashboard', bestFor: 'Direct alias for opening the V82 dashboard.' },
+      { command: 'tools\\bridge.cmd control_room', example: 'tools\\bridge.cmd control_room', bestFor: 'Direct alias for opening the production control room.' },
+    ],
+  },
+  {
     id: 'places',
     title: 'Multi-Place / Universe Router',
     safety: 'readOnlyRouting',
@@ -6332,6 +6358,135 @@ function bridgeBootstrapSummary() {
   };
 }
 
+function sendContent(res, status, contentType, body) {
+  res.writeHead(status, {
+    'Content-Type': contentType,
+    'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff',
+  });
+  res.end(body);
+}
+
+function dashboardHealthSnapshot() {
+  return {
+    ok: true,
+    version: VERSION,
+    host: HOST,
+    port: PORT,
+    paired: Boolean(sessionToken),
+    studioConnected: freshStudioEntries().length > 0,
+    activeStudioId,
+    activePlace: compactPlaceEntry(getActiveStudioEntry()),
+  };
+}
+
+function dashboardEnv() {
+  return {
+    health: dashboardHealthSnapshot,
+    activePlace: () => compactPlaceEntry(getActiveStudioEntry()),
+    transactions: () => Dashboard.transactions(12, { transactions: Execution.transactionList(12) }),
+    status: dashboardHealthSnapshot,
+    pluginHealth: dashboardHealthSnapshot,
+    executeApply: executeApplyInStudio,
+    executeRollback: executeRollbackInStudio,
+  };
+}
+
+async function executeApplyInStudio(goal, body = {}) {
+  const active = getActiveStudioEntry();
+  const applyPlan = Execution.apply(goal, body);
+  if (!active || !isPlaceFresh(active)) {
+    return {
+      ...applyPlan,
+      ok: false,
+      status: 'manualRequired',
+      warnings: [...(applyPlan.warnings || []), 'Studio is not connected/fresh; no Studio objects were created.'],
+      blockers: applyPlan.blockers || [],
+      nextCommand: 'tools\\bridge.cmd connect',
+    };
+  }
+  if (active.pluginVersion && active.pluginVersion !== VERSION) {
+    return {
+      ...applyPlan,
+      ok: false,
+      status: 'manualRequired',
+      reason: 'versionMismatch',
+      expectedVersion: VERSION,
+      loadedPluginVersion: active.pluginVersion,
+      warnings: [...(applyPlan.warnings || []), 'Reload/reopen the Roblox Studio plugin window before applying.'],
+      blockers: [`Plugin version mismatch: ${active.pluginVersion} != ${VERSION}`],
+      nextCommand: 'tools\\bridge.cmd plugin-health',
+    };
+  }
+  if (!applyPlan.blueprint) {
+    return applyPlan;
+  }
+  const command = queueBridgeCommand({
+    type: 'applyBuildPlan',
+    targetStudioId: active.studioId,
+    payload: {
+      blueprint: applyPlan.blueprint,
+      transactionId: applyPlan.transactionId,
+      source: 'executionKernelApply',
+      expectedVersion: VERSION,
+    },
+    requiresApproval: true,
+  });
+  return {
+    ...applyPlan,
+    ok: true,
+    status: 'queued',
+    commandId: command.id,
+    transaction: { ...applyPlan.transaction, status: 'queued', commandId: command.id },
+    nextCommand: `tools\\bridge.cmd execute verify ${applyPlan.transactionId}`,
+  };
+}
+
+async function executeRollbackInStudio(transactionId, body = {}) {
+  const tx = transactionId || body.transactionId || body.tx || body.goal;
+  const active = getActiveStudioEntry();
+  const plan = Execution.rollbackPlan(tx);
+  if (!active || !isPlaceFresh(active)) {
+    return {
+      ...plan,
+      ok: false,
+      status: 'manualRequired',
+      warnings: [...(plan.warnings || []), 'Studio is not connected/fresh; rollback was not executed.'],
+      nextCommand: 'tools\\bridge.cmd connect',
+    };
+  }
+  if (active.pluginVersion && active.pluginVersion !== VERSION) {
+    return {
+      ...plan,
+      ok: false,
+      status: 'manualRequired',
+      reason: 'versionMismatch',
+      expectedVersion: VERSION,
+      loadedPluginVersion: active.pluginVersion,
+      blockers: [`Plugin version mismatch: ${active.pluginVersion} != ${VERSION}`],
+      nextCommand: 'tools\\bridge.cmd plugin-health',
+    };
+  }
+  const command = queueBridgeCommand({
+    type: 'rollbackExecutionTransaction',
+    targetStudioId: active.studioId,
+    payload: {
+      transactionId: tx,
+      rollbackPlan: plan.rollbackPlan || [],
+      source: 'executionKernelRollback',
+      expectedVersion: VERSION,
+    },
+    requiresApproval: true,
+  });
+  return {
+    ...plan,
+    ok: true,
+    status: 'queued',
+    commandId: command.id,
+    nextCommand: `tools\\bridge.cmd execute verify ${tx}`,
+  };
+}
+
 async function route(req, res) {
   if (!isLocalAddress(req.socket.remoteAddress)) {
     sendError(res, 403, 'local_only', 'Codex Studio Bridge only accepts localhost requests.');
@@ -6340,6 +6495,78 @@ async function route(req, res) {
 
   const requestUrl = new URL(req.url, `http://${HOST}:${PORT}`);
   const path = requestUrl.pathname;
+
+  if (req.method === 'GET' && path === '/dashboard') {
+    sendContent(res, 200, 'text/html; charset=utf-8', Dashboard.getHtml());
+    return;
+  }
+
+  if (req.method === 'GET' && (path === '/dashboard/app.js' || path === '/dashboard/styles.css')) {
+    const assetName = path.replace('/dashboard/', '');
+    const asset = Dashboard.getAsset(assetName);
+    if (!asset) {
+      sendError(res, 404, 'dashboard_asset_not_found', `Dashboard asset not found: ${assetName}`);
+      return;
+    }
+    sendContent(res, 200, asset.contentType, asset.content);
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/state') {
+    sendJson(res, 200, Dashboard.getState(dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/command') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.command(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/run') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.run(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/approve') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.approve(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/cancel') {
+    const body = await readBody(req);
+    sendJson(res, 200, Dashboard.cancel(body));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/rollback') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.rollback(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/reference') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.reference(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/transactions') {
+    sendJson(res, 200, Dashboard.transactions(Number(requestUrl.searchParams.get('limit') || 12), { transactions: Execution.transactionList(Number(requestUrl.searchParams.get('limit') || 12)) }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/report') {
+    sendJson(res, 200, Dashboard.report());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/self-check') {
+    sendJson(res, 200, await Dashboard.selfCheck());
+    return;
+  }
 
   if (req.method === 'GET' && path === '/health') {
     sendJson(res, 200, {
@@ -6863,105 +7090,14 @@ async function route(req, res) {
   if (req.method === 'POST' && path === '/codex/execution/apply') {
     const body = await readBody(req);
     const goal = body.goal || body.intent || body.text || 'premium Roblox production build';
-    const active = getActiveStudioEntry();
-    const applyPlan = Execution.apply(goal, body);
-    if (!active || !isPlaceFresh(active)) {
-      sendJson(res, 200, {
-        ...applyPlan,
-        ok: false,
-        status: 'manualRequired',
-        warnings: [...(applyPlan.warnings || []), 'Studio is not connected/fresh; no Studio objects were created.'],
-        blockers: applyPlan.blockers || [],
-        nextCommand: 'tools\\bridge.cmd connect',
-      });
-      return;
-    }
-    if (active.pluginVersion && active.pluginVersion !== VERSION) {
-      sendJson(res, 200, {
-        ...applyPlan,
-        ok: false,
-        status: 'manualRequired',
-        reason: 'versionMismatch',
-        expectedVersion: VERSION,
-        loadedPluginVersion: active.pluginVersion,
-        warnings: [...(applyPlan.warnings || []), 'Reload/reopen the Roblox Studio plugin window before applying.'],
-        blockers: [`Plugin version mismatch: ${active.pluginVersion} != ${VERSION}`],
-        nextCommand: 'tools\\bridge.cmd plugin-health',
-      });
-      return;
-    }
-    if (!applyPlan.blueprint) {
-      sendJson(res, 200, applyPlan);
-      return;
-    }
-    const command = queueBridgeCommand({
-      type: 'applyBuildPlan',
-      targetStudioId: active.studioId,
-      payload: {
-        blueprint: applyPlan.blueprint,
-        transactionId: applyPlan.transactionId,
-        source: 'executionKernelApply',
-        expectedVersion: VERSION,
-      },
-      requiresApproval: true,
-    });
-    sendJson(res, 200, {
-      ...applyPlan,
-      ok: true,
-      status: 'queued',
-      commandId: command.id,
-      transaction: { ...applyPlan.transaction, status: 'queued', commandId: command.id },
-      nextCommand: `tools\\bridge.cmd execute verify ${applyPlan.transactionId}`,
-    });
+    sendJson(res, 200, await executeApplyInStudio(goal, body));
     return;
   }
 
   if (req.method === 'POST' && path === '/codex/execution/rollback') {
     const body = await readBody(req);
     const transactionId = body.transactionId || body.tx || body.goal;
-    const active = getActiveStudioEntry();
-    const plan = Execution.rollbackPlan(transactionId);
-    if (!active || !isPlaceFresh(active)) {
-      sendJson(res, 200, {
-        ...plan,
-        ok: false,
-        status: 'manualRequired',
-        warnings: [...(plan.warnings || []), 'Studio is not connected/fresh; rollback was not executed.'],
-        nextCommand: 'tools\\bridge.cmd connect',
-      });
-      return;
-    }
-    if (active.pluginVersion && active.pluginVersion !== VERSION) {
-      sendJson(res, 200, {
-        ...plan,
-        ok: false,
-        status: 'manualRequired',
-        reason: 'versionMismatch',
-        expectedVersion: VERSION,
-        loadedPluginVersion: active.pluginVersion,
-        blockers: [`Plugin version mismatch: ${active.pluginVersion} != ${VERSION}`],
-        nextCommand: 'tools\\bridge.cmd plugin-health',
-      });
-      return;
-    }
-    const command = queueBridgeCommand({
-      type: 'rollbackExecutionTransaction',
-      targetStudioId: active.studioId,
-      payload: {
-        transactionId,
-        rollbackPlan: plan.rollbackPlan || [],
-        source: 'executionKernelRollback',
-        expectedVersion: VERSION,
-      },
-      requiresApproval: true,
-    });
-    sendJson(res, 200, {
-      ...plan,
-      ok: true,
-      status: 'queued',
-      commandId: command.id,
-      nextCommand: `tools\\bridge.cmd execute verify ${transactionId}`,
-    });
+    sendJson(res, 200, await executeRollbackInStudio(transactionId, body));
     return;
   }
 

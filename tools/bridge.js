@@ -20,9 +20,10 @@ const ReferenceLab = require('../bridge/reference-lab');
 const Reconstruction = require('../bridge/reconstruction');
 const WorldCompiler = require('../bridge/world-compiler');
 const Fidelity = require('../bridge/fidelity');
+const Dashboard = require('../bridge/dashboard');
 
-const HELPER_VERSION = '0.80.0';
-const MCP_PROXY_VERSION = '0.80.0';
+const HELPER_VERSION = '0.82.0';
+const MCP_PROXY_VERSION = '0.82.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -265,6 +266,11 @@ const MCP_PROXY_TOOLS = [
   'fidelity_fix_plan',
   'fidelity_memory',
   'fidelity_manifest',
+  'dashboard_status',
+  'dashboard_state',
+  'dashboard_url',
+  'dashboard_open',
+  'dashboard_self_check',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -1200,7 +1206,11 @@ Usage:
   node tools/bridge.js refactor apply <json-file>
   node tools/bridge.js refactor verify <plan-id>
   node tools/bridge.js refactor history
-  node tools/bridge.js dashboard
+  node tools/bridge.js dashboard status
+  node tools/bridge.js dashboard open
+  node tools/bridge.js dashboard url
+  node tools/bridge.js dashboard state
+  node tools/bridge.js dashboard self-check
   node tools/bridge.js dashboard quick
   node tools/bridge.js dashboard refresh
   node tools/bridge.js dashboard full
@@ -9866,7 +9876,92 @@ async function cachedDashboardDigest(context, refresh = false) {
   };
 }
 
-async function runDashboard(subcommand = 'compact') {
+async function runDashboard(subcommand = 'compact', args = []) {
+  const mode = String(subcommand || 'status').toLowerCase();
+  if (mode === 'status') {
+    const bridge = await ensureBridgeRunning('dashboard status');
+    const state = await requestSafe('/dashboard/state', { timeoutMs: FAST_TIMEOUT_MS });
+    print({
+      ok: state.ok,
+      version: HELPER_VERSION,
+      dashboardUrl: Dashboard.DASHBOARD_URL,
+      bridge: compactBridgeStart(bridge),
+      state: state.ok ? {
+        bridge: state.value.bridge,
+        studio: state.value.studio,
+        api: state.value.api,
+        safety: state.value.safety,
+        pendingApproval: state.value.pendingApproval || null,
+        warnings: state.value.warnings || [],
+        blockers: state.value.blockers || [],
+        nextCommand: state.value.nextCommand,
+      } : { ok: false, error: state.error },
+      nextCommand: 'tools\\bridge.cmd dashboard open',
+    });
+    return;
+  }
+  if (mode === 'url') {
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      url: Dashboard.DASHBOARD_URL,
+      localOnly: true,
+      nextCommand: 'tools\\bridge.cmd dashboard open',
+    });
+    return;
+  }
+  if (mode === 'state') {
+    await ensureBridgeRunning('dashboard state');
+    const state = await request('/dashboard/state', { timeoutMs: FAST_TIMEOUT_MS });
+    print(state);
+    return;
+  }
+  if (mode === 'open') {
+    const bridge = await ensureBridgeRunning('dashboard open');
+    let opened = false;
+    let openError = null;
+    if (process.platform === 'win32') {
+      try {
+        const child = childProcess.spawn('cmd', ['/c', 'start', '', Dashboard.DASHBOARD_URL], {
+          cwd: process.cwd(),
+          windowsHide: true,
+          detached: true,
+          stdio: 'ignore',
+        });
+        child.unref();
+        opened = true;
+      } catch (error) {
+        openError = error.message;
+      }
+    }
+    print({
+      ok: true,
+      version: HELPER_VERSION,
+      url: Dashboard.DASHBOARD_URL,
+      opened,
+      openError,
+      bridge: compactBridgeStart(bridge),
+      localOnly: true,
+      nextCommand: 'tools\\bridge.cmd dashboard state',
+    });
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    const script = path.join(process.cwd(), 'tests', 'self-check-dashboard.js');
+    const result = childProcess.spawnSync(process.execPath, [script], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      timeout: 20000,
+    });
+    if (result.error) throw result.error;
+    if (result.status !== 0) {
+      throw new Error(`dashboard self-check failed: ${result.stderr || result.stdout}`);
+    }
+    const output = String(result.stdout || '').trim();
+    print(output ? JSON.parse(output) : { ok: true, version: HELPER_VERSION });
+    return;
+  }
+
   const context = await resolveProjectProfile();
   if (subcommand === 'quick') {
     const payload = projectPayload(context);
@@ -9955,7 +10050,7 @@ async function runDashboard(subcommand = 'compact') {
     });
     return;
   }
-  throw new Error('dashboard command must be quick, refresh, full, next, digest, history, compact, or summary.');
+  throw new Error('dashboard command must be status, open, url, state, self-check, quick, refresh, full, next, digest, history, compact, or summary.');
 }
 
 async function runCache(subcommand = 'status') {
@@ -13440,6 +13535,10 @@ async function main(argv) {
   }
 
   if (command === 'ui') {
+    if ((args[0] || '').toLowerCase() === 'dashboard') {
+      await runDashboard(args[1] || 'open', args.slice(2));
+      return;
+    }
     await runUi(args[0] || 'audit', args.slice(1));
     return;
   }
@@ -13455,7 +13554,17 @@ async function main(argv) {
   }
 
   if (command === 'dashboard') {
-    await runDashboard(args[0] || 'compact');
+    await runDashboard(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'open_dashboard' || command === 'open-dashboard' || command === 'control_room' || command === 'control-room') {
+    await runDashboard('open', args);
+    return;
+  }
+
+  if (command === 'production' && (args[0] || '').toLowerCase() === 'dashboard') {
+    await runDashboard(args[1] || 'open', args.slice(2));
     return;
   }
 

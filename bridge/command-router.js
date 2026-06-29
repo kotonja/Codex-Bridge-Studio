@@ -69,6 +69,7 @@ function createRoute(rawQuery = '', options = {}) {
   const executionExplicitSignal = has('build this for real', 'apply the plan', 'create it in studio', 'make real objects', 'safe build', 'build real', 'execute plan', 'rollback build', 'show transactions', 'verify transaction', 'apply safe fixes', 'turn this plan into parts', 'make the world in studio')
     || ((has('execute', 'apply', 'rollback', 'transaction', 'receipt', 'verify') && has('plan', 'build', 'studio', 'objects', 'transaction', 'receipt', 'safe fixes')))
     || ((has('real', 'studio') && has('build', 'create', 'make')));
+  const dashboardSignal = has('open dashboard', 'show dashboard', 'open control room', 'production dashboard', 'dashboard status', 'open ai ui', 'show ai control panel', 'ai control panel', 'control room');
   const premiumBuildSignal = has('build premium roblox game', 'premium anime boss lobby', 'premium simulator lobby', 'premium hub', 'premium lobby', 'premium game', 'premium world', 'premium scene')
     || ((has('premium', 'top dev', 'expensive', 'reference quality', 'high quality') && has('build', 'scene', 'hub', 'game', 'world', 'lobby', 'roblox')));
   const premiumSignal = has('premium director', 'make this premium', 'build premium roblox game', 'top dev quality', 'fix cheap looking build', 'upgrade everything')
@@ -130,6 +131,15 @@ function createRoute(rawQuery = '', options = {}) {
       safety: has('reset', 'new') ? 'localPairReset' : 'readOnly',
       reason: has('reset', 'new') ? 'The request asks for a fresh pairing code.' : 'The request asks to view the current pairing code.',
       commands: [has('reset', 'new') ? 'tools\\bridge.cmd pair reset' : 'tools\\bridge.cmd pair code', 'tools\\bridge.cmd pair guide'],
+    });
+  } else if (dashboardSignal) {
+    setRoute({
+      category: 'dashboard',
+      title: 'V82 Local AI Production Dashboard',
+      confidence: 0.97,
+      safety: 'localBrowserControlRoom',
+      reason: 'Dashboard, control-room, or AI UI language detected. Open the local-only browser control room for bridge health, references, execution preview/apply, QA, fidelity, and memory.',
+      commands: ['tools\\bridge.cmd dashboard open', 'tools\\bridge.cmd dashboard status', 'tools\\bridge.cmd dashboard state'],
     });
   } else if (has('check now', 'status', 'what is happening', 'what\'s happening', 'look now', 'live context')) {
     setRoute({
@@ -612,6 +622,11 @@ function catalog(version = null) {
     ['compare to reference', 'tools\\bridge.cmd fidelity compare "<reference-or-goal>"'],
     ['does it match the image', 'tools\\bridge.cmd fidelity score "<reference-or-goal>"'],
     ['make it closer to the image', 'tools\\bridge.cmd fidelity fix-plan "<reference-or-goal>"'],
+    ['open dashboard', 'tools\\bridge.cmd dashboard open'],
+    ['show dashboard', 'tools\\bridge.cmd dashboard open'],
+    ['open control room', 'tools\\bridge.cmd dashboard open'],
+    ['production dashboard', 'tools\\bridge.cmd dashboard open'],
+    ['open ai ui', 'tools\\bridge.cmd dashboard open'],
     ['infer the inside', 'tools\\bridge.cmd reconstruct interior "<reference-or-goal>"'],
     ['what is behind this', 'tools\\bridge.cmd reconstruct backside "<reference-or-goal>"'],
     ['create floorplan from image', 'tools\\bridge.cmd reconstruct floorplan "<reference-or-goal>"'],

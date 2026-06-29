@@ -1301,6 +1301,30 @@ Invoke-RestMethod http://127.0.0.1:28123/codex/commands `
 
 Full Trust Autopilot is the default local workflow: local StudioBridge mutations run directly and are audited. External/account-level risks such as publish/upload, monetization, DataStore/save/economy mutation, and broad destructive wipes remain blocked or manual.
 
+## V82 Local AI Production Dashboard
+
+V82 adds a dependency-free local browser control room at:
+
+```text
+http://127.0.0.1:28123/dashboard
+```
+
+Use it when you want bridge health, active Studio place, API configured status, reference intake, worldcompile, V72 execution preview/apply/verify/rollback, visual critique, fidelity score, QA launch score, autopilot report, memory, and transaction receipts without typing long CLI commands.
+
+```powershell
+.\tools\bridge.cmd dashboard status
+.\tools\bridge.cmd dashboard open
+.\tools\bridge.cmd dashboard url
+.\tools\bridge.cmd dashboard state
+.\tools\bridge.cmd dashboard self-check
+.\tools\bridge.cmd open_dashboard
+.\tools\bridge.cmd control_room
+```
+
+The dashboard is local-only and serves plain HTML/CSS/JS from this repo. It does not use a CDN, does not require `npm install`, and never sends an API key to the frontend, Roblox plugin, HTML, state response, or MCP output. It may show only `apiConfigured: true/false`.
+
+Apply is intentionally gated inside the dashboard: run Execute Preview first, review the apply panel, then approve Execute Apply. Real Studio mutations still go through the V72 Execution Kernel and must create receipts. Rollback uses transaction ids/receipts only and must only touch transaction-created Codex-owned objects. Reference/image paths are analyzed honestly; raw image bytes are not stored by default.
+
 ## Notes
 
 - This is a local development bridge. It binds to `127.0.0.1` and uses a pairing code plus session token.
