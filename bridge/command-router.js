@@ -50,6 +50,9 @@ function createRoute(rawQuery = '', options = {}) {
     || ((has('loud', 'quiet', 'balanced', 'too low', 'too high') && has('sound', 'sounds', 'music', 'audio', 'sfx')));
   const aiSignal = has('use api', 'run with api', 'ai orchestrator', 'api orchestrator', 'use openai api', 'ai build this', 'run ai production', 'ai reference intake', 'analyze this reference with api', 'use api to build premium', 'api premium run')
     || ((has('api', 'openai api', 'ai') && has('orchestrator', 'reference intake', 'build this', 'production', 'premium run', 'run with', 'use')));
+  const referenceSignal = has('analyze this reference', 'analyze reference', 'image reference', 'use this image as reference', 'understand this image', 'turn this image into a style bible', 'extract style from this', 'what is in this image', 'what does this reference imply', 'make from this reference', 'reference lab', 'moodboard analysis', 'concept art analysis', 'screenshot reference', 'read this image for roblox', 'infer the style from this image')
+    || ((has('reference', 'image', 'moodboard', 'concept art', 'screenshot', 'sketch') && has('analyze', 'understand', 'extract', 'style bible', 'what is in', 'imply', 'read this', 'make from')))
+    || (has('premium reference') && !has('memory'));
   const memorySignal = has('production memory', 'project memory', 'style memory', 'remember this', 'remember that', 'recall', 'learn from report', 'learn this report', 'what did we learn', 'did we learn', 'lessons learned', 'use previous style', 'previous style', 'reuse previous style', 'save this style', 'what worked best', 'what failed before', 'best previous score', 'score history', 'issue patterns', 'reference memory', 'memory recommend', 'premium memory')
     || ((has('memory', 'remember', 'recall', 'lessons', 'reference', 'references', 'previous') && has('production', 'project', 'style', 'premium', 'report', 'score', 'issue', 'recommend', 'learn', 'worked', 'failed')));
   const executionSignal = has('build this for real', 'apply the plan', 'create it in studio', 'make real objects', 'safe build', 'build real', 'execute plan', 'rollback build', 'show transactions', 'verify transaction', 'apply safe fixes', 'turn this plan into parts', 'make the world in studio')
@@ -127,6 +130,26 @@ function createRoute(rawQuery = '', options = {}) {
       confidence: 0.96,
       reason: 'Fast live context request.',
       commands: ['tools\\bridge.cmd codex-context', 'tools\\bridge.cmd watch now', 'tools\\bridge.cmd watch errors'],
+    });
+  } else if (referenceSignal) {
+    const action = has('style bible', 'extract style', 'style from') ? 'style'
+      : has('what is in', 'objects') ? 'objects'
+        : has('materials') ? 'materials'
+          : has('layout') ? 'layout'
+            : has('gameplay') ? 'gameplay'
+              : has('missing') ? 'missing'
+                : 'analyze';
+    setRoute({
+      category: 'reference',
+      title: 'V74 Reference Lab',
+      confidence: 0.96,
+      safety: 'readOnlyReferenceUnderstanding',
+      reason: 'Reference/image/concept/moodboard analysis language detected. Use Reference Lab before reconstructing or building from the reference.',
+      commands: [
+        `tools\\bridge.cmd reference ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd reference manifest ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd reference remember ${quoteForCommand(intent)}`,
+      ],
     });
   } else if (aiSignal) {
     const action = has('reference intake', 'analyze this reference') ? 'reference'

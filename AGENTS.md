@@ -422,6 +422,41 @@ V73 API Orchestrator + Reference Intake is the preferred route when the user ask
 
 Routing priority for V73: pairing/recovery still wins; explicit VFX/visual/worldgen/assetforge/cinematic/QA/premium/memory/execution commands stay with their specialists. AI/API/reference-orchestrator language routes to V73. V73 may plan and store local redacted run state, but real Studio writes must go through V72 preview/apply/verify/receipt/rollback. Publishing/uploading, marketplace actions, monetization, DataStore/save/economy mutation, broad deletes, raw source dumps, and unsafe external actions remain blocked or `manualRequired`.
 
+V74 Reference Lab is the preferred route when the user provides or mentions a reference image, screenshot, sketch, moodboard, concept, folder of references, or says to analyze/extract/understand a reference before building. It turns references into style profiles, scene understanding, material language, object candidates, focal hierarchy, layout hypotheses, gameplay interpretation, missing-view questions, and production hints. It is read-only/planning-only and must not fake image, pixel, or object detection.
+
+```powershell
+.\tools\bridge.cmd reference status
+.\tools\bridge.cmd reference intake "dark anime dungeon gate concept"
+.\tools\bridge.cmd reference analyze "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd reference style "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference scene "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference materials "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference objects "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference layout "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference gameplay "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference missing "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference manifest "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference remember "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference self-check
+.\tools\bridge.cmd ref analyze "premium lobby screenshot note"
+.\tools\bridge.cmd premium reference "anime dungeon reference"
+.\tools\bridge.cmd ai reference "anime dungeon reference"
+```
+
+Routing priority for V74: pairing/recovery still wins; explicit API/orchestrator requests like `use api` stay with V73 AI; explicit specialists stay with their domains; reference/image/concept/moodboard analysis routes to Reference Lab; whole premium build requests still route to Premium Director unless the user asks to analyze a reference. If no API image path is configured, V74 reports `noteOnly` or `metadataOnly` with `actualVisionUsed: false`. Raw image bytes are not stored in memory by default, API keys stay Node-only, and `reference remember` writes only redacted Production Memory profiles.
+
+Recommended V74 production flow:
+
+```powershell
+.\tools\bridge.cmd reference intake "dark anime dungeon gate concept"
+.\tools\bridge.cmd reference analyze "dark anime dungeon gate concept"
+.\tools\bridge.cmd reference remember "dark anime dungeon gate concept"
+.\tools\bridge.cmd premium plan "dark anime dungeon gate hub"
+.\tools\bridge.cmd worldgen graph "dark anime dungeon gate hub"
+.\tools\bridge.cmd assetforge kit "dark anime dungeon gate hub"
+.\tools\bridge.cmd execute preview "dark anime dungeon gate hub"
+```
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

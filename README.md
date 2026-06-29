@@ -1,4 +1,4 @@
-# Codex Studio Bridge V73.0
+# Codex Studio Bridge V74.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -314,6 +314,43 @@ V73 adds a local Node-side API orchestrator foundation for production planning, 
 ```
 
 V73 is plan-first. Any real Studio mutation must route through the V72 execution kernel: preview, apply, verify, receipt, and rollback. Publishing/uploading, marketplace actions, monetization, DataStore/save/economy mutation, broad deletes, raw source dumps, and unsafe external actions remain blocked or `manualRequired`.
+
+## V74 Reference Lab
+
+V74 turns notes, concepts, local image paths, screenshots, sketches, moodboards, and folders into structured Roblox production intelligence before any build work starts. It is read-only/planning-only: no Studio mutation, no raw image bytes stored by default, no API key in the plugin, and no fake pixel/object detection claims. If no API vision path is configured, Reference Lab returns honest `noteOnly` or `metadataOnly` reports with `actualVisionUsed: false`.
+
+```powershell
+.\tools\bridge.cmd reference status
+.\tools\bridge.cmd reference intake "dark anime dungeon gate concept"
+.\tools\bridge.cmd reference analyze "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd reference style "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference scene "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference materials "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference objects "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference layout "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference gameplay "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference missing "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference manifest "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference remember "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference self-check
+.\tools\bridge.cmd ref analyze "premium lobby screenshot note"
+.\tools\bridge.cmd premium reference "anime dungeon gate reference"
+.\tools\bridge.cmd ai reference "anime dungeon gate reference"
+```
+
+Reference reports include style profile, scene understanding, material language, object candidates, focal hierarchy, layout hypotheses, gameplay interpretation, missing-view questions, and production hints for Memory, Premium Director, Worldgen, Asset Forge, Visual Critic, Cinematic, QA, and V72 Execution preview.
+
+Example flow:
+
+```powershell
+.\tools\bridge.cmd reference intake "dark anime dungeon gate concept"
+.\tools\bridge.cmd reference analyze "dark anime dungeon gate concept"
+.\tools\bridge.cmd reference remember "dark anime dungeon gate concept"
+.\tools\bridge.cmd premium plan "dark anime dungeon gate hub"
+.\tools\bridge.cmd worldgen graph "dark anime dungeon gate hub"
+.\tools\bridge.cmd assetforge kit "dark anime dungeon gate hub"
+.\tools\bridge.cmd execute preview "dark anime dungeon gate hub"
+```
 
 For day-to-day connection and pairing help:
 

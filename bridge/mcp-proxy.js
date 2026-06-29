@@ -8,8 +8,9 @@ const path = require('node:path');
 const Execution = require('./execution');
 const Memory = require('./memory');
 const AiOrchestrator = require('./ai-orchestrator');
+const ReferenceLab = require('./reference-lab');
 
-const VERSION = '0.73.0';
+const VERSION = '0.74.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -545,10 +546,23 @@ const toolHandlers = {
   ai_continue: async (args) => AiOrchestrator.continueRun(args.runId || args.id || ''),
   ai_approve: async (args) => AiOrchestrator.approveRun(args.runId || args.id || ''),
   ai_cancel: async (args) => AiOrchestrator.cancelRun(args.runId || args.id || ''),
-  ai_reference: async (args) => AiOrchestrator.intakeReference(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy', metadata: redacted(args.metadata || {}) }),
+  ai_reference: async (args) => ReferenceLab.analyzeReference(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.aiReference', metadata: redacted(args.metadata || {}) }),
   ai_cost: async () => AiOrchestrator.getCostReport(),
   ai_runs: async (args) => AiOrchestrator.listRuns(Number(args.limit || 50)),
   ai_report: async (args) => AiOrchestrator.getRunReport(args.runId || args.id || ''),
+  reference_status: async () => ReferenceLab.getStatus(),
+  reference_intake: async (args) => ReferenceLab.getIntakeReport(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reference.intake', metadata: redacted(args.metadata || {}) }),
+  reference_analyze: async (args) => ReferenceLab.analyzeReference(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reference.analyze', metadata: redacted(args.metadata || {}) }),
+  reference_style: async (args) => ReferenceLab.getStyleProfile(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reference_scene: async (args) => ReferenceLab.getSceneUnderstanding(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reference_materials: async (args) => ReferenceLab.getMaterialLanguage(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reference_objects: async (args) => ReferenceLab.getObjectCandidates(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reference_layout: async (args) => ReferenceLab.getLayoutHypotheses(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reference_gameplay: async (args) => ReferenceLab.getGameplayInterpretation(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reference_missing: async (args) => ReferenceLab.getMissingViewReport(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reference_compare: async (args) => ReferenceLab.compareReferences(args.refA || args.a || args.sourceA || args.before || '', args.refB || args.b || args.sourceB || args.after || ''),
+  reference_manifest: async (args) => ReferenceLab.getManifest(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
+  reference_remember: async (args) => ReferenceLab.remember(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reference.remember', metadata: redacted(args.metadata || {}) }),
   memory_status: async () => Memory.getProductionMemoryStatus(),
   memory_profile: async () => Memory.getProjectMemoryProfile(),
   memory_learn: async (args) => Memory.learnFromProductionReport(args.goal || args.intent || args.text || args.report || 'premium Roblox production goal', args),
@@ -739,10 +753,23 @@ const toolDefinitions = [
   ['ai_continue', 'Continue a stored V73 run to the next approval/checkpoint state.', { runId: { type: 'string' }, id: { type: 'string' } }],
   ['ai_approve', 'Approve the next local V73 run step; external/account risks still remain blocked/manual.', { runId: { type: 'string' }, id: { type: 'string' } }],
   ['ai_cancel', 'Cancel a stored V73 run.', { runId: { type: 'string' }, id: { type: 'string' } }],
-  ['ai_reference', 'Ingest reference text/path metadata for future V74+ style/image understanding; no pixel claim.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' } }],
+  ['ai_reference', 'Analyze a reference through V74 Reference Lab; no fake image or pixel claims.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' } }],
   ['ai_cost', 'Return local estimated run cost summary.', {}],
   ['ai_runs', 'List recent V73 AI production runs.', { limit: { type: 'number' } }],
   ['ai_report', 'Return a stored V73 AI run report.', { runId: { type: 'string' }, id: { type: 'string' } }],
+  ['reference_status', 'Return V74 Reference Lab readiness, privacy, no-fake-analysis policy, and next command.', {}],
+  ['reference_intake', 'Classify a note/path/folder/image reference without storing raw image bytes.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' } }],
+  ['reference_analyze', 'Turn a reference note/path into style, scene, material, object, layout, gameplay, missing-view, and production hints.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reference_style', 'Extract a Roblox-ready reference style profile.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reference_scene', 'Infer reference scene structure, scale, focal points, props, and gameplay use cases.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reference_materials', 'Extract material language, Roblox material fallbacks, and manual SurfaceAppearance specs.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reference_objects', 'Return object candidates with build strategy, Asset Forge hints, and Worldgen hints.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reference_layout', 'Return faithful, gameplay-first, and mobile-optimized layout hypotheses.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reference_gameplay', 'Infer spawn, objective, traversal, interactions, loops, cinematic moments, and QA risks.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reference_missing', 'Return missing-view questions and safe inferences for partial references.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reference_compare', 'Compare two reference notes/paths and return shared/different production language.', { refA: { type: 'string' }, refB: { type: 'string' }, a: { type: 'string' }, b: { type: 'string' } }],
+  ['reference_manifest', 'Save/return a redacted V74 reference manifest for specialist planning.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
+  ['reference_remember', 'Store a redacted V74 reference profile in Production Memory.', { source: { type: 'string' }, goal: { type: 'string' }, text: { type: 'string' } }],
   ['memory_status', 'Return V71 Production Memory readiness, local storage, and redaction policy.', {}],
   ['memory_profile', 'Return the local project memory profile and user taste profile.', {}],
   ['memory_learn', 'Learn redacted production memory from a goal or report summary.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, report: { type: 'object' } }],

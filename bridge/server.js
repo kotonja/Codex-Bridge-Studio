@@ -16,8 +16,9 @@ const Autopilot = require('./autopilot');
 const Memory = require('./memory');
 const Execution = require('./execution');
 const AiOrchestrator = require('./ai-orchestrator');
+const ReferenceLab = require('./reference-lab');
 
-const VERSION = '0.73.0';
+const VERSION = '0.74.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -566,6 +567,20 @@ const supportedCommands = new Set([
   'approveAiRunStep',
   'cancelAiRun',
   'bakeAiRunManifest',
+  'getReferenceLabStatus',
+  'getReferenceIntakeReport',
+  'getReferenceAnalysisReport',
+  'getReferenceStyleProfile',
+  'getReferenceSceneUnderstanding',
+  'getReferenceMaterialLanguage',
+  'getReferenceObjectCandidates',
+  'getReferenceLayoutHypotheses',
+  'getReferenceGameplayInterpretation',
+  'getReferenceMissingViewReport',
+  'getReferenceCompareReport',
+  'getReferenceManifest',
+  'rememberReferenceProfile',
+  'bakeReferenceManifest',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -2054,6 +2069,18 @@ const CACHEABLE_TTLS = new Map([
   ['getAiRunList', 15_000],
   ['getAiRunReport', 15_000],
   ['getAiCostReport', 15_000],
+  ['getReferenceLabStatus', 15_000],
+  ['getReferenceIntakeReport', 30_000],
+  ['getReferenceAnalysisReport', 30_000],
+  ['getReferenceStyleProfile', 30_000],
+  ['getReferenceSceneUnderstanding', 30_000],
+  ['getReferenceMaterialLanguage', 30_000],
+  ['getReferenceObjectCandidates', 30_000],
+  ['getReferenceLayoutHypotheses', 30_000],
+  ['getReferenceGameplayInterpretation', 30_000],
+  ['getReferenceMissingViewReport', 30_000],
+  ['getReferenceCompareReport', 30_000],
+  ['getReferenceManifest', 30_000],
   ['getBuildStyleCatalog', 120_000],
   ['getBuildIntentPlan', 60_000],
   ['getBuildAssetKitReport', 120_000],
@@ -4019,6 +4046,29 @@ const V46_TOOL_CATEGORIES = [
     ],
   },
   {
+    id: 'reference',
+    title: 'V74 Reference Lab',
+    safety: 'readOnlyReferenceUnderstandingNoFakeImageClaims',
+    readiness: ['bridge', 'optionalOpenAiKey', 'memory'],
+    commands: [
+      { command: 'tools\\bridge.cmd reference status', example: 'tools\\bridge.cmd reference status', bestFor: 'Check Reference Lab readiness, API availability, privacy policy, and next command.' },
+      { command: 'tools\\bridge.cmd reference intake <path-or-note>', example: 'tools\\bridge.cmd reference intake "dark anime dungeon gate concept"', bestFor: 'Classify a note, local file, image, or folder without storing raw image bytes.' },
+      { command: 'tools\\bridge.cmd reference analyze <path-or-note>', example: 'tools\\bridge.cmd reference analyze "dark purple anime dungeon gate with glowing portal"', bestFor: 'Turn a reference into style, scene, material, object, layout, gameplay, missing-view, and production hints.' },
+      { command: 'tools\\bridge.cmd reference style <reference>', example: 'tools\\bridge.cmd reference style "slime bubble escape hub"', bestFor: 'Extract a Roblox-ready style profile and forbidden cheap patterns.' },
+      { command: 'tools\\bridge.cmd reference scene <reference>', example: 'tools\\bridge.cmd reference scene "premium dungeon gate"', bestFor: 'Infer scale, focal points, structures, prop groups, walkable areas, and use cases.' },
+      { command: 'tools\\bridge.cmd reference materials <reference>', example: 'tools\\bridge.cmd reference materials "gold neon portal hub"', bestFor: 'Extract material language with Roblox fallbacks and manual SurfaceAppearance specs.' },
+      { command: 'tools\\bridge.cmd reference objects <reference>', example: 'tools\\bridge.cmd reference objects "anime boss arena screenshot"', bestFor: 'List object candidates with build strategies for Asset Forge and Worldgen.' },
+      { command: 'tools\\bridge.cmd reference layout <reference>', example: 'tools\\bridge.cmd reference layout "portal hub concept"', bestFor: 'Generate faithful, gameplay-first, and mobile-optimized layout hypotheses.' },
+      { command: 'tools\\bridge.cmd reference gameplay <reference>', example: 'tools\\bridge.cmd reference gameplay "dungeon gate hub"', bestFor: 'Infer spawn, objective, traversal, interactions, loops, cinematic beats, and QA risks.' },
+      { command: 'tools\\bridge.cmd reference missing <reference>', example: 'tools\\bridge.cmd reference missing "front-view dungeon gate"', bestFor: 'Ask/infer missing back/side/roof/interior/scale/gameplay details honestly.' },
+      { command: 'tools\\bridge.cmd reference manifest <reference>', example: 'tools\\bridge.cmd reference manifest "dark anime dungeon gate"', bestFor: 'Save a redacted structured reference manifest locally for future specialist use.' },
+      { command: 'tools\\bridge.cmd reference remember <reference>', example: 'tools\\bridge.cmd reference remember "dark anime dungeon gate"', bestFor: 'Store a redacted reference profile in V71 Production Memory.' },
+      { command: 'tools\\bridge.cmd ref analyze <reference>', example: 'tools\\bridge.cmd ref analyze "premium lobby screenshot note"', bestFor: 'Short alias for Reference Lab analysis.' },
+      { command: 'tools\\bridge.cmd premium reference <reference>', example: 'tools\\bridge.cmd premium reference "anime dungeon reference"', bestFor: 'Premium Director alias that routes through Reference Lab.' },
+      { command: 'tools\\bridge.cmd ai reference <reference>', example: 'tools\\bridge.cmd ai reference "anime dungeon reference"', bestFor: 'AI alias that now uses V74 Reference Lab when available.' },
+    ],
+  },
+  {
     id: 'health',
     title: 'Health / Trust / Recovery',
     safety: 'readOnly',
@@ -4405,6 +4455,23 @@ const V46_DIRECT_ALIASES = [
   'creator_os',
   'create_game',
   'premium_build',
+  'ref',
+  'analyze_reference',
+  'reference_lab',
+  'image_reference',
+  'reference_status',
+  'reference_intake',
+  'reference_analyze',
+  'reference_style',
+  'reference_scene',
+  'reference_materials',
+  'reference_objects',
+  'reference_layout',
+  'reference_gameplay',
+  'reference_missing',
+  'reference_compare',
+  'reference_manifest',
+  'reference_remember',
   'style_bible',
   'forge_assets',
   'visual_critique',
@@ -6403,7 +6470,7 @@ async function route(req, res) {
 
   if (req.method === 'GET' && path === '/codex/ai/reference') {
     const source = requestUrl.searchParams.get('source') || requestUrl.searchParams.get('path') || requestUrl.searchParams.get('q') || requestUrl.searchParams.get('goal') || '';
-    sendJson(res, 200, AiOrchestrator.intakeReference(source, { source: 'serverHttp' }));
+    sendJson(res, 200, await ReferenceLab.analyzeReference(source, { source: 'serverHttp.aiReference' }));
     return;
   }
 
@@ -6419,6 +6486,45 @@ async function route(req, res) {
 
   if (req.method === 'GET' && path === '/codex/ai/cost') {
     sendJson(res, 200, AiOrchestrator.getCostReport());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/reference/status') {
+    sendJson(res, 200, ReferenceLab.getStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/reference/')) {
+    const endpoint = path.replace('/codex/reference/', '');
+    const source = requestUrl.searchParams.get('source')
+      || requestUrl.searchParams.get('path')
+      || requestUrl.searchParams.get('q')
+      || requestUrl.searchParams.get('goal')
+      || requestUrl.searchParams.get('text')
+      || '';
+    const map = {
+      intake: () => ReferenceLab.getIntakeReport(source, { source: 'serverHttp.reference.intake' }),
+      analyze: () => ReferenceLab.analyzeReference(source, { source: 'serverHttp.reference.analyze' }),
+      style: () => ReferenceLab.getStyleProfile(source),
+      scene: () => ReferenceLab.getSceneUnderstanding(source),
+      materials: () => ReferenceLab.getMaterialLanguage(source),
+      objects: () => ReferenceLab.getObjectCandidates(source),
+      layout: () => ReferenceLab.getLayoutHypotheses(source),
+      gameplay: () => ReferenceLab.getGameplayInterpretation(source),
+      missing: () => ReferenceLab.getMissingViewReport(source),
+      manifest: () => ReferenceLab.getManifest(source),
+      compare: () => ReferenceLab.compareReferences(requestUrl.searchParams.get('a') || source, requestUrl.searchParams.get('b') || requestUrl.searchParams.get('other') || ''),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, await map[endpoint]());
+      return;
+    }
+  }
+
+  if (req.method === 'POST' && path === '/codex/reference/remember') {
+    const body = await readBody(req);
+    const source = body.source || body.path || body.goal || body.intent || body.text || body.note || '';
+    sendJson(res, 200, await ReferenceLab.remember(source, { ...body, source: 'serverHttp.reference.remember' }));
     return;
   }
 

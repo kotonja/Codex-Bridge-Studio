@@ -16,9 +16,10 @@ const Autopilot = require('../bridge/autopilot');
 const Memory = require('../bridge/memory');
 const Execution = require('../bridge/execution');
 const AiOrchestrator = require('../bridge/ai-orchestrator');
+const ReferenceLab = require('../bridge/reference-lab');
 
-const HELPER_VERSION = '0.73.0';
-const MCP_PROXY_VERSION = '0.73.0';
+const HELPER_VERSION = '0.74.0';
+const MCP_PROXY_VERSION = '0.74.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -204,6 +205,19 @@ const MCP_PROXY_TOOLS = [
   'ai_cost',
   'ai_runs',
   'ai_report',
+  'reference_status',
+  'reference_intake',
+  'reference_analyze',
+  'reference_style',
+  'reference_scene',
+  'reference_materials',
+  'reference_objects',
+  'reference_layout',
+  'reference_gameplay',
+  'reference_missing',
+  'reference_compare',
+  'reference_manifest',
+  'reference_remember',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -461,6 +475,22 @@ Usage:
   node tools/bridge.js ai runs
   node tools/bridge.js ai report <runId>
   node tools/bridge.js ai self-check
+  node tools/bridge.js reference status
+  node tools/bridge.js reference intake "<path-or-note>"
+  node tools/bridge.js reference analyze "<path-or-note>"
+  node tools/bridge.js reference style "<reference-or-goal>"
+  node tools/bridge.js reference scene "<reference-or-goal>"
+  node tools/bridge.js reference materials "<reference-or-goal>"
+  node tools/bridge.js reference objects "<reference-or-goal>"
+  node tools/bridge.js reference layout "<reference-or-goal>"
+  node tools/bridge.js reference gameplay "<reference-or-goal>"
+  node tools/bridge.js reference missing "<reference-or-goal>"
+  node tools/bridge.js reference compare <refA> <refB>
+  node tools/bridge.js reference manifest "<reference-or-goal>"
+  node tools/bridge.js reference remember "<reference-or-goal>"
+  node tools/bridge.js reference self-check
+  node tools/bridge.js ref analyze "<path-or-note>"
+  node tools/bridge.js analyze_reference "<path-or-note>"
   node tools/bridge.js execute status
   node tools/bridge.js execute roots
   node tools/bridge.js execute preview "<goal>"
@@ -6626,6 +6656,70 @@ async function runExecute(subcommand = 'status', args = []) {
   throw new Error('execute command must be status, roots, preview, apply, worldgen, assetkit, cinematic, qa-markers, polish, safe-fix, verify, transactions, receipt, rollback, manifest, or self-check.');
 }
 
+async function runReference(subcommand = 'status', args = []) {
+  const mode = String(subcommand || 'status').toLowerCase();
+  const text = args.join(' ').trim();
+  const goal = text || 'premium Roblox reference note';
+  if (mode === 'status') {
+    print(ReferenceLab.getStatus());
+    return;
+  }
+  if (mode === 'intake') {
+    print(ReferenceLab.getIntakeReport(goal, { source: 'tools.bridge.reference.intake' }));
+    return;
+  }
+  if (mode === 'analyze' || mode === 'analysis') {
+    print(await ReferenceLab.analyzeReference(goal, { source: 'tools.bridge.reference.analyze' }));
+    return;
+  }
+  if (mode === 'style' || mode === 'style-profile') {
+    print(await ReferenceLab.getStyleProfile(goal));
+    return;
+  }
+  if (mode === 'scene' || mode === 'scene-understanding') {
+    print(await ReferenceLab.getSceneUnderstanding(goal));
+    return;
+  }
+  if (mode === 'materials' || mode === 'material' || mode === 'material-language') {
+    print(await ReferenceLab.getMaterialLanguage(goal));
+    return;
+  }
+  if (mode === 'objects' || mode === 'object-candidates') {
+    print(await ReferenceLab.getObjectCandidates(goal));
+    return;
+  }
+  if (mode === 'layout' || mode === 'layout-hypotheses') {
+    print(await ReferenceLab.getLayoutHypotheses(goal));
+    return;
+  }
+  if (mode === 'gameplay' || mode === 'gameplay-interpretation') {
+    print(await ReferenceLab.getGameplayInterpretation(goal));
+    return;
+  }
+  if (mode === 'missing' || mode === 'missing-views') {
+    print(await ReferenceLab.getMissingViewReport(goal));
+    return;
+  }
+  if (mode === 'compare') {
+    if (args.length < 2) throw new Error('reference compare requires <refA> <refB>.');
+    print(await ReferenceLab.compareReferences(args[0], args.slice(1).join(' ')));
+    return;
+  }
+  if (mode === 'manifest' || mode === 'bake') {
+    print(await ReferenceLab.getManifest(goal));
+    return;
+  }
+  if (mode === 'remember') {
+    print(await ReferenceLab.remember(goal, { source: 'tools.bridge.reference.remember' }));
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-reference-lab.js'));
+    return;
+  }
+  throw new Error('reference command must be status, intake, analyze, style, scene, materials, objects, layout, gameplay, missing, compare, manifest, remember, or self-check.');
+}
+
 async function runAi(subcommand = 'status', args = []) {
   const cleanGoal = () => args.join(' ').trim() || 'premium Roblox production goal';
   const mode = String(subcommand || 'status').toLowerCase();
@@ -6668,8 +6762,12 @@ async function runAi(subcommand = 'status', args = []) {
     print(AiOrchestrator.cancelRun(args[0]));
     return;
   }
-  if (mode === 'reference' || mode === 'refs' || mode === 'intake') {
-    print(AiOrchestrator.intakeReference(cleanGoal(), { source: 'tools.bridge.ai.reference' }));
+  if (mode === 'reference' || mode === 'refs') {
+    print(await ReferenceLab.analyzeReference(cleanGoal(), { source: 'tools.bridge.ai.reference' }));
+    return;
+  }
+  if (mode === 'intake') {
+    print(ReferenceLab.getIntakeReport(cleanGoal(), { source: 'tools.bridge.ai.intake' }));
     return;
   }
   if (mode === 'cost') {
@@ -6701,6 +6799,11 @@ async function runPremium(subcommand = 'status', args = []) {
 
   if (subcommand === 'ai') {
     await runAi('run', args);
+    return;
+  }
+
+  if (subcommand === 'reference' || subcommand === 'ref') {
+    await runReference('analyze', args);
     return;
   }
 
@@ -6979,7 +7082,7 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
-  throw new Error('premium command must be status, plan, style, assets, world, motion, build, critique, qa, launch, autopilot, loop, auto, memory, learn, polish, director, score, bake, or self-check.');
+  throw new Error('premium command must be status, plan, style, assets, world, motion, reference, build, critique, qa, launch, autopilot, loop, auto, memory, learn, polish, director, score, bake, or self-check.');
 }
 
 async function visualEvidenceOptions(extra = {}) {
@@ -11870,6 +11973,16 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'reference' || command === 'ref') {
+    await runReference(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'analyze_reference' || command === 'analyze-reference' || command === 'reference_lab' || command === 'reference-lab' || command === 'image_reference' || command === 'image-reference') {
+    await runReference('analyze', args);
+    return;
+  }
+
   if (command === 'ai') {
     await runAi(args[0] || 'status', args.slice(1));
     return;
@@ -11887,11 +12000,6 @@ async function main(argv) {
 
   if (command === 'ai_premium' || command === 'ai-premium') {
     await runAi('run', args);
-    return;
-  }
-
-  if (command === 'reference' && (args[0] || '').toLowerCase() === 'intake') {
-    await runAi('reference', args.slice(1));
     return;
   }
 

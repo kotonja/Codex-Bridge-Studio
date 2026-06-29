@@ -11,7 +11,7 @@ function runSelfCheck() {
   fs.rmSync(root, { recursive: true, force: true });
   const options = { root };
   const status = Memory.getProductionMemoryStatus(options);
-  assert.equal(status.version, '0.73.0');
+  assert.equal(status.version, '0.74.0');
   assert.equal(status.storesRawSource, false);
   assert.equal(status.storesTokens, false);
   const learned = Memory.learnFromProductionReport('premium anime boss lobby', options);
