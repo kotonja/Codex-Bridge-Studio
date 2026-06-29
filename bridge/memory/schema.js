@@ -3,7 +3,7 @@
 const path = require('path');
 const crypto = require('crypto');
 
-const VERSION = '0.75.0';
+const VERSION = '0.76.0';
 const MEMORY_ROOT = path.join(process.cwd(), '.codex-studio', 'memory-v71');
 
 const ROOTS = {
@@ -24,6 +24,7 @@ const TYPES = {
   qaLesson: 'qaLesson',
   autopilotRun: 'autopilotRun',
   reconstructionProfile: 'reconstructionProfile',
+  worldCompilerPackage: 'worldCompilerPackage',
 };
 
 const CATEGORY_DIRS = {
@@ -39,6 +40,7 @@ const CATEGORY_DIRS = {
   [TYPES.qaLesson]: 'qa-lessons',
   [TYPES.autopilotRun]: 'autopilot-runs',
   [TYPES.reconstructionProfile]: 'reconstructions',
+  [TYPES.worldCompilerPackage]: 'world-compiler-packages',
 };
 
 const CAPABILITIES = [

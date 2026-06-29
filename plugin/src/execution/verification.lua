@@ -3,7 +3,7 @@
 
 local ExecutionVerification = {}
 
-ExecutionVerification.version = "0.75.0"
+ExecutionVerification.version = "0.76.0"
 ExecutionVerification.contract = "fresh evidence, receipt paths, no fake live claims"
 
 return ExecutionVerification

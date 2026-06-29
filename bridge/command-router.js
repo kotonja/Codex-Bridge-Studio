@@ -55,6 +55,9 @@ function createRoute(rawQuery = '', options = {}) {
   const referenceSignal = has('analyze this reference', 'analyze reference', 'image reference', 'use this image as reference', 'understand this image', 'turn this image into a style bible', 'extract style from this', 'what is in this image', 'what does this reference imply', 'make from this reference', 'reference lab', 'moodboard analysis', 'concept art analysis', 'screenshot reference', 'read this image for roblox', 'infer the style from this image')
     || ((has('reference', 'image', 'moodboard', 'concept art', 'screenshot', 'sketch') && has('analyze', 'understand', 'extract', 'style bible', 'what is in', 'imply', 'read this', 'make from')))
     || (has('premium reference') && !has('memory'));
+  const worldcompileSignal = has('turn this image into a world', 'image to world', 'reference to world', 'build from this reference', 'make this reference playable', 'turn this concept into a playable map', 'make a playable world from this', 'compile this reference', 'turn this screenshot into a roblox map', 'build this image as a game world', 'make a roblox world from this image', 'turn concept art into roblox', 'reference playable world', 'generate playable map from reference')
+    || ((has('reference', 'image', 'screenshot', 'concept', 'concept art', 'moodboard') && has('playable', 'world', 'map', 'compile', 'build from', 'turn into', 'roblox map', 'roblox world')))
+    || ((has('playable world', 'playable map') && has('reference', 'image', 'concept')));
   const memorySignal = has('production memory', 'project memory', 'style memory', 'remember this', 'remember that', 'recall', 'learn from report', 'learn this report', 'what did we learn', 'did we learn', 'lessons learned', 'use previous style', 'previous style', 'reuse previous style', 'save this style', 'what worked best', 'what failed before', 'best previous score', 'score history', 'issue patterns', 'reference memory', 'memory recommend', 'premium memory')
     || ((has('memory', 'remember', 'recall', 'lessons', 'reference', 'references', 'previous') && has('production', 'project', 'style', 'premium', 'report', 'score', 'issue', 'recommend', 'learn', 'worked', 'failed')));
   const executionSignal = has('build this for real', 'apply the plan', 'create it in studio', 'make real objects', 'safe build', 'build real', 'execute plan', 'rollback build', 'show transactions', 'verify transaction', 'apply safe fixes', 'turn this plan into parts', 'make the world in studio')
@@ -132,6 +135,19 @@ function createRoute(rawQuery = '', options = {}) {
       confidence: 0.96,
       reason: 'Fast live context request.',
       commands: ['tools\\bridge.cmd codex-context', 'tools\\bridge.cmd watch now', 'tools\\bridge.cmd watch errors'],
+    });
+  } else if (worldcompileSignal) {
+    setRoute({
+      category: 'worldcompile',
+      title: 'V76 Image / Reference-to-Playable World Compiler',
+      confidence: 0.97,
+      safety: 'planOnlyUntilV72Execution',
+      reason: 'Reference/image/concept plus playable world/build/compile language detected. Use V76 to connect Reference Lab, Reconstruction, Worldgen, Asset Forge, Cinematic, QA, Memory, and V72 preview.',
+      commands: [
+        `tools\\bridge.cmd worldcompile compile ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd worldcompile package ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd worldcompile execute-preview ${quoteForCommand(intent)}`,
+      ],
     });
   } else if (reconstructionSignal) {
     const action = has('floorplan', 'floor plan') ? 'floorplan'
@@ -567,6 +583,9 @@ function catalog(version = null) {
     ['ai orchestrator', 'tools\\bridge.cmd ai status'],
     ['api premium run', 'tools\\bridge.cmd ai run "premium Roblox production goal"'],
     ['ai reference intake', 'tools\\bridge.cmd ai reference "<path-or-note>"'],
+    ['turn this image into a world', 'tools\\bridge.cmd worldcompile compile "<reference-or-goal>"'],
+    ['reference to world', 'tools\\bridge.cmd worldcompile package "<reference-or-goal>"'],
+    ['make this reference playable', 'tools\\bridge.cmd worldcompile compile "<reference-or-goal>"'],
     ['infer the inside', 'tools\\bridge.cmd reconstruct interior "<reference-or-goal>"'],
     ['what is behind this', 'tools\\bridge.cmd reconstruct backside "<reference-or-goal>"'],
     ['create floorplan from image', 'tools\\bridge.cmd reconstruct floorplan "<reference-or-goal>"'],

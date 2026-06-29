@@ -60,7 +60,7 @@ async function runSelfCheck() {
   for (const file of REQUIRED_MODULES) assert(fs.existsSync(path.join(dir, file)), `Missing reconstruction module: ${file}`);
 
   const status = Reconstruction.getStatus();
-  assert.equal(status.version, '0.75.0');
+  assert.equal(status.version, '0.76.0');
   assert.equal(status.ok, true);
   assert.equal(status.safety.readOnlyByDefault, true);
   assert.equal(status.safety.doesNotClaimCertainty, true);
@@ -68,7 +68,7 @@ async function runSelfCheck() {
 
   const prompt = 'haunted mansion exterior with purple portal';
   const report = await Reconstruction.createInferenceReport(prompt);
-  assert.equal(report.version, '0.75.0');
+  assert.equal(report.version, '0.76.0');
   assert.equal(report.actualVisionUsed, false);
   assert(report.overallConfidence > 0 && report.overallConfidence < 1);
   assert(Array.isArray(report.shownElements) && report.shownElements.length);
@@ -181,7 +181,7 @@ async function runSelfCheck() {
 
   return {
     ok: true,
-    version: '0.75.0',
+    version: '0.76.0',
     checked: [
       'modules',
       'status',

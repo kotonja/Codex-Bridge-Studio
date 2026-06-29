@@ -1,4 +1,4 @@
-# Codex Studio Bridge V75.0
+# Codex Studio Bridge V76.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -387,6 +387,51 @@ Reconstruction is honest about uncertainty. It must not claim a real floorplan e
 .\tools\bridge.cmd reconstruct floorplan "haunted mansion exterior"
 .\tools\bridge.cmd reconstruct worldgen "haunted mansion exterior"
 .\tools\bridge.cmd execute preview "haunted mansion reconstructed hub"
+```
+
+## V76 Image / Reference-to-Playable World Compiler
+
+V76 is the end-to-end compiler that turns a reference note, local image path, screenshot, concept, or folder into a complete playable Roblox world package. It connects V74 Reference Lab, V75 Structural Reconstruction, V66 Worldgen, V67 Asset Forge, V68 Cinematic Motion, V69 QA Swarm, V72 Execution Kernel, V71 Memory, V70 Autopilot, and V63 Premium Director. It is plan/preview by default and does not claim Studio objects were built unless V72 apply returns an executed transaction receipt.
+
+```powershell
+.\tools\bridge.cmd worldcompile status
+.\tools\bridge.cmd worldcompile intake "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile plan "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile compile "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile package "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile worldgen "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile assetkit "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile cinematic "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile qa "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile execute-preview "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile score "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile remember "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile manifest "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile self-check
+.\tools\bridge.cmd image_to_world "reference note or local path"
+.\tools\bridge.cmd reference_to_world "reference note or local path"
+.\tools\bridge.cmd compile_world "reference note or local path"
+.\tools\bridge.cmd build_from_reference "reference note or local path"
+.\tools\bridge.cmd playable_reference "reference note or local path"
+.\tools\bridge.cmd premium compile "reference note or local path"
+.\tools\bridge.cmd reference compile "reference note or local path"
+.\tools\bridge.cmd ai reference-build "reference note or local path"
+```
+
+V76 reports `actualVisionUsed: false` unless real image/API vision analysis happened. Missing or unreadable paths return structured `unavailable` blockers. Raw image bytes are not stored in memory by default. The generated package includes reference profile, reconstruction profile, worldgen graph, asset kit plan, cinematic plan, QA plan, V72 execution preview plan, reference-fidelity score, playability score, warnings, blockers, assumptions, manual-required items, and exact next commands.
+
+Recommended V76 production flow:
+
+```powershell
+.\tools\bridge.cmd reference analyze "dark anime dungeon gate"
+.\tools\bridge.cmd reconstruct infer "dark anime dungeon gate"
+.\tools\bridge.cmd worldcompile compile "dark anime dungeon gate"
+.\tools\bridge.cmd worldcompile package "dark anime dungeon gate"
+.\tools\bridge.cmd execute preview "dark anime dungeon gate"
+.\tools\bridge.cmd execute apply "dark anime dungeon gate"
+.\tools\bridge.cmd visual critique "dark anime dungeon gate"
+.\tools\bridge.cmd qa launch "dark anime dungeon gate"
+.\tools\bridge.cmd memory learn "dark anime dungeon gate"
 ```
 
 For day-to-day connection and pairing help:

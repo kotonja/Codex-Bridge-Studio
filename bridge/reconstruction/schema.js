@@ -3,7 +3,7 @@
 const path = require('node:path');
 const crypto = require('node:crypto');
 
-const VERSION = '0.75.0';
+const VERSION = '0.76.0';
 const STORE_ROOT = path.join(process.cwd(), '.codex-studio', 'reconstruction-v75');
 const DIRS = {
   manifests: path.join(STORE_ROOT, 'manifests'),

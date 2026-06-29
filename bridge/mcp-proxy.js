@@ -10,8 +10,9 @@ const Memory = require('./memory');
 const AiOrchestrator = require('./ai-orchestrator');
 const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
+const WorldCompiler = require('./world-compiler');
 
-const VERSION = '0.75.0';
+const VERSION = '0.76.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -581,6 +582,19 @@ const toolHandlers = {
   reconstruct_execute_plan: async (args) => Reconstruction.getExecutionReconstructionPlan(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
   reconstruct_manifest: async (args) => Reconstruction.getReconstructionManifest(args.source || args.path || args.url || args.goal || args.intent || args.text || ''),
   reconstruct_remember: async (args) => Reconstruction.remember(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.reconstruct.remember', metadata: redacted(args.metadata || {}) }),
+  worldcompile_status: async () => WorldCompiler.getStatus(),
+  worldcompile_intake: async (args) => WorldCompiler.getWorldCompilerIntakeReport(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.intake', metadata: redacted(args.metadata || {}) }),
+  worldcompile_plan: async (args) => WorldCompiler.getWorldCompilerPlan(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.plan', metadata: redacted(args.metadata || {}) }),
+  worldcompile_compile: async (args) => WorldCompiler.getWorldCompilerCompileReport(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.compile', metadata: redacted(args.metadata || {}) }),
+  worldcompile_package: async (args) => WorldCompiler.getWorldCompilerPackage(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.package', metadata: redacted(args.metadata || {}) }),
+  worldcompile_worldgen: async (args) => WorldCompiler.getWorldCompilerWorldgenBridge(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.worldgen', metadata: redacted(args.metadata || {}) }),
+  worldcompile_assetkit: async (args) => WorldCompiler.getWorldCompilerAssetKitBridge(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.assetkit', metadata: redacted(args.metadata || {}) }),
+  worldcompile_cinematic: async (args) => WorldCompiler.getWorldCompilerCinematicBridge(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.cinematic', metadata: redacted(args.metadata || {}) }),
+  worldcompile_qa: async (args) => WorldCompiler.getWorldCompilerQaBridge(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.qa', metadata: redacted(args.metadata || {}) }),
+  worldcompile_execute_preview: async (args) => WorldCompiler.getWorldCompilerExecutionPreview(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.executePreview', metadata: redacted(args.metadata || {}) }),
+  worldcompile_score: async (args) => WorldCompiler.getWorldCompilerScore(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.score', metadata: redacted(args.metadata || {}) }),
+  worldcompile_remember: async (args) => WorldCompiler.rememberWorldCompiler(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.remember', metadata: redacted(args.metadata || {}) }),
+  worldcompile_manifest: async (args) => WorldCompiler.getWorldCompilerManifest(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.manifest', metadata: redacted(args.metadata || {}) }),
   memory_status: async () => Memory.getProductionMemoryStatus(),
   memory_profile: async () => Memory.getProjectMemoryProfile(),
   memory_learn: async (args) => Memory.learnFromProductionReport(args.goal || args.intent || args.text || args.report || 'premium Roblox production goal', args),
@@ -805,6 +819,19 @@ const toolDefinitions = [
   ['reconstruct_execute_plan', 'Return a V72 preview-only execution plan for Codex-owned reconstruction markers/blockouts; does not mutate Studio.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['reconstruct_manifest', 'Save/return a redacted V75 reconstruction manifest for later worldgen/assetforge/execution planning.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['reconstruct_remember', 'Store a redacted V75 reconstruction profile in Production Memory; no raw image bytes.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_status', 'Return V76 Image / Reference-to-Playable World Compiler readiness, safety policy, and next command.', {}],
+  ['worldcompile_intake', 'Classify a reference note/path/folder/image for playable-world compile without storing raw image bytes.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_plan', 'Plan the V76 pipeline from reference to playable Roblox world package; no Studio mutation.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_compile', 'Compile a reference/concept into reference, reconstruction, worldgen, asset kit, cinematic, QA, and V72 preview reports.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_package', 'Return/save the full V76 playable-world package manifest; still plan/preview only.', { source: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_worldgen', 'Return the V66-compatible worldgen graph bridge from a V76 package.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_assetkit', 'Return the V67-compatible Asset Forge kit bridge from a V76 package.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_cinematic', 'Return the V68-compatible cinematic bridge from a V76 package.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_qa', 'Return the V69-compatible QA launch plan from a V76 package.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_execute_preview', 'Return the V72 execution preview bridge for a V76 package; does not apply Studio changes.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_score', 'Score V76 reference fidelity, structure, playability, assets, cinematic, QA, and execution readiness.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_remember', 'Store a redacted V76 playable-world package summary in Production Memory.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['worldcompile_manifest', 'Save/return a redacted V76 playable-world package manifest.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['memory_status', 'Return V71 Production Memory readiness, local storage, and redaction policy.', {}],
   ['memory_profile', 'Return the local project memory profile and user taste profile.', {}],
   ['memory_learn', 'Learn redacted production memory from a goal or report summary.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, report: { type: 'object' } }],

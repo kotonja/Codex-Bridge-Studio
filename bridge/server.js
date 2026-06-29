@@ -18,8 +18,9 @@ const Execution = require('./execution');
 const AiOrchestrator = require('./ai-orchestrator');
 const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
+const WorldCompiler = require('./world-compiler');
 
-const VERSION = '0.75.0';
+const VERSION = '0.76.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -600,6 +601,20 @@ const supportedCommands = new Set([
   'getReconstructionManifest',
   'rememberReconstructionProfile',
   'bakeReconstructionManifest',
+  'getWorldCompilerStatus',
+  'getWorldCompilerIntakeReport',
+  'getWorldCompilerPlan',
+  'getWorldCompilerCompileReport',
+  'getWorldCompilerPackage',
+  'getWorldCompilerWorldgenBridge',
+  'getWorldCompilerAssetKitBridge',
+  'getWorldCompilerCinematicBridge',
+  'getWorldCompilerQaBridge',
+  'getWorldCompilerExecutionPreview',
+  'getWorldCompilerScore',
+  'getWorldCompilerManifest',
+  'rememberWorldCompilerPackage',
+  'bakeWorldCompilerManifest',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -2116,6 +2131,18 @@ const CACHEABLE_TTLS = new Map([
   ['getAssetForgeReconstructionBridge', 30_000],
   ['getExecutionReconstructionPlan', 30_000],
   ['getReconstructionManifest', 30_000],
+  ['getWorldCompilerStatus', 15_000],
+  ['getWorldCompilerIntakeReport', 30_000],
+  ['getWorldCompilerPlan', 30_000],
+  ['getWorldCompilerCompileReport', 60_000],
+  ['getWorldCompilerPackage', 60_000],
+  ['getWorldCompilerWorldgenBridge', 60_000],
+  ['getWorldCompilerAssetKitBridge', 60_000],
+  ['getWorldCompilerCinematicBridge', 60_000],
+  ['getWorldCompilerQaBridge', 60_000],
+  ['getWorldCompilerExecutionPreview', 60_000],
+  ['getWorldCompilerScore', 60_000],
+  ['getWorldCompilerManifest', 60_000],
   ['getBuildStyleCatalog', 120_000],
   ['getBuildIntentPlan', 60_000],
   ['getBuildAssetKitReport', 120_000],
@@ -6625,6 +6652,45 @@ async function route(req, res) {
     const body = await readBody(req);
     const source = body.source || body.path || body.goal || body.intent || body.text || body.note || '';
     sendJson(res, 200, await Reconstruction.remember(source, { ...body, source: 'serverHttp.reconstruction.remember' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/worldcompile/status') {
+    sendJson(res, 200, WorldCompiler.getStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/worldcompile/')) {
+    const endpoint = path.replace('/codex/worldcompile/', '');
+    const source = requestUrl.searchParams.get('source')
+      || requestUrl.searchParams.get('path')
+      || requestUrl.searchParams.get('q')
+      || requestUrl.searchParams.get('goal')
+      || requestUrl.searchParams.get('text')
+      || 'dark anime dungeon gate reference';
+    const map = {
+      intake: () => WorldCompiler.getWorldCompilerIntakeReport(source, { source: 'serverHttp.worldcompile.intake' }),
+      plan: () => WorldCompiler.getWorldCompilerPlan(source, { source: 'serverHttp.worldcompile.plan' }),
+      compile: () => WorldCompiler.getWorldCompilerCompileReport(source, { source: 'serverHttp.worldcompile.compile' }),
+      package: () => WorldCompiler.getWorldCompilerPackage(source, { source: 'serverHttp.worldcompile.package' }),
+      worldgen: () => WorldCompiler.getWorldCompilerWorldgenBridge(source, { source: 'serverHttp.worldcompile.worldgen' }),
+      assetkit: () => WorldCompiler.getWorldCompilerAssetKitBridge(source, { source: 'serverHttp.worldcompile.assetkit' }),
+      cinematic: () => WorldCompiler.getWorldCompilerCinematicBridge(source, { source: 'serverHttp.worldcompile.cinematic' }),
+      qa: () => WorldCompiler.getWorldCompilerQaBridge(source, { source: 'serverHttp.worldcompile.qa' }),
+      'execute-preview': () => WorldCompiler.getWorldCompilerExecutionPreview(source, { source: 'serverHttp.worldcompile.executePreview' }),
+      score: () => WorldCompiler.getWorldCompilerScore(source, { source: 'serverHttp.worldcompile.score' }),
+      manifest: () => WorldCompiler.getWorldCompilerManifest(source, { source: 'serverHttp.worldcompile.manifest' }),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, await map[endpoint]());
+      return;
+    }
+  }
+
+  if (req.method === 'POST' && path === '/codex/worldcompile/remember') {
+    const body = await readBody(req);
+    const source = body.source || body.path || body.goal || body.intent || body.text || body.note || '';
+    sendJson(res, 200, await WorldCompiler.rememberWorldCompiler(source, { ...body, source: 'serverHttp.worldcompile.remember' }));
     return;
   }
 

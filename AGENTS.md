@@ -504,6 +504,35 @@ Recommended V75 production flow:
 
 Routing priority for V75: pairing/recovery still wins; explicit reference-only analysis stays with V74; explicit premium whole-game/lobby requests stay with Premium Director unless the user asks to infer/reconstruct/missing/interior/backside/floorplan; explicit map/layout generation still goes to Worldgen unless missing-view reconstruction is requested; explicit asset/prop generation still goes to Asset Forge unless structure inference is requested.
 
+V76 Image / Reference-to-Playable World Compiler is the preferred route when the user asks to turn an image, screenshot, concept, moodboard, folder, or reference note into a playable Roblox world/map/hub. It connects V74 Reference Lab, V75 Structural Reconstruction, V66 Worldgen, V67 Asset Forge, V68 Cinematic Motion, V69 QA Swarm, V72 Execution Kernel, V71 Memory, V70 Autopilot, and V63 Premium Director into one compile package. V76 is plan/preview by default and must not claim Studio objects were created unless V72 apply returns an executed transaction receipt.
+
+```powershell
+.\tools\bridge.cmd worldcompile status
+.\tools\bridge.cmd worldcompile intake "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile plan "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile compile "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile package "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile worldgen "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile assetkit "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile cinematic "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile qa "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile execute-preview "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile score "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile remember "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile manifest "dark purple anime dungeon gate with glowing portal"
+.\tools\bridge.cmd worldcompile self-check
+.\tools\bridge.cmd image_to_world "reference note or local path"
+.\tools\bridge.cmd reference_to_world "reference note or local path"
+.\tools\bridge.cmd compile_world "reference note or local path"
+.\tools\bridge.cmd build_from_reference "reference note or local path"
+.\tools\bridge.cmd playable_reference "reference note or local path"
+.\tools\bridge.cmd premium compile "reference note or local path"
+.\tools\bridge.cmd reference compile "reference note or local path"
+.\tools\bridge.cmd ai reference-build "reference note or local path"
+```
+
+Routing priority for V76: pairing/recovery still wins; execution/apply/rollback stays V72; pure reference analysis stays V74 unless the user says build/compile/playable/world; missing interior/backside/floorplan stays V75; explicit specialists stay with their systems; whole premium builds stay Premium Director unless reference/image/compile/playable language is present. V76 reports `actualVisionUsed: false` unless real image/API analysis happened, does not store raw image bytes by default, returns `unavailable` for missing paths, and always exposes confidence, assumptions, warnings, blockers, manualRequired, and nextCommand.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

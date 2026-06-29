@@ -18,9 +18,10 @@ const Execution = require('../bridge/execution');
 const AiOrchestrator = require('../bridge/ai-orchestrator');
 const ReferenceLab = require('../bridge/reference-lab');
 const Reconstruction = require('../bridge/reconstruction');
+const WorldCompiler = require('../bridge/world-compiler');
 
-const HELPER_VERSION = '0.75.0';
-const MCP_PROXY_VERSION = '0.75.0';
+const HELPER_VERSION = '0.76.0';
+const MCP_PROXY_VERSION = '0.76.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -236,6 +237,19 @@ const MCP_PROXY_TOOLS = [
   'reconstruct_execute_plan',
   'reconstruct_manifest',
   'reconstruct_remember',
+  'worldcompile_status',
+  'worldcompile_intake',
+  'worldcompile_plan',
+  'worldcompile_compile',
+  'worldcompile_package',
+  'worldcompile_worldgen',
+  'worldcompile_assetkit',
+  'worldcompile_cinematic',
+  'worldcompile_qa',
+  'worldcompile_execute_preview',
+  'worldcompile_score',
+  'worldcompile_remember',
+  'worldcompile_manifest',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -533,6 +547,25 @@ Usage:
   node tools/bridge.js infer_floorplan "<reference-or-goal>"
   node tools/bridge.js missing_structure "<reference-or-goal>"
   node tools/bridge.js structural_reconstruct "<reference-or-goal>"
+  node tools/bridge.js worldcompile status
+  node tools/bridge.js worldcompile intake "<reference-or-goal>"
+  node tools/bridge.js worldcompile plan "<reference-or-goal>"
+  node tools/bridge.js worldcompile compile "<reference-or-goal>"
+  node tools/bridge.js worldcompile package "<reference-or-goal>"
+  node tools/bridge.js worldcompile worldgen "<reference-or-goal>"
+  node tools/bridge.js worldcompile assetkit "<reference-or-goal>"
+  node tools/bridge.js worldcompile cinematic "<reference-or-goal>"
+  node tools/bridge.js worldcompile qa "<reference-or-goal>"
+  node tools/bridge.js worldcompile execute-preview "<reference-or-goal>"
+  node tools/bridge.js worldcompile score "<reference-or-goal>"
+  node tools/bridge.js worldcompile remember "<reference-or-goal>"
+  node tools/bridge.js worldcompile manifest "<reference-or-goal>"
+  node tools/bridge.js worldcompile self-check
+  node tools/bridge.js image_to_world "<reference-or-goal>"
+  node tools/bridge.js reference_to_world "<reference-or-goal>"
+  node tools/bridge.js compile_world "<reference-or-goal>"
+  node tools/bridge.js build_from_reference "<reference-or-goal>"
+  node tools/bridge.js playable_reference "<reference-or-goal>"
   node tools/bridge.js execute status
   node tools/bridge.js execute roots
   node tools/bridge.js execute preview "<goal>"
@@ -6841,6 +6874,69 @@ async function runReconstruction(subcommand = 'status', args = []) {
   throw new Error('reconstruct command must be status, infer, structure, interior, exterior, backside, floorplan, rooms, routes, gameplay, collisions, variants, worldgen, assetforge, execute-plan, manifest, remember, or self-check.');
 }
 
+async function runWorldCompiler(subcommand = 'status', args = []) {
+  const mode = String(subcommand || 'status').toLowerCase();
+  const text = args.join(' ').trim();
+  const goal = text || 'dark purple anime dungeon gate with glowing portal';
+  if (mode === 'status') {
+    print(WorldCompiler.getStatus());
+    return;
+  }
+  if (mode === 'intake') {
+    print(await WorldCompiler.getWorldCompilerIntakeReport(goal, { source: 'tools.bridge.worldcompile.intake' }));
+    return;
+  }
+  if (mode === 'plan') {
+    print(await WorldCompiler.getWorldCompilerPlan(goal, { source: 'tools.bridge.worldcompile.plan' }));
+    return;
+  }
+  if (mode === 'compile' || mode === 'build' || mode === 'report') {
+    print(await WorldCompiler.getWorldCompilerCompileReport(goal, { source: 'tools.bridge.worldcompile.compile' }));
+    return;
+  }
+  if (mode === 'package' || mode === 'pkg') {
+    print(await WorldCompiler.getWorldCompilerPackage(goal, { source: 'tools.bridge.worldcompile.package' }));
+    return;
+  }
+  if (mode === 'worldgen' || mode === 'graph') {
+    print(await WorldCompiler.getWorldCompilerWorldgenBridge(goal, { source: 'tools.bridge.worldcompile.worldgen' }));
+    return;
+  }
+  if (mode === 'assetkit' || mode === 'asset-kit' || mode === 'assets') {
+    print(await WorldCompiler.getWorldCompilerAssetKitBridge(goal, { source: 'tools.bridge.worldcompile.assetkit' }));
+    return;
+  }
+  if (mode === 'cinematic' || mode === 'motion') {
+    print(await WorldCompiler.getWorldCompilerCinematicBridge(goal, { source: 'tools.bridge.worldcompile.cinematic' }));
+    return;
+  }
+  if (mode === 'qa' || mode === 'test') {
+    print(await WorldCompiler.getWorldCompilerQaBridge(goal, { source: 'tools.bridge.worldcompile.qa' }));
+    return;
+  }
+  if (mode === 'execute-preview' || mode === 'execution-preview' || mode === 'preview') {
+    print(await WorldCompiler.getWorldCompilerExecutionPreview(goal, { source: 'tools.bridge.worldcompile.executePreview' }));
+    return;
+  }
+  if (mode === 'score' || mode === 'scores') {
+    print(await WorldCompiler.getWorldCompilerScore(goal, { source: 'tools.bridge.worldcompile.score' }));
+    return;
+  }
+  if (mode === 'manifest' || mode === 'bake') {
+    print(await WorldCompiler.getWorldCompilerManifest(goal, { source: 'tools.bridge.worldcompile.manifest' }));
+    return;
+  }
+  if (mode === 'remember') {
+    print(await WorldCompiler.rememberWorldCompiler(goal, { source: 'tools.bridge.worldcompile.remember' }));
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-world-compiler.js'));
+    return;
+  }
+  throw new Error('worldcompile command must be status, intake, plan, compile, package, worldgen, assetkit, cinematic, qa, execute-preview, score, remember, manifest, or self-check.');
+}
+
 async function runAi(subcommand = 'status', args = []) {
   const cleanGoal = () => args.join(' ').trim() || 'premium Roblox production goal';
   const mode = String(subcommand || 'status').toLowerCase();
@@ -6920,6 +7016,11 @@ async function runPremium(subcommand = 'status', args = []) {
 
   if (subcommand === 'ai') {
     await runAi('run', args);
+    return;
+  }
+
+  if (subcommand === 'compile' || subcommand === 'worldcompile' || subcommand === 'world-compile') {
+    await runWorldCompiler('compile', args);
     return;
   }
 
@@ -7208,7 +7309,7 @@ async function runPremium(subcommand = 'status', args = []) {
     return;
   }
 
-  throw new Error('premium command must be status, plan, style, assets, world, motion, reference, reconstruct, build, critique, qa, launch, autopilot, loop, auto, memory, learn, polish, director, score, bake, or self-check.');
+  throw new Error('premium command must be status, plan, style, assets, world, motion, compile, reference, reconstruct, build, critique, qa, launch, autopilot, loop, auto, memory, learn, polish, director, score, bake, or self-check.');
 }
 
 async function visualEvidenceOptions(extra = {}) {
@@ -12100,6 +12201,10 @@ async function main(argv) {
   }
 
   if (command === 'reference' || command === 'ref') {
+    if (args[0] === 'compile' || args[0] === 'worldcompile' || args[0] === 'world-compile') {
+      await runWorldCompiler('compile', args.slice(1));
+      return;
+    }
     if (args[0] === 'reconstruct' || args[0] === 'reconstruction') {
       await runReconstruction('infer', args.slice(1));
       return;
@@ -12138,7 +12243,21 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'worldcompile' || command === 'world-compile' || command === 'worldcompiler' || command === 'world-compiler') {
+    await runWorldCompiler(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'image_to_world' || command === 'image-to-world' || command === 'reference_to_world' || command === 'reference-to-world' || command === 'compile_world' || command === 'compile-world' || command === 'build_from_reference' || command === 'build-from-reference' || command === 'playable_reference' || command === 'playable-reference') {
+    await runWorldCompiler('compile', args);
+    return;
+  }
+
   if (command === 'ai') {
+    if (args[0] === 'reference-build' || args[0] === 'reference_build') {
+      await runWorldCompiler('compile', args.slice(1));
+      return;
+    }
     await runAi(args[0] || 'status', args.slice(1));
     return;
   }
