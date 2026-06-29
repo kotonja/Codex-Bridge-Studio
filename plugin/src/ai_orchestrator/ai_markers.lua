@@ -1,4 +1,4 @@
 local AiMarkers = {}
-AiMarkers.version = "0.78.0"
+AiMarkers.version = "0.80.0"
 AiMarkers.pluginHasApiKey = false
 return AiMarkers

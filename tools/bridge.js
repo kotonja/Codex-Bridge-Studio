@@ -19,9 +19,10 @@ const AiOrchestrator = require('../bridge/ai-orchestrator');
 const ReferenceLab = require('../bridge/reference-lab');
 const Reconstruction = require('../bridge/reconstruction');
 const WorldCompiler = require('../bridge/world-compiler');
+const Fidelity = require('../bridge/fidelity');
 
-const HELPER_VERSION = '0.78.0';
-const MCP_PROXY_VERSION = '0.78.0';
+const HELPER_VERSION = '0.80.0';
+const MCP_PROXY_VERSION = '0.80.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -255,6 +256,15 @@ const MCP_PROXY_TOOLS = [
   'worldcompile_score',
   'worldcompile_remember',
   'worldcompile_manifest',
+  'fidelity_status',
+  'fidelity_compare',
+  'fidelity_reference',
+  'fidelity_studio',
+  'fidelity_score',
+  'fidelity_gaps',
+  'fidelity_fix_plan',
+  'fidelity_memory',
+  'fidelity_manifest',
   'style_bible',
   'forge_assets',
   'execute_luau',
@@ -566,7 +576,22 @@ Usage:
   node tools/bridge.js worldcompile score "<reference-or-goal>"
   node tools/bridge.js worldcompile remember "<reference-or-goal>"
   node tools/bridge.js worldcompile manifest "<reference-or-goal>"
+  node tools/bridge.js worldcompile fidelity "<reference-or-goal>"
   node tools/bridge.js worldcompile self-check
+  node tools/bridge.js fidelity status
+  node tools/bridge.js fidelity compare "<reference-or-goal>"
+  node tools/bridge.js fidelity reference "<reference-or-goal>"
+  node tools/bridge.js fidelity studio "<reference-or-goal>"
+  node tools/bridge.js fidelity score "<reference-or-goal>"
+  node tools/bridge.js fidelity gaps "<reference-or-goal>"
+  node tools/bridge.js fidelity fix-plan "<reference-or-goal>"
+  node tools/bridge.js fidelity memory "<reference-or-goal>"
+  node tools/bridge.js fidelity manifest "<reference-or-goal>"
+  node tools/bridge.js fidelity self-check
+  node tools/bridge.js compare_reference "<reference-or-goal>"
+  node tools/bridge.js reference_fidelity "<reference-or-goal>"
+  node tools/bridge.js compare_to_image "<reference-or-goal>"
+  node tools/bridge.js match_reference "<reference-or-goal>"
   node tools/bridge.js reference image "<imagePath>"
   node tools/bridge.js reference analyze-image "<imagePath>"
   node tools/bridge.js ai reference-image "<imagePath>"
@@ -6960,6 +6985,53 @@ async function runWorldCompiler(subcommand = 'status', args = []) {
   throw new Error('worldcompile command must be status, intake, image, plan, compile, package, worldgen, assetkit, cinematic, qa, execute-preview, score, remember, manifest, or self-check.');
 }
 
+async function runFidelity(subcommand = 'status', args = []) {
+  const mode = String(subcommand || 'status').toLowerCase();
+  const text = args.join(' ').trim();
+  const goal = text || 'dark purple anime dungeon gate';
+  if (mode === 'status') {
+    print(Fidelity.getStatus());
+    return;
+  }
+  if (mode === 'compare' || mode === 'report') {
+    print(await Fidelity.compare(goal, { source: 'tools.bridge.fidelity.compare' }));
+    return;
+  }
+  if (mode === 'reference' || mode === 'ref') {
+    print(await Fidelity.reference(goal, { source: 'tools.bridge.fidelity.reference' }));
+    return;
+  }
+  if (mode === 'studio' || mode === 'scene') {
+    print(await Fidelity.studio(goal, { source: 'tools.bridge.fidelity.studio' }));
+    return;
+  }
+  if (mode === 'score' || mode === 'scores') {
+    print(await Fidelity.score(goal, { source: 'tools.bridge.fidelity.score' }));
+    return;
+  }
+  if (mode === 'gaps' || mode === 'gap-report' || mode === 'mismatches') {
+    print(await Fidelity.gaps(goal, { source: 'tools.bridge.fidelity.gaps' }));
+    return;
+  }
+  if (mode === 'fix-plan' || mode === 'fix' || mode === 'plan') {
+    print(await Fidelity.fixPlan(goal, { source: 'tools.bridge.fidelity.fixPlan' }));
+    return;
+  }
+  if (mode === 'memory' || mode === 'remember') {
+    print(await Fidelity.memory(goal, { source: 'tools.bridge.fidelity.memory' }));
+    return;
+  }
+  if (mode === 'manifest' || mode === 'bake') {
+    print(await Fidelity.manifest(goal, { source: 'tools.bridge.fidelity.manifest' }));
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-fidelity.js'));
+    return;
+  }
+  throw new Error('fidelity command must be status, compare, reference, studio, score, gaps, fix-plan, memory, manifest, or self-check.');
+}
+
 async function runAi(subcommand = 'status', args = []) {
   const cleanGoal = () => args.join(' ').trim() || 'premium Roblox production goal';
   const mode = String(subcommand || 'status').toLowerCase();
@@ -12250,6 +12322,10 @@ async function main(argv) {
   }
 
   if (command === 'reference' || command === 'ref') {
+    if (args[0] === 'fidelity' || args[0] === 'match') {
+      await runFidelity('compare', args.slice(1));
+      return;
+    }
     if (args[0] === 'compile' || args[0] === 'worldcompile' || args[0] === 'world-compile') {
       await runWorldCompiler('compile', args.slice(1));
       return;
@@ -12298,7 +12374,21 @@ async function main(argv) {
   }
 
   if (command === 'worldcompile' || command === 'world-compile' || command === 'worldcompiler' || command === 'world-compiler') {
+    if (args[0] === 'fidelity' || args[0] === 'match' || args[0] === 'compare-reference') {
+      await runFidelity('compare', args.slice(1));
+      return;
+    }
     await runWorldCompiler(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'fidelity' || command === 'reference-fidelity') {
+    await runFidelity(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'compare_reference' || command === 'compare-reference' || command === 'reference_fidelity' || command === 'compare_to_image' || command === 'compare-to-image' || command === 'match_reference' || command === 'match-reference') {
+    await runFidelity('compare', args);
     return;
   }
 
@@ -12827,6 +12917,10 @@ async function main(argv) {
   }
 
   if (command === 'visual') {
+    if (args[0] === 'fidelity' || args[0] === 'match-reference' || args[0] === 'reference-fidelity') {
+      await runFidelity('compare', args.slice(1));
+      return;
+    }
     await runVisual(args[0] || 'status', args.slice(1));
     return;
   }

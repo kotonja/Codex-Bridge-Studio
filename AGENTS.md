@@ -547,6 +547,29 @@ V78 Real Image File Vision Trial is the explicit route when the user provides an
 
 V78 rules: missing paths return `mode: unavailable`, readable images without `OPENAI_API_KEY` return `mode: metadataOnly` and `actualVisionUsed: false`, and `actualVisionUsed: true` is only valid after a real bounded API vision request succeeds. Do not store raw image bytes or base64 in memory/reports/logs/manifests. `worldcompile image` is still preview-only; any real Studio build must go through V72 `execute preview/apply/verify/rollback`.
 
+V80 Reference Fidelity Visual Comparison is the preferred route when the user asks whether a generated Studio scene matches a reference, image, original concept, or style profile; asks what does not match; asks to make a build closer to an image; or asks for reference fidelity scoring. It compares Reference Lab / image evidence against structured Studio evidence from Visual Critic and Worldcompile. It must never fake screenshot/pixel comparison, never claim actual image vision unless V78/API evidence says so, and never mutate Studio directly. Fixes are only V72-compatible plans until `execute safe-fix` or another execution command is run.
+
+```powershell
+.\tools\bridge.cmd fidelity status
+.\tools\bridge.cmd fidelity compare "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity reference "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity studio "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity score "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity gaps "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity fix-plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity memory "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity manifest "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity self-check
+.\tools\bridge.cmd compare_reference "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference_fidelity "dark purple anime dungeon gate"
+.\tools\bridge.cmd compare_to_image "dark purple anime dungeon gate"
+.\tools\bridge.cmd match_reference "dark purple anime dungeon gate"
+.\tools\bridge.cmd visual fidelity "dark purple anime dungeon gate"
+.\tools\bridge.cmd worldcompile fidelity "dark purple anime dungeon gate"
+```
+
+Routing priority for V80: pairing/recovery still wins; execution/apply/rollback stays V72; image/reference analysis stays V74; image-to-world/compile stays V76; reconstruction stays V75; explicit visual critique stays V65; comparison/match/fidelity/mismatch language routes to V80. V80 modes are explicit: `imageVisionBased` requires true reference vision, `pixelBased` requires actual Studio pixels, `profileBased` uses structured reference evidence, and `limited` means no pixel comparison was available. Memory writes store only redacted fidelity lessons and no raw image bytes.
+
 Roblox Creator OS + Asset Forge remains the V62 specialist layer under Premium Director when Codex needs the older style bible, asset planning, custom mesh/material strategy, visual critique loops, and coordinated specialist routing:
 
 ```powershell

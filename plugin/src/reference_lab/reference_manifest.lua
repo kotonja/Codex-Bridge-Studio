@@ -1,5 +1,5 @@
 local ReferenceManifest = {
-	version = "0.78.0",
+	version = "0.80.0",
 	rootName = "CodexReferenceLab",
 	readOnly = true,
 	fields = {

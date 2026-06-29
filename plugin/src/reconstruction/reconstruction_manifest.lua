@@ -2,7 +2,7 @@
 -- The active one-file plugin keeps behavior in legacy/CodexStudioBridge.legacy.lua.
 return {
 	name = "CodexReconstructionManifest",
-	version = "0.78.0",
+	version = "0.80.0",
 	readOnly = true,
 }
 

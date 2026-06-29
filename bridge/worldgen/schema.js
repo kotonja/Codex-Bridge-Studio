@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.78.0';
+const VERSION = '0.80.0';
 
 const ROOTS = {
   workspace: 'Workspace.CodexWorldgen',

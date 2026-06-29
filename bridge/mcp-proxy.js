@@ -11,8 +11,9 @@ const AiOrchestrator = require('./ai-orchestrator');
 const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
 const WorldCompiler = require('./world-compiler');
+const Fidelity = require('./fidelity');
 
-const VERSION = '0.78.0';
+const VERSION = '0.80.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -600,6 +601,15 @@ const toolHandlers = {
   worldcompile_score: async (args) => WorldCompiler.getWorldCompilerScore(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.score', metadata: redacted(args.metadata || {}) }),
   worldcompile_remember: async (args) => WorldCompiler.rememberWorldCompiler(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.remember', metadata: redacted(args.metadata || {}) }),
   worldcompile_manifest: async (args) => WorldCompiler.getWorldCompilerManifest(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.worldcompile.manifest', metadata: redacted(args.metadata || {}) }),
+  fidelity_status: async () => Fidelity.getStatus(),
+  fidelity_compare: async (args) => Fidelity.compare(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.fidelity.compare', metadata: redacted(args.metadata || {}) }),
+  fidelity_reference: async (args) => Fidelity.reference(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.fidelity.reference', metadata: redacted(args.metadata || {}) }),
+  fidelity_studio: async (args) => Fidelity.studio(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.fidelity.studio', metadata: redacted(args.metadata || {}) }),
+  fidelity_score: async (args) => Fidelity.score(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.fidelity.score', metadata: redacted(args.metadata || {}) }),
+  fidelity_gaps: async (args) => Fidelity.gaps(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.fidelity.gaps', metadata: redacted(args.metadata || {}) }),
+  fidelity_fix_plan: async (args) => Fidelity.fixPlan(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.fidelity.fixPlan', metadata: redacted(args.metadata || {}) }),
+  fidelity_memory: async (args) => Fidelity.memory(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.fidelity.memory', metadata: redacted(args.metadata || {}) }),
+  fidelity_manifest: async (args) => Fidelity.manifest(args.source || args.path || args.url || args.goal || args.intent || args.text || '', { source: 'mcpProxy.fidelity.manifest', metadata: redacted(args.metadata || {}) }),
   memory_status: async () => Memory.getProductionMemoryStatus(),
   memory_profile: async () => Memory.getProjectMemoryProfile(),
   memory_learn: async (args) => Memory.learnFromProductionReport(args.goal || args.intent || args.text || args.report || 'premium Roblox production goal', args),
@@ -842,6 +852,15 @@ const toolDefinitions = [
   ['worldcompile_score', 'Score V76 reference fidelity, structure, playability, assets, cinematic, QA, and execution readiness.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['worldcompile_remember', 'Store a redacted V76 playable-world package summary in Production Memory.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['worldcompile_manifest', 'Save/return a redacted V76 playable-world package manifest.', { source: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['fidelity_status', 'Return V80 Reference Fidelity readiness, capabilities, safety policy, and next command.', {}],
+  ['fidelity_compare', 'Compare reference/profile/image evidence against Studio evidence without faking pixels or mutating Studio.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['fidelity_reference', 'Return the reference side of a V80 comparison, using image vision only when honestly available.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['fidelity_studio', 'Return the Studio evidence side of a V80 comparison using visual/worldcompile structured evidence.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['fidelity_score', 'Return V80 fidelity scores for style, shape, material, lighting, focal hierarchy, objects, layout, gameplay, and mobile adaptation.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['fidelity_gaps', 'Return reference-vs-Studio mismatches and intentional gameplay adaptations.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['fidelity_fix_plan', 'Create a V72-compatible safe fix plan for reference fidelity gaps; does not apply changes.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['fidelity_memory', 'Store a redacted reference fidelity lesson in Production Memory; no raw image bytes.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['fidelity_manifest', 'Save/return a redacted V80 fidelity comparison manifest.', { source: { type: 'string' }, path: { type: 'string' }, goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['memory_status', 'Return V71 Production Memory readiness, local storage, and redaction policy.', {}],
   ['memory_profile', 'Return the local project memory profile and user taste profile.', {}],
   ['memory_learn', 'Learn redacted production memory from a goal or report summary.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, report: { type: 'object' } }],

@@ -436,6 +436,31 @@ V78 makes local image-file mode explicit. Use it when the user gives an actual `
 
 `worldcompile image` runs Reference Lab image analysis, structural reconstruction, worldgen, asset kit, cinematic, QA, and V72 execution-preview packaging, but it does not apply Studio mutations. Real Studio builds still go through `execute preview`, `execute apply`, `execute verify`, and `execute rollback`.
 
+## V80 Reference Fidelity Visual Comparison
+
+V80 compares a source reference/image/profile against the generated Roblox Studio scene evidence. It answers whether the scene preserves style, focal hierarchy, shape language, material language, lighting/mood, layout, object coverage, and gameplay adaptation. It is read-only/planning-only: it must not fake pixel comparison, must not claim actual image vision unless V78/API evidence says so, must not claim actual Studio pixels unless capture evidence says so, and any real fixes still route through V72 Execution Kernel.
+
+```powershell
+.\tools\bridge.cmd fidelity status
+.\tools\bridge.cmd fidelity compare "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity reference "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity studio "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity score "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity gaps "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity fix-plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity memory "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity manifest "dark purple anime dungeon gate"
+.\tools\bridge.cmd fidelity self-check
+.\tools\bridge.cmd compare_reference "dark purple anime dungeon gate"
+.\tools\bridge.cmd reference_fidelity "dark purple anime dungeon gate"
+.\tools\bridge.cmd compare_to_image "dark purple anime dungeon gate"
+.\tools\bridge.cmd match_reference "dark purple anime dungeon gate"
+.\tools\bridge.cmd visual fidelity "dark purple anime dungeon gate"
+.\tools\bridge.cmd worldcompile fidelity "dark purple anime dungeon gate"
+```
+
+Fidelity modes are explicit: `imageVisionBased` only when actual reference vision happened, `pixelBased` only when Studio pixel evidence exists, `profileBased` when structured Reference Lab evidence exists, and `limited` when both sides are structured but no pixels are available. The fix plan groups focal hierarchy, silhouette/shape, material/color, lighting/mood, object coverage, layout/path readability, gameplay adaptation checks, visual critique rerun, and QA rerun. Memory integration stores redacted lessons only; no raw image bytes, API keys, tokens, source, or patch payloads are stored.
+
 Recommended V76 production flow:
 
 ```powershell
@@ -445,6 +470,8 @@ Recommended V76 production flow:
 .\tools\bridge.cmd worldcompile package "dark anime dungeon gate"
 .\tools\bridge.cmd execute preview "dark anime dungeon gate"
 .\tools\bridge.cmd execute apply "dark anime dungeon gate"
+.\tools\bridge.cmd fidelity compare "dark anime dungeon gate"
+.\tools\bridge.cmd fidelity fix-plan "dark anime dungeon gate"
 .\tools\bridge.cmd visual critique "dark anime dungeon gate"
 .\tools\bridge.cmd qa launch "dark anime dungeon gate"
 .\tools\bridge.cmd memory learn "dark anime dungeon gate"

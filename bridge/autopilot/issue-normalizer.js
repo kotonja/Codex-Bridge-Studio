@@ -5,6 +5,7 @@ const { parseGoal } = require('./goal-parser');
 
 const BASE_ISSUES = [
   ['visual', 'medium', 'visualReadability', 'Visual proof is structured, not pixel-verified', 'Run visual evidence/critique and collect screenshot pixels when Roblox supports it.', 'tools\\bridge.cmd visual critique "<goal>"', false, 'readOnly'],
+  ['fidelity', 'medium', 'referenceFidelity', 'Reference fidelity gaps may remain after generated build', 'Compare the generated scene against reference/profile evidence and feed safe gaps into V72 fixes.', 'tools\\bridge.cmd fidelity gaps "<goal>"', false, 'readOnly'],
   ['qa', 'medium', 'launchReadiness', 'Launch readiness needs live Play/Test evidence', 'Run QA launch after Play/Test snapshot and fresh Output baseline.', 'tools\\bridge.cmd qa launch "<goal>"', false, 'readOnly'],
   ['worldgen', 'low', 'routeFlow', 'World route polish may be needed', 'Audit and polish Codex-owned worldgen routes.', 'tools\\bridge.cmd worldgen polish "<goal>"', true, 'codexOwnedMutation'],
   ['assetforge', 'low', 'assetDensity', 'Reusable asset kit may need polish', 'Polish Codex-owned asset kit/socket details.', 'tools\\bridge.cmd assetforge polish "<goal>"', true, 'codexOwnedMutation'],

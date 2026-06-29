@@ -3,7 +3,7 @@
 
 local ExecutionRuntime = {}
 
-ExecutionRuntime.version = "0.78.0"
+ExecutionRuntime.version = "0.80.0"
 ExecutionRuntime.capabilities = {
 	"codexOwnedBlueprintApply",
 	"receiptScopedRollback",

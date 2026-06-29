@@ -19,8 +19,9 @@ const AiOrchestrator = require('./ai-orchestrator');
 const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
 const WorldCompiler = require('./world-compiler');
+const Fidelity = require('./fidelity');
 
-const VERSION = '0.78.0';
+const VERSION = '0.80.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -615,6 +616,16 @@ const supportedCommands = new Set([
   'getWorldCompilerManifest',
   'rememberWorldCompilerPackage',
   'bakeWorldCompilerManifest',
+  'getReferenceFidelityStatus',
+  'getReferenceFidelityCompareReport',
+  'getReferenceFidelityReferenceReport',
+  'getReferenceFidelityStudioReport',
+  'getReferenceFidelityScore',
+  'getReferenceFidelityGapReport',
+  'getReferenceFidelityFixPlan',
+  'getReferenceFidelityMemoryReport',
+  'getReferenceFidelityManifest',
+  'bakeReferenceFidelityManifest',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -2143,6 +2154,15 @@ const CACHEABLE_TTLS = new Map([
   ['getWorldCompilerExecutionPreview', 60_000],
   ['getWorldCompilerScore', 60_000],
   ['getWorldCompilerManifest', 60_000],
+  ['getReferenceFidelityStatus', 15_000],
+  ['getReferenceFidelityCompareReport', 60_000],
+  ['getReferenceFidelityReferenceReport', 60_000],
+  ['getReferenceFidelityStudioReport', 60_000],
+  ['getReferenceFidelityScore', 60_000],
+  ['getReferenceFidelityGapReport', 60_000],
+  ['getReferenceFidelityFixPlan', 60_000],
+  ['getReferenceFidelityMemoryReport', 60_000],
+  ['getReferenceFidelityManifest', 60_000],
   ['getBuildStyleCatalog', 120_000],
   ['getBuildIntentPlan', 60_000],
   ['getBuildAssetKitReport', 120_000],
@@ -6702,6 +6722,35 @@ async function route(req, res) {
     const source = body.source || body.path || body.goal || body.intent || body.text || body.note || '';
     sendJson(res, 200, await WorldCompiler.rememberWorldCompiler(source, { ...body, source: 'serverHttp.worldcompile.remember' }));
     return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/fidelity/status') {
+    sendJson(res, 200, Fidelity.getStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/fidelity/')) {
+    const endpoint = path.replace('/codex/fidelity/', '');
+    const source = requestUrl.searchParams.get('source')
+      || requestUrl.searchParams.get('path')
+      || requestUrl.searchParams.get('q')
+      || requestUrl.searchParams.get('goal')
+      || requestUrl.searchParams.get('text')
+      || 'dark purple anime dungeon gate';
+    const map = {
+      compare: () => Fidelity.compare(source, { source: 'serverHttp.fidelity.compare' }),
+      reference: () => Fidelity.reference(source, { source: 'serverHttp.fidelity.reference' }),
+      studio: () => Fidelity.studio(source, { source: 'serverHttp.fidelity.studio' }),
+      score: () => Fidelity.score(source, { source: 'serverHttp.fidelity.score' }),
+      gaps: () => Fidelity.gaps(source, { source: 'serverHttp.fidelity.gaps' }),
+      'fix-plan': () => Fidelity.fixPlan(source, { source: 'serverHttp.fidelity.fixPlan' }),
+      memory: () => Fidelity.memory(source, { source: 'serverHttp.fidelity.memory' }),
+      manifest: () => Fidelity.manifest(source, { source: 'serverHttp.fidelity.manifest' }),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, await map[endpoint]());
+      return;
+    }
   }
 
   if (req.method === 'POST' && path === '/codex/ai/run') {

@@ -54,6 +54,11 @@ function createCritiqueReport(goal, options = {}) {
     bestStrengths,
     evidencePack,
     visualEvidenceSummary: summarizeEvidence(evidencePack),
+    referenceFidelity: {
+      available: true,
+      note: 'For reference/image match proof, run V80 Fidelity; this visual critique does not claim reference fidelity by itself.',
+      command: `tools\\bridge.cmd fidelity compare "${cleanGoal}"`,
+    },
     polishPlan,
     warnings: evidencePack.warnings || [],
     blockers: evidencePack.blockers || [],

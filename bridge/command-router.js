@@ -58,6 +58,9 @@ function createRoute(rawQuery = '', options = {}) {
   const worldcompileSignal = has('worldcompile image', 'turn this image into a world', 'image to world', 'reference to world', 'build from this image', 'build from this reference', 'make this reference playable', 'turn this concept into a playable map', 'make a playable world from this', 'compile this reference', 'turn this screenshot into a roblox map', 'build this image as a game world', 'make a roblox world from this image', 'turn concept art into roblox', 'reference playable world', 'generate playable map from reference')
     || ((has('reference', 'image', 'screenshot', 'concept', 'concept art', 'moodboard') && has('playable', 'world', 'map', 'compile', 'build from', 'turn into', 'roblox map', 'roblox world')))
     || ((has('playable world', 'playable map') && has('reference', 'image', 'concept')));
+  const fidelitySignal = has('compare to reference', 'does it match the image', 'match the reference', 'reference fidelity', 'compare build to image', 'compare to original', 'what does not match', 'make it closer to the image', 'fix reference mismatch', 'score image match', 'does the build look like the reference', 'compare generated map to reference')
+    || ((has('reference', 'image', 'original') && has('compare', 'match', 'fidelity', 'closer', 'mismatch', 'does it match', 'score', 'look like')))
+    || ((has('what does not match', 'mismatch') && has('build', 'generated', 'map', 'scene', 'reference', 'image')));
   const memorySignal = has('production memory', 'project memory', 'style memory', 'remember this', 'remember that', 'recall', 'learn from report', 'learn this report', 'what did we learn', 'did we learn', 'lessons learned', 'use previous style', 'previous style', 'reuse previous style', 'save this style', 'what worked best', 'what failed before', 'best previous score', 'score history', 'issue patterns', 'reference memory', 'memory recommend', 'premium memory')
     || ((has('memory', 'remember', 'recall', 'lessons', 'reference', 'references', 'previous') && has('production', 'project', 'style', 'premium', 'report', 'score', 'issue', 'recommend', 'learn', 'worked', 'failed')));
   const executionSignal = has('build this for real', 'apply the plan', 'create it in studio', 'make real objects', 'safe build', 'build real', 'execute plan', 'rollback build', 'show transactions', 'verify transaction', 'apply safe fixes', 'turn this plan into parts', 'make the world in studio')
@@ -170,6 +173,23 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd reconstruct ${action} ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd reconstruct worldgen ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd reconstruct execute-plan ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (fidelitySignal) {
+    const action = has('score image match', 'score') ? 'score'
+      : has('what does not match', 'mismatch', 'gaps') ? 'gaps'
+        : has('fix reference mismatch', 'make it closer') ? 'fix-plan'
+          : 'compare';
+    setRoute({
+      category: 'fidelity',
+      title: 'V80 Reference Fidelity Visual Comparison',
+      confidence: 0.97,
+      safety: 'readOnlyReferenceStudioComparison',
+      reason: 'Reference/image match, fidelity, mismatch, or compare-to-original language detected. Use V80 to compare reference evidence against Studio evidence without faking pixels.',
+      commands: [
+        `tools\\bridge.cmd fidelity compare ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd fidelity ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd fidelity fix-plan ${quoteForCommand(intent)}`,
       ],
     });
   } else if (referenceSignal) {
@@ -589,6 +609,9 @@ function catalog(version = null) {
     ['turn this image into a world', 'tools\\bridge.cmd worldcompile compile "<reference-or-goal>"'],
     ['reference to world', 'tools\\bridge.cmd worldcompile package "<reference-or-goal>"'],
     ['make this reference playable', 'tools\\bridge.cmd worldcompile compile "<reference-or-goal>"'],
+    ['compare to reference', 'tools\\bridge.cmd fidelity compare "<reference-or-goal>"'],
+    ['does it match the image', 'tools\\bridge.cmd fidelity score "<reference-or-goal>"'],
+    ['make it closer to the image', 'tools\\bridge.cmd fidelity fix-plan "<reference-or-goal>"'],
     ['infer the inside', 'tools\\bridge.cmd reconstruct interior "<reference-or-goal>"'],
     ['what is behind this', 'tools\\bridge.cmd reconstruct backside "<reference-or-goal>"'],
     ['create floorplan from image', 'tools\\bridge.cmd reconstruct floorplan "<reference-or-goal>"'],
