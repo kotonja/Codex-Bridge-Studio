@@ -1233,6 +1233,7 @@ Usage:
   node tools/bridge.js dashboard clear-chat
   node tools/bridge.js dashboard timeline
   node tools/bridge.js dashboard runs
+  node tools/bridge.js dashboard transactions
   node tools/bridge.js dashboard approvals
   node tools/bridge.js dashboard approve <approvalId>
   node tools/bridge.js dashboard reject <approvalId>
@@ -9974,6 +9975,11 @@ async function runDashboard(subcommand = 'compact', args = []) {
     print(await request('/dashboard/runs', { timeoutMs: FAST_TIMEOUT_MS }));
     return;
   }
+  if (mode === 'transactions') {
+    await ensureBridgeRunning('dashboard transactions');
+    print(await request('/dashboard/transactions', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
   if (mode === 'run') {
     await ensureBridgeRunning('dashboard run');
     const runId = args[0];
@@ -10156,7 +10162,7 @@ async function runDashboard(subcommand = 'compact', args = []) {
     });
     return;
   }
-  throw new Error('dashboard command must be status, open, url, state, chat, history, clear-chat, timeline, runs, run, approvals, approve, reject, cost, pipeline, presets, safety, self-check, quick, refresh, full, next, digest, compact, or summary.');
+  throw new Error('dashboard command must be status, open, url, state, chat, history, clear-chat, timeline, runs, run, transactions, approvals, approve, reject, cost, pipeline, presets, safety, self-check, quick, refresh, full, next, digest, compact, or summary.');
 }
 
 async function runCache(subcommand = 'status') {

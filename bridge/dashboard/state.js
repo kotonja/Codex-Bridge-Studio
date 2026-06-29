@@ -92,8 +92,8 @@ function createDashboardState(env = {}, runtime = {}) {
       'memoryRecommend',
       'memoryLearn',
     ].filter(Boolean),
-    warnings: [...warnings, ...(latest.warnings || [])],
-    blockers: [...blockers, ...(latest.blockers || [])],
+    warnings,
+    blockers,
     nextCommand: pendingApproval ? 'Review dashboard preview, then approve or cancel.' : 'tools\\bridge.cmd dashboard open',
   });
 }

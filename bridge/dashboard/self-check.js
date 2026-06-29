@@ -66,6 +66,17 @@ async function runSelfCheck() {
   assert.equal(state.safety.mutationsRequireExecutionKernel, true);
   assert.equal(state.api.keyExposed, false);
   assert.equal(state.url, 'http://127.0.0.1:28123/dashboard');
+  Dashboard.getRuntime().latest.warnings = ['stale previous action warning'];
+  Dashboard.getRuntime().latest.blockers = ['stale previous action blocker'];
+  const currentState = Dashboard.getState({
+    health: { ok: true, version: VERSION, studioConnected: true, paired: true },
+    activePlace: { pluginVersion: VERSION, connected: true, stale: false },
+  });
+  assert(!currentState.warnings.includes('stale previous action warning'), 'current dashboard warnings must not include stale action warnings');
+  assert(!currentState.blockers.includes('stale previous action blocker'), 'current dashboard blockers must not include stale action blockers');
+  assert(currentState.latest.lastResult !== undefined, 'dashboard state should still expose latest action details separately');
+  Dashboard.getRuntime().latest.warnings = [];
+  Dashboard.getRuntime().latest.blockers = [];
 
   const unknown = await Dashboard.command({ action: 'unknownAction', goal: 'test' });
   assert.equal(unknown.status, 'blocked');
