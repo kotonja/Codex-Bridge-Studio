@@ -6388,7 +6388,48 @@ function dashboardEnv() {
     status: dashboardHealthSnapshot,
     pluginHealth: dashboardHealthSnapshot,
     executeApply: executeApplyInStudio,
+    executeVerify: executeVerifyInStudio,
     executeRollback: executeRollbackInStudio,
+  };
+}
+
+const DASHBOARD_STUDIO_COMMAND_TIMEOUT_MS = 30_000;
+const DASHBOARD_FINAL_COMMAND_STATUSES = new Set([
+  'executed',
+  'failed',
+  'rejected',
+  'cancelled',
+  'cancelledByPairReset',
+  'cancelledByPlaceReset',
+  'deferred',
+]);
+
+function waitMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForStudioCommand(commandId, timeoutMs = DASHBOARD_STUDIO_COMMAND_TIMEOUT_MS) {
+  const startedAt = Date.now();
+  let command = commands.get(commandId);
+  while (Date.now() - startedAt < timeoutMs) {
+    command = commands.get(commandId);
+    if (!command) {
+      return {
+        id: commandId,
+        status: 'missing',
+        error: `Command ${commandId} disappeared before completion.`,
+        result: null,
+      };
+    }
+    if (DASHBOARD_FINAL_COMMAND_STATUSES.has(command.status)) return command;
+    await waitMs(250);
+  }
+  command = commands.get(commandId);
+  return {
+    ...(command || { id: commandId }),
+    status: command && command.status ? command.status : 'timedOut',
+    error: command && command.error ? command.error : `Timed out waiting for Studio command ${commandId}.`,
+    result: command && command.result !== undefined ? command.result : null,
   };
 }
 
@@ -6432,13 +6473,112 @@ async function executeApplyInStudio(goal, body = {}) {
     },
     requiresApproval: true,
   });
+  const status = await waitForStudioCommand(command.id);
+  const applied = Execution.recordExecutedApply(applyPlan, status);
+  if (status.status !== 'executed') {
+    return {
+      ...applied,
+      ok: false,
+      status: status.status || 'failed',
+      commandId: command.id,
+      commandStatus: status.status,
+      error: status.error || null,
+      blockers: [
+        ...(applied.blockers || []),
+        `Studio apply command ended with status ${status.status || 'unknown'}.`,
+      ],
+      nextCommand: 'tools\\bridge.cmd plugin-health',
+    };
+  }
   return {
-    ...applyPlan,
+    ...applied,
     ok: true,
-    status: 'queued',
+    status: applied.status || 'executed',
     commandId: command.id,
-    transaction: { ...applyPlan.transaction, status: 'queued', commandId: command.id },
+    commandStatus: status.status,
+    pluginResult: status.result || null,
+    transaction: { ...applyPlan.transaction, status: applied.status || 'executed', commandId: command.id },
     nextCommand: `tools\\bridge.cmd execute verify ${applyPlan.transactionId}`,
+  };
+}
+
+async function executeVerifyInStudio(transactionId, body = {}) {
+  const tx = transactionId || body.transactionId || body.tx || body.goal;
+  const localReport = Execution.verify(tx, { source: 'dashboard.executeVerify' });
+  const receiptReport = Execution.receipt(tx);
+  if (!receiptReport.ok || !receiptReport.receipt) return localReport;
+
+  const active = getActiveStudioEntry();
+  if (!active || !isPlaceFresh(active)) {
+    return {
+      ...localReport,
+      liveChecked: false,
+      status: 'verifiedLocalReceipt',
+      warnings: [...(localReport.warnings || []), 'Studio is not connected/fresh; live path verification was not run.'],
+      nextCommand: 'tools\\bridge.cmd connect',
+    };
+  }
+  if (active.pluginVersion && active.pluginVersion !== VERSION) {
+    return {
+      ...localReport,
+      ok: false,
+      liveChecked: false,
+      status: 'manualRequired',
+      reason: 'versionMismatch',
+      expectedVersion: VERSION,
+      loadedPluginVersion: active.pluginVersion,
+      blockers: [...(localReport.blockers || []), `Plugin version mismatch: ${active.pluginVersion} != ${VERSION}`],
+      nextCommand: 'tools\\bridge.cmd plugin-health',
+    };
+  }
+
+  const transactionInfo = Execution.transactionList(200).transactions.find((item) => item.transactionId === tx) || {};
+  const rollbackExpected = transactionInfo.status === 'rolledBack' || body.rollbackExpected === true;
+  const command = queueBridgeCommand({
+    type: 'getExecutionVerificationReport',
+    targetStudioId: active.studioId,
+    payload: {
+      transactionId: tx,
+      receipt: receiptReport.receipt,
+      rollbackExpected,
+      source: 'dashboard.executeVerify',
+      expectedVersion: VERSION,
+    },
+    requiresApproval: false,
+  });
+  const status = await waitForStudioCommand(command.id);
+  const pluginResult = status.result || {};
+  if (status.status !== 'executed') {
+    return {
+      ...localReport,
+      ok: false,
+      liveChecked: false,
+      status: 'failed',
+      commandStatus: status.status,
+      commandId: command.id,
+      error: status.error || null,
+      blockers: [...(localReport.blockers || []), `Live verification command ended with status ${status.status}.`],
+      nextCommand: 'tools\\bridge.cmd plugin-health',
+    };
+  }
+  return {
+    ...localReport,
+    ok: pluginResult.ok !== false,
+    status: pluginResult.status || localReport.status,
+    liveChecked: true,
+    rollbackExpected,
+    commandId: status.id,
+    createdPathCount: pluginResult.createdPathCount ?? localReport.createdPathCount,
+    foundCount: pluginResult.foundCount,
+    missingCount: pluginResult.missingCount,
+    classMismatchCount: pluginResult.classMismatchCount,
+    attributeMismatchCount: pluginResult.attributeMismatchCount,
+    unexpectedPresentCount: pluginResult.unexpectedPresentCount,
+    checks: pluginResult.checks || localReport.checks,
+    liveVerification: pluginResult,
+    warnings: [...(localReport.warnings || []), ...(pluginResult.warnings || [])],
+    blockers: [...(localReport.blockers || []), ...(pluginResult.blockers || [])],
+    nextCommand: pluginResult.nextCommand || localReport.nextCommand,
   };
 }
 
@@ -6478,11 +6618,18 @@ async function executeRollbackInStudio(transactionId, body = {}) {
     },
     requiresApproval: true,
   });
+  const status = await waitForStudioCommand(command.id);
+  const rolledBack = Execution.rollback(tx, { executed: status.status === 'executed', commandStatus: status });
   return {
-    ...plan,
-    ok: true,
-    status: 'queued',
+    ...rolledBack,
+    ok: status.status === 'executed',
+    status: status.status === 'executed' ? (rolledBack.status || 'rolledBack') : (status.status || 'failed'),
     commandId: command.id,
+    commandStatus: status.status,
+    pluginResult: status.result || null,
+    destroyedPaths: (status.result && status.result.destroyedPaths) || [],
+    destroyedCount: Array.isArray(status.result && status.result.destroyedPaths) ? status.result.destroyedPaths.length : 0,
+    skipped: (status.result && status.result.skipped) || [],
     nextCommand: `tools\\bridge.cmd execute verify ${tx}`,
   };
 }

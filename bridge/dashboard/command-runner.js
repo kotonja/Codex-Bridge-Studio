@@ -88,7 +88,11 @@ async function runAllowedAction(action, args = {}, options = {}) {
       }
       break;
     case 'executeVerify':
-      result = Execution.verify(args.transactionId || args.tx || goal, { source: 'dashboard.executeVerify' });
+      if (typeof options.executeVerify === 'function') {
+        result = await options.executeVerify(args.transactionId || args.tx || goal, args);
+      } else {
+        result = Execution.verify(args.transactionId || args.tx || goal, { source: 'dashboard.executeVerify' });
+      }
       break;
     case 'executeRollback':
       if (!args.transactionId && !args.tx) {
