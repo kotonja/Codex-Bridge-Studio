@@ -76,7 +76,7 @@ function operationToStep(operation, context = {}) {
   if (!path || !isCodexPath(path)) return null;
   const className = operation.className || 'Folder';
   let step = null;
-  if (operation.type === 'folder' || className === 'Folder') step = folder(path);
+  if (operation.type === 'folder' || className === 'Folder') step = { type: 'createInstance', className: 'Folder', path, properties: operation.properties || {} };
   else if (operation.type === 'model' || className === 'Model') step = model(path);
   else if (operation.type === 'part' || className === 'Part') step = part(path, operation.properties || {});
   else if (className === 'StringValue') step = stringValue(path, operation.value || (operation.properties && operation.properties.Value) || '');

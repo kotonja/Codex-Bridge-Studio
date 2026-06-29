@@ -7,12 +7,19 @@ function parseGoal(goal, options = {}) {
   const q = clean.toLowerCase();
   let system = options.system || SYSTEMS.generic;
   if (!options.system) {
-    if (/world|map|dungeon|hub|layout|zone|path|lobby|arena/.test(q)) system = SYSTEMS.worldgen;
-    if (/asset|prop|kit|mesh|material|trim|bevel|swatch/.test(q)) system = SYSTEMS.assetkit;
-    if (/cinematic|camera|beat|intro|gamefeel|game feel|hitstop|screen shake|motion/.test(q)) system = SYSTEMS.cinematic;
-    if (/qa|test|route|marker|probe|launch/.test(q)) system = SYSTEMS.qaMarkers;
-    if (/polish|improve|premium pass|fix/.test(q)) system = SYSTEMS.polish;
-    if (/safe fix|apply safe|fix issue/.test(q)) system = SYSTEMS.safeFix;
+    const wantsWorld = /world|map|dungeon|hub|layout|zone|path|lobby|arena|playable|reference|gate|portal/.test(q);
+    const wantsAsset = /asset|prop|kit|mesh|material|trim|bevel|swatch/.test(q);
+    const wantsCinematic = /cinematic|camera|beat|intro|gamefeel|game feel|hitstop|screen shake|motion/.test(q);
+    const wantsQa = /qa|test|route|marker|probe|launch/.test(q);
+    const wantsPolish = /polish|improve|premium pass|fix/.test(q);
+    const wantsSafeFix = /safe fix|apply safe|fix issue/.test(q);
+
+    if (wantsWorld) system = SYSTEMS.worldgen;
+    else if (wantsAsset) system = SYSTEMS.assetkit;
+    else if (wantsCinematic) system = SYSTEMS.cinematic;
+    else if (wantsQa) system = SYSTEMS.qaMarkers;
+    else if (wantsPolish) system = SYSTEMS.polish;
+    if (wantsSafeFix) system = SYSTEMS.safeFix;
     if (/premium/.test(q)) system = system === SYSTEMS.generic ? SYSTEMS.premium : system;
   }
   return {

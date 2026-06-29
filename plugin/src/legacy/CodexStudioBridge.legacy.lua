@@ -9215,10 +9215,24 @@ local function applyBlueprintStep(step, index, result)
 		return entry
 	end
 
+	local function applyStepAttributes(instance)
+		if instance and type(step.attributes) == "table" then
+			for key, value in pairs(step.attributes) do
+				local ok, err = pcall(function()
+					instance:SetAttribute(tostring(key), value)
+				end)
+				if not ok then
+					table.insert(result.warnings, tostring(path) .. ": attribute " .. tostring(key) .. " failed: " .. tostring(err))
+				end
+			end
+		end
+	end
+
 	if stepType == "ensureFolder" then
 		local existing = resolvePath(path)
 		if existing then
 			if existing:IsA("Folder") or existing == game then
+				applyStepAttributes(existing)
 				return finish("skipped", "exists", existing)
 			end
 			return finish("failed", "classConflict", existing, "Existing object is not a Folder.")
@@ -9227,6 +9241,7 @@ local function applyBlueprintStep(step, index, result)
 		if not folder then
 			return finish("failed", "createFolder", nil, err)
 		end
+		applyStepAttributes(folder)
 		return finish("created", "created", folder)
 	end
 
@@ -9317,16 +9332,7 @@ local function applyBlueprintStep(step, index, result)
 			table.insert(result.warnings, tostring(path) .. ": " .. failure)
 		end
 	end
-	if type(step.attributes) == "table" then
-		for key, value in pairs(step.attributes) do
-			local ok, err = pcall(function()
-				instance:SetAttribute(tostring(key), value)
-			end)
-			if not ok then
-				table.insert(result.warnings, tostring(path) .. ": attribute " .. tostring(key) .. " failed: " .. tostring(err))
-			end
-		end
-	end
+	applyStepAttributes(instance)
 
 	if existing then
 		return finish("updated", stepType, instance)
