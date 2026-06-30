@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.86.0';
+const VERSION = '0.88.0';
 const DASHBOARD_PATH = '/dashboard';
 const DASHBOARD_URL = 'http://127.0.0.1:28123/dashboard';
 
@@ -22,6 +22,14 @@ const ACTIONS = [
   'executeRollback',
   'visualCritique',
   'fidelityCompare',
+  'dashboardFidelityCompare',
+  'dashboardFidelityFixPlan',
+  'dashboardFidelityPreview',
+  'dashboardFidelityApply',
+  'dashboardFidelityRecompare',
+  'dashboardFidelityQa',
+  'dashboardFidelityLearn',
+  'dashboardFidelityRollback',
   'qaLaunch',
   'autopilotReport',
   'memoryLearn',
@@ -30,6 +38,8 @@ const ACTIONS = [
 const MUTATING_ACTIONS = new Set([
   'executeApply',
   'executeRollback',
+  'dashboardFidelityApply',
+  'dashboardFidelityRollback',
   'memoryLearn',
 ]);
 

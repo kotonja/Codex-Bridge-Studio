@@ -81,7 +81,7 @@ async function runAllowedAction(action, args = {}, options = {}) {
       result = await WorldCompiler.getWorldCompilerPackage(goal, { source: 'dashboard.worldcompilePackage' });
       break;
     case 'executePreview':
-      result = Execution.preview(goal, { source: 'dashboard.executePreview' });
+      result = Execution.preview(goal, { source: 'dashboard.executePreview', system: args.system || args.executionSystem });
       break;
     case 'executeApply':
       if (!options.approved) {
@@ -99,7 +99,7 @@ async function runAllowedAction(action, args = {}, options = {}) {
       } else if (typeof options.executeApply === 'function') {
         result = await options.executeApply(goal, args);
       } else {
-        result = Execution.apply(goal, { source: 'dashboard.executeApply.offlinePlan' });
+        result = Execution.apply(goal, { source: 'dashboard.executeApply.offlinePlan', system: args.system || args.executionSystem });
       }
       break;
     case 'executeVerify':

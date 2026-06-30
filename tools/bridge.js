@@ -22,8 +22,8 @@ const WorldCompiler = require('../bridge/world-compiler');
 const Fidelity = require('../bridge/fidelity');
 const Dashboard = require('../bridge/dashboard');
 
-const HELPER_VERSION = '0.86.0';
-const MCP_PROXY_VERSION = '0.86.0';
+const HELPER_VERSION = '0.88.0';
+const MCP_PROXY_VERSION = '0.88.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -82,6 +82,17 @@ const MCP_PROXY_TOOLS = [
   'dashboard_image_delete',
   'dashboard_image_self_check',
   'dashboard_image_tls_check',
+  'dashboard_fidelity_loop',
+  'dashboard_fidelity_state',
+  'dashboard_fidelity_compare',
+  'dashboard_fidelity_fix_plan',
+  'dashboard_fidelity_preview',
+  'dashboard_fidelity_apply',
+  'dashboard_fidelity_recompare',
+  'dashboard_fidelity_qa',
+  'dashboard_fidelity_learn',
+  'dashboard_fidelity_rollback',
+  'dashboard_fidelity_self_check',
   'dashboard_self_check',
   'audio_inventory',
   'audio_audit',
@@ -1252,6 +1263,17 @@ Usage:
   node tools/bridge.js dashboard pipeline "<goal>"
   node tools/bridge.js dashboard presets
   node tools/bridge.js dashboard safety
+  node tools/bridge.js dashboard fidelity-loop "<reference-or-goal>"
+  node tools/bridge.js dashboard fidelity-state
+  node tools/bridge.js dashboard fidelity-compare "<reference-or-goal>"
+  node tools/bridge.js dashboard fidelity-fix-plan "<reference-or-goal>"
+  node tools/bridge.js dashboard fidelity-preview "<reference-or-goal>"
+  node tools/bridge.js dashboard fidelity-apply <approvalId-or-transactionId>
+  node tools/bridge.js dashboard fidelity-recompare "<reference-or-goal>"
+  node tools/bridge.js dashboard fidelity-qa "<reference-or-goal>"
+  node tools/bridge.js dashboard fidelity-learn "<reference-or-goal>"
+  node tools/bridge.js dashboard fidelity-rollback <transactionId>
+  node tools/bridge.js dashboard fidelity-self-check
   node tools/bridge.js dashboard self-check
   node tools/bridge.js dashboard quick
   node tools/bridge.js dashboard refresh
@@ -1260,6 +1282,8 @@ Usage:
   node tools/bridge.js dashboard digest
   node tools/bridge.js chat "<message>"
   node tools/bridge.js one_click_build "<goal>"
+  node tools/bridge.js one_click_fidelity_fix "<reference-or-goal>"
+  node tools/bridge.js improve_image_match "<reference-or-goal>"
   node tools/bridge.js cache status
   node tools/bridge.js cache warm
   node tools/bridge.js cache clear
@@ -10043,6 +10067,86 @@ async function runDashboard(subcommand = 'compact', args = []) {
     print(await request('/dashboard/safety', { timeoutMs: FAST_TIMEOUT_MS }));
     return;
   }
+  if (mode === 'fidelity-state') {
+    await ensureBridgeRunning('dashboard fidelity-state');
+    print(await request('/dashboard/fidelity/state', { timeoutMs: FAST_TIMEOUT_MS }));
+    return;
+  }
+  if (mode === 'fidelity-loop' || mode === 'match-reference' || mode === 'improve-reference' || mode === 'fix-fidelity') {
+    await ensureBridgeRunning('dashboard fidelity-loop');
+    const goal = args.join(' ').trim();
+    if (!goal) throw new Error(`${mode} requires <reference-or-goal>.`);
+    print(await request('/dashboard/fidelity/loop', { method: 'POST', body: JSON.stringify({ goal }), timeoutMs: 60000 }));
+    return;
+  }
+  if (mode === 'fidelity-compare') {
+    await ensureBridgeRunning('dashboard fidelity-compare');
+    const goal = args.join(' ').trim();
+    if (!goal) throw new Error('dashboard fidelity-compare requires <reference-or-goal>.');
+    print(await request('/dashboard/fidelity/compare', { method: 'POST', body: JSON.stringify({ goal }), timeoutMs: 30000 }));
+    return;
+  }
+  if (mode === 'fidelity-fix-plan') {
+    await ensureBridgeRunning('dashboard fidelity-fix-plan');
+    const goal = args.join(' ').trim();
+    if (!goal) throw new Error('dashboard fidelity-fix-plan requires <reference-or-goal>.');
+    print(await request('/dashboard/fidelity/fix-plan', { method: 'POST', body: JSON.stringify({ goal }), timeoutMs: 30000 }));
+    return;
+  }
+  if (mode === 'fidelity-preview') {
+    await ensureBridgeRunning('dashboard fidelity-preview');
+    const goal = args.join(' ').trim();
+    if (!goal) throw new Error('dashboard fidelity-preview requires <reference-or-goal>.');
+    print(await request('/dashboard/fidelity/preview', { method: 'POST', body: JSON.stringify({ goal }), timeoutMs: 30000 }));
+    return;
+  }
+  if (mode === 'fidelity-apply') {
+    await ensureBridgeRunning('dashboard fidelity-apply');
+    const approvalId = args[0];
+    if (!approvalId) throw new Error('dashboard fidelity-apply requires <approvalId-or-transactionId>.');
+    print(await request('/dashboard/fidelity/apply', { method: 'POST', body: JSON.stringify({ approvalId, transactionId: approvalId }), timeoutMs: 45000 }));
+    return;
+  }
+  if (mode === 'fidelity-recompare') {
+    await ensureBridgeRunning('dashboard fidelity-recompare');
+    const goal = args.join(' ').trim();
+    print(await request('/dashboard/fidelity/recompare', { method: 'POST', body: JSON.stringify({ goal }), timeoutMs: 30000 }));
+    return;
+  }
+  if (mode === 'fidelity-qa') {
+    await ensureBridgeRunning('dashboard fidelity-qa');
+    const goal = args.join(' ').trim();
+    print(await request('/dashboard/fidelity/qa', { method: 'POST', body: JSON.stringify({ goal }), timeoutMs: 30000 }));
+    return;
+  }
+  if (mode === 'fidelity-learn') {
+    await ensureBridgeRunning('dashboard fidelity-learn');
+    const goal = args.join(' ').trim();
+    print(await request('/dashboard/fidelity/learn', { method: 'POST', body: JSON.stringify({ goal }), timeoutMs: 30000 }));
+    return;
+  }
+  if (mode === 'fidelity-rollback') {
+    await ensureBridgeRunning('dashboard fidelity-rollback');
+    const transactionId = args[0];
+    if (!transactionId) throw new Error('dashboard fidelity-rollback requires <transactionId>.');
+    print(await request('/dashboard/fidelity/rollback', { method: 'POST', body: JSON.stringify({ transactionId }), timeoutMs: 45000 }));
+    return;
+  }
+  if (mode === 'fidelity-self-check' || mode === 'fidelity-selfcheck') {
+    const script = path.join(process.cwd(), 'tests', 'self-check-dashboard-fidelity.js');
+    const result = childProcess.spawnSync(process.execPath, [script], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      timeout: 20000,
+    });
+    if (result.error) throw result.error;
+    if (result.status !== 0) {
+      throw new Error(`dashboard fidelity self-check failed: ${result.stderr || result.stdout}`);
+    }
+    const output = String(result.stdout || '').trim();
+    print(output ? JSON.parse(output) : { ok: true, version: HELPER_VERSION });
+    return;
+  }
   if ((mode === 'image' || mode === 'reference-image') && (args[0] || '').toLowerCase() === 'tls-check') {
     await ensureBridgeRunning('dashboard image-tls-check');
     print(await request('/dashboard/image/tls-check', { timeoutMs: 15000 }));
@@ -13762,6 +13866,11 @@ async function main(argv) {
 
   if (command === 'one_click_build' || command === 'one-click-build') {
     await runDashboard('pipeline', args);
+    return;
+  }
+
+  if (command === 'one_click_fidelity_fix' || command === 'one-click-fidelity-fix' || command === 'improve_image_match' || command === 'improve-image-match') {
+    await runDashboard('fidelity-loop', args);
     return;
   }
 

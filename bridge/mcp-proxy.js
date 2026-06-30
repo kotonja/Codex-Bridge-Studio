@@ -14,7 +14,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.86.0';
+const VERSION = '0.88.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -551,6 +551,17 @@ const toolHandlers = {
   dashboard_image_delete: async (args) => requestBridge('DELETE', `/dashboard/image/${encodeURIComponent(args.referenceId || args.id || '')}`, undefined, 2500),
   dashboard_image_self_check: async () => Dashboard.imageSelfCheck(),
   dashboard_image_tls_check: async () => AiOrchestrator.getConnectivityReport({ source: 'mcp.dashboardImageTlsCheck' }),
+  dashboard_fidelity_loop: async (args) => requestBridge('POST', '/dashboard/fidelity/loop', { goal: args.goal || args.reference || args.intent || args.text || args.source || '' }, 60000),
+  dashboard_fidelity_state: async () => requestBridge('GET', '/dashboard/fidelity/state', undefined, 2500),
+  dashboard_fidelity_compare: async (args) => requestBridge('POST', '/dashboard/fidelity/compare', { goal: args.goal || args.reference || args.intent || args.text || args.source || '' }, 30000),
+  dashboard_fidelity_fix_plan: async (args) => requestBridge('POST', '/dashboard/fidelity/fix-plan', { goal: args.goal || args.reference || args.intent || args.text || args.source || '' }, 30000),
+  dashboard_fidelity_preview: async (args) => requestBridge('POST', '/dashboard/fidelity/preview', { goal: args.goal || args.reference || args.intent || args.text || args.source || '' }, 30000),
+  dashboard_fidelity_apply: async (args) => requestBridge('POST', '/dashboard/fidelity/apply', { approvalId: args.approvalId || args.id || args.transactionId || args.tx, transactionId: args.transactionId || args.tx || args.approvalId || args.id }, 45000),
+  dashboard_fidelity_recompare: async (args) => requestBridge('POST', '/dashboard/fidelity/recompare', { goal: args.goal || args.reference || args.intent || args.text || args.source || '', loopId: args.loopId }, 30000),
+  dashboard_fidelity_qa: async (args) => requestBridge('POST', '/dashboard/fidelity/qa', { goal: args.goal || args.reference || args.intent || args.text || args.source || '', loopId: args.loopId }, 30000),
+  dashboard_fidelity_learn: async (args) => requestBridge('POST', '/dashboard/fidelity/learn', { goal: args.goal || args.reference || args.intent || args.text || args.source || '', loopId: args.loopId }, 30000),
+  dashboard_fidelity_rollback: async (args) => requestBridge('POST', '/dashboard/fidelity/rollback', { transactionId: args.transactionId || args.tx || args.id }, 45000),
+  dashboard_fidelity_self_check: async () => Dashboard.fidelitySelfCheck(),
   execute_status: async () => requestBridge('GET', '/codex/execution/status', undefined, 2500),
   execute_roots: async () => requestBridge('GET', '/codex/execution/roots', undefined, 2500),
   execute_preview: async (args) => requestBridge('GET', `/codex/execution/preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox production build')}`, undefined, 3500),
@@ -828,6 +839,17 @@ const toolDefinitions = [
   ['dashboard_image_delete', 'Delete a V86 dashboard image reference only from the local reference-intake-v86 store.', { referenceId: { type: 'string' }, id: { type: 'string' } }],
   ['dashboard_image_self_check', 'Run V86 dashboard image pipeline self-checks.', {}],
   ['dashboard_image_tls_check', 'Run V86.1 dashboard image/API TLS connectivity diagnostics without exposing secrets.', {}],
+  ['dashboard_fidelity_loop', 'Run V88 dashboard reference fidelity loop: compare, fix-plan, preview, and stop at approval before apply.', { goal: { type: 'string' }, reference: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, source: { type: 'string' } }],
+  ['dashboard_fidelity_state', 'Return V88 dashboard fidelity loop state with latest baseline/after/delta, evidence mode, approval, transaction, and rollback status.', {}],
+  ['dashboard_fidelity_compare', 'Run V88 dashboard fidelity comparison and store the baseline loop state. No Studio mutation.', { goal: { type: 'string' }, reference: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, source: { type: 'string' } }],
+  ['dashboard_fidelity_fix_plan', 'Create a V88 dashboard safe fidelity fix plan from mismatches. No Studio mutation.', { goal: { type: 'string' }, reference: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, source: { type: 'string' }, loopId: { type: 'string' } }],
+  ['dashboard_fidelity_preview', 'Preview V88 fidelity fixes through V72 safe-fix execution and create a dashboard approval item. No apply.', { goal: { type: 'string' }, reference: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, source: { type: 'string' }, loopId: { type: 'string' } }],
+  ['dashboard_fidelity_apply', 'Apply a pending V88 dashboard fidelity approval through V72 Execution Kernel only.', { approvalId: { type: 'string' }, transactionId: { type: 'string' }, id: { type: 'string' }, tx: { type: 'string' } }],
+  ['dashboard_fidelity_recompare', 'Re-run fidelity compare after apply and compute baseline/after score delta.', { goal: { type: 'string' }, reference: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, source: { type: 'string' }, loopId: { type: 'string' } }],
+  ['dashboard_fidelity_qa', 'Run QA launch report for the current V88 fidelity loop.', { goal: { type: 'string' }, reference: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, source: { type: 'string' }, loopId: { type: 'string' } }],
+  ['dashboard_fidelity_learn', 'Store a redacted V88 fidelity loop lesson in Production Memory. No raw image bytes or secrets.', { goal: { type: 'string' }, reference: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, source: { type: 'string' }, loopId: { type: 'string' } }],
+  ['dashboard_fidelity_rollback', 'Rollback a V88 fidelity transaction by receipt-scoped transactionId.', { transactionId: { type: 'string' }, id: { type: 'string' }, tx: { type: 'string' } }],
+  ['dashboard_fidelity_self_check', 'Run V88 dashboard fidelity loop self-checks.', {}],
   ['dashboard_self_check', 'Run V84 dashboard chat/timeline/security/router self-checks.', {}],
   ['execute_status', 'Return V72 Production Execution Kernel readiness, roots, capabilities, and safety policy.', {}],
   ['execute_roots', 'Return V72 Codex-owned execution roots and rollback-safe path policy.', {}],

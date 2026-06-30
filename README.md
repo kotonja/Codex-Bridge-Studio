@@ -1357,6 +1357,24 @@ API keys stay Node-only: set `OPENAI_API_KEY` in the local shell/supervisor envi
 
 Apply is intentionally gated inside the dashboard: run Execute Preview or a dashboard pipeline first, review the approval queue, then approve Execute Apply. Real Studio mutations still go through the V72 Execution Kernel and must create receipts. Rollback uses transaction ids/receipts only and must only touch transaction-created Codex-owned objects. Reference/image paths are analyzed honestly; raw image bytes are not stored by default.
 
+V88 adds the Dashboard Reference Fidelity Improvement Loop. Use it when a dashboard build needs to get closer to a reference/image without bypassing the V72 transaction gate:
+
+```powershell
+.\tools\bridge.cmd dashboard fidelity-loop "dark purple anime dungeon gate"
+.\tools\bridge.cmd dashboard fidelity-state
+.\tools\bridge.cmd dashboard fidelity-compare "dark purple anime dungeon gate"
+.\tools\bridge.cmd dashboard fidelity-fix-plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd dashboard fidelity-preview "dark purple anime dungeon gate"
+.\tools\bridge.cmd dashboard fidelity-apply <approvalId-or-transactionId>
+.\tools\bridge.cmd dashboard fidelity-recompare "dark purple anime dungeon gate"
+.\tools\bridge.cmd dashboard fidelity-qa "dark purple anime dungeon gate"
+.\tools\bridge.cmd dashboard fidelity-learn "dark purple anime dungeon gate"
+.\tools\bridge.cmd dashboard fidelity-rollback <transactionId>
+.\tools\bridge.cmd dashboard fidelity-self-check
+```
+
+The loop compares honestly, separates mismatches from intentional gameplay adaptations, produces a safe V72 fix preview, stops at dashboard approval, applies only an approved Codex-owned transaction, recomputes score delta, and can learn or rollback by receipt. If real image vision or Studio pixels are not available, reports must say `actualReferenceVisionUsed: false`, `actualStudioPixelsUsed: false`, and `limitedComparison: true`.
+
 ## Notes
 
 - This is a local development bridge. It binds to `127.0.0.1` and uses a pairing code plus session token.

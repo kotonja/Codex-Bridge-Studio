@@ -20,6 +20,7 @@ const CostView = require('./cost-view');
 const SafetyReport = require('./safety-report');
 const ImageIntake = require('./image-intake');
 const ImagePipeline = require('./image-pipeline');
+const FidelityLoop = require('./fidelity-loop');
 const AiOrchestrator = require('../ai-orchestrator');
 
 const runtime = createRuntimeState();
@@ -194,6 +195,54 @@ function imageTlsCheck() {
   return AiOrchestrator.getConnectivityReport({ source: 'dashboard.imageTlsCheck' });
 }
 
+function fidelityState() {
+  return FidelityLoop.state(runtime);
+}
+
+async function fidelityLoop(body = {}, env = {}) {
+  return FidelityLoop.loop(runtime, body, env);
+}
+
+async function fidelityCompare(body = {}, env = {}) {
+  return FidelityLoop.compare(runtime, body, env);
+}
+
+async function fidelityFixPlan(body = {}, env = {}) {
+  return FidelityLoop.fixPlan(runtime, body, env);
+}
+
+async function fidelityPreview(body = {}, env = {}) {
+  return FidelityLoop.preview(runtime, body, env);
+}
+
+async function fidelityApply(body = {}, env = {}) {
+  return FidelityLoop.apply(runtime, body, env);
+}
+
+async function fidelityRecompare(body = {}, env = {}) {
+  return FidelityLoop.recompare(runtime, body, env);
+}
+
+async function fidelityQa(body = {}, env = {}) {
+  return FidelityLoop.qa(runtime, body, env);
+}
+
+async function fidelityLearn(body = {}, env = {}) {
+  return FidelityLoop.learn(runtime, body, env);
+}
+
+async function fidelityRollback(body = {}, env = {}) {
+  return FidelityLoop.rollback(runtime, body, env);
+}
+
+async function fidelityVisual(body = {}, env = {}) {
+  return FidelityLoop.visual(runtime, body, env);
+}
+
+async function fidelityScore(body = {}, env = {}) {
+  return FidelityLoop.score(runtime, body, env);
+}
+
 function transactions(limit = 12, options = {}) {
   const view = createTransactionView(limit, options);
   runtime.latest.transactions = view.transactions;
@@ -215,6 +264,11 @@ function selfCheck() {
 
 function imageSelfCheck() {
   const { runSelfCheck } = require('./image-self-check');
+  return runSelfCheck();
+}
+
+function fidelitySelfCheck() {
+  const { runSelfCheck } = require('./fidelity-self-check');
   return runSelfCheck();
 }
 
@@ -251,10 +305,23 @@ module.exports = {
   imageReference,
   imageDelete,
   imageTlsCheck,
+  fidelityState,
+  fidelityLoop,
+  fidelityCompare,
+  fidelityFixPlan,
+  fidelityPreview,
+  fidelityApply,
+  fidelityRecompare,
+  fidelityQa,
+  fidelityLearn,
+  fidelityRollback,
+  fidelityVisual,
+  fidelityScore,
   transactions,
   report,
   safety,
   selfCheck,
   imageSelfCheck,
+  fidelitySelfCheck,
   redact,
 };

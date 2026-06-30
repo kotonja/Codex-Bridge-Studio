@@ -913,3 +913,23 @@ Full Trust Autopilot is the default local workflow in this workspace:
 ```
 
 Under Full Trust, local StudioBridge mutations run automatically and are audited instead of waiting for the Approve/Reject queue. Payload word scanning is disabled, so local edits are not blocked just because source text mentions DataStore, economy, publish, or monetization APIs. Emergency Stop pauses new mutations immediately. Roblox/account-level actions may still return `manualRequired` when Roblox APIs require creator confirmation.
+
+V88 Dashboard Reference Fidelity Improvement Loop is the preferred route when the user wants the dashboard to compare a build to a reference, make it closer to an image/reference, preview safe fixes, approve/apply, recompare, QA, learn, and rollback:
+
+```powershell
+.\tools\bridge.cmd dashboard fidelity-loop "<reference-or-goal>"
+.\tools\bridge.cmd dashboard fidelity-state
+.\tools\bridge.cmd dashboard fidelity-compare "<reference-or-goal>"
+.\tools\bridge.cmd dashboard fidelity-fix-plan "<reference-or-goal>"
+.\tools\bridge.cmd dashboard fidelity-preview "<reference-or-goal>"
+.\tools\bridge.cmd dashboard fidelity-apply <approvalId-or-transactionId>
+.\tools\bridge.cmd dashboard fidelity-recompare "<reference-or-goal>"
+.\tools\bridge.cmd dashboard fidelity-qa "<reference-or-goal>"
+.\tools\bridge.cmd dashboard fidelity-learn "<reference-or-goal>"
+.\tools\bridge.cmd dashboard fidelity-rollback <transactionId>
+.\tools\bridge.cmd dashboard fidelity-self-check
+.\tools\bridge.cmd one_click_fidelity_fix "<reference-or-goal>"
+.\tools\bridge.cmd improve_image_match "<reference-or-goal>"
+```
+
+Routing priority: dashboard-specific phrases like `dashboard fidelity loop`, `dashboard match reference`, `one click fidelity fix`, and `improve image match` go to V88 dashboard. Plain `compare to reference` remains the V80 read-only fidelity route. V88 must never fake image vision or pixel comparison: if real reference vision or Studio pixels are unavailable, keep `actualReferenceVisionUsed: false`, `actualStudioPixelsUsed: false`, and `limitedComparison: true`. Apply is still dashboard-approved and V72 receipt-backed only.

@@ -91,6 +91,26 @@ function dashboardHtml() {
       <div id="imageHistory" class="image-history"></div>
     </section>
 
+    <section class="panel fidelity-panel">
+      <h2>Fidelity Loop</h2>
+      <div class="button-row wrap">
+        <button id="fidelityLoop">Loop</button>
+        <button id="fidelityCompare">Compare</button>
+        <button id="fidelityFixPlan">Fix Plan</button>
+        <button id="fidelityPreview">Preview Fixes</button>
+      </div>
+      <div class="button-row wrap">
+        <button id="fidelityApply">Apply Approved</button>
+        <button id="fidelityRecompare">Recompare</button>
+        <button id="fidelityQa">QA</button>
+        <button id="fidelityLearn">Learn</button>
+        <button id="fidelityRollback">Rollback</button>
+      </div>
+      <p class="note">Mode: <span id="fidelityMode">none</span> | reference vision: <span id="fidelityReferenceVision">false</span> | Studio pixels: <span id="fidelityStudioPixels">false</span> | limited: <span id="fidelityLimited">true</span></p>
+      <p class="note">Baseline: <span id="fidelityBaseline">-</span> | After: <span id="fidelityAfter">-</span> | Delta: <span id="fidelityDelta">-</span></p>
+      <div id="fidelitySummary" class="fidelity-summary"></div>
+    </section>
+
     <section class="panel timeline-panel">
       <h2>Tool Timeline</h2>
       <ol id="timeline"></ol>

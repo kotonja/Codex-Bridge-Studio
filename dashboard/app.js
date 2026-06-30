@@ -222,6 +222,32 @@
     });
   }
 
+  function renderFidelity(state) {
+    const report = state.fidelityLoop || {};
+    const latest = report.latest || {};
+    $('fidelityMode').textContent = latest.mode || report.status || 'none';
+    $('fidelityReferenceVision').textContent = latest.actualReferenceVisionUsed ? 'true' : 'false';
+    $('fidelityStudioPixels').textContent = latest.actualStudioPixelsUsed ? 'true' : 'false';
+    $('fidelityLimited').textContent = latest.limitedComparison === false ? 'false' : 'true';
+    $('fidelityBaseline').textContent = latest.baselineScore == null ? '-' : latest.baselineScore;
+    $('fidelityAfter').textContent = latest.afterScore == null ? '-' : latest.afterScore;
+    $('fidelityDelta').textContent = latest.scoreDelta == null ? '-' : latest.scoreDelta;
+    $('fidelitySummary').textContent = latest.loopId
+      ? [
+        `loopId: ${latest.loopId}`,
+        `status: ${latest.status || '-'}`,
+        `mismatches: ${latest.mismatchCount || 0}`,
+        `adaptations: ${latest.adaptationCount || 0}`,
+        `safe fixes: ${latest.safeFixCount || 0}`,
+        `manualRequired: ${latest.manualRequiredCount || 0}`,
+        `approvalId: ${latest.approvalId || '-'}`,
+        `transactionId: ${latest.transactionId || '-'}`,
+        `rollback: ${latest.rollbackStatus || '-'}`,
+        `next: ${latest.nextCommand || '-'}`,
+      ].join('\n')
+      : 'No dashboard fidelity loop yet.';
+  }
+
   function renderState(state) {
     $('version').textContent = state.version || '';
     $('connection').textContent = `Bridge: ${state.bridge && state.bridge.studioConnected ? 'connected' : 'not connected'}`;
@@ -238,6 +264,7 @@
     renderCostSafety(state);
     renderPresets(state);
     renderImages(state);
+    renderFidelity(state);
   }
 
   async function refresh() {
@@ -347,6 +374,37 @@
     await refresh();
   }
 
+  async function fidelityAction(path, body) {
+    const result = await api(`/dashboard/fidelity/${path}`, { method: 'POST', body: JSON.stringify({ goal: goalValue(), source: referenceValue(), ...body }) });
+    writeLog(result);
+    await refresh();
+  }
+
+  async function latestFidelityState() {
+    const state = await api('/dashboard/fidelity/state');
+    return state.latest || {};
+  }
+
+  async function fidelityApply() {
+    const latest = await latestFidelityState();
+    const approvalId = latest.approvalId || latest.transactionId;
+    if (!approvalId) {
+      writeLog({ ok: false, error: 'Run Preview Fixes first to create a dashboard approval.' });
+      return;
+    }
+    await fidelityAction('apply', { approvalId, transactionId: approvalId });
+  }
+
+  async function fidelityRollback() {
+    const latest = await latestFidelityState();
+    const transactionId = latest.transactionId || latest.approvalId;
+    if (!transactionId) {
+      writeLog({ ok: false, error: 'No fidelity transaction is available to rollback.' });
+      return;
+    }
+    await fidelityAction('rollback', { transactionId });
+  }
+
   document.querySelectorAll('button[data-action]').forEach((button) => {
     button.addEventListener('click', () => sendCommand(button.dataset.action));
   });
@@ -365,6 +423,15 @@
   $('imageQa').addEventListener('click', () => sendCommand('qaLaunch', { goal: goalValue() }));
   $('imageMemory').addEventListener('click', () => sendCommand('memoryLearn', { goal: goalValue() }));
   $('imageDelete').addEventListener('click', deleteImage);
+  $('fidelityLoop').addEventListener('click', () => fidelityAction('loop'));
+  $('fidelityCompare').addEventListener('click', () => fidelityAction('compare'));
+  $('fidelityFixPlan').addEventListener('click', () => fidelityAction('fix-plan'));
+  $('fidelityPreview').addEventListener('click', () => fidelityAction('preview'));
+  $('fidelityApply').addEventListener('click', fidelityApply);
+  $('fidelityRecompare').addEventListener('click', () => fidelityAction('recompare'));
+  $('fidelityQa').addEventListener('click', () => fidelityAction('qa'));
+  $('fidelityLearn').addEventListener('click', () => fidelityAction('learn'));
+  $('fidelityRollback').addEventListener('click', fidelityRollback);
   $('sendChat').addEventListener('click', sendChat);
   $('chatInput').addEventListener('keydown', (event) => {
     if (event.key === 'Enter') sendChat();

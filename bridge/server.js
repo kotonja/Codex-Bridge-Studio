@@ -22,7 +22,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.86.0';
+const VERSION = '0.88.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -646,6 +646,16 @@ const supportedCommands = new Set([
   'analyzeDashboardImage',
   'worldcompileDashboardImage',
   'deleteDashboardImageReference',
+  'getDashboardFidelityState',
+  'runDashboardFidelityLoop',
+  'runDashboardFidelityCompare',
+  'getDashboardFidelityFixPlan',
+  'previewDashboardFidelityFixes',
+  'applyDashboardFidelityFixes',
+  'recompareDashboardFidelity',
+  'runDashboardFidelityQa',
+  'learnDashboardFidelityResult',
+  'rollbackDashboardFidelityTransaction',
   'improve_until_ready',
   'executePremiumBuildRound',
   'polishPremiumBuildRound',
@@ -2185,6 +2195,12 @@ const CACHEABLE_TTLS = new Map([
   ['getReferenceFidelityFixPlan', 60_000],
   ['getReferenceFidelityMemoryReport', 60_000],
   ['getReferenceFidelityManifest', 60_000],
+  ['getDashboardFidelityState', 15_000],
+  ['runDashboardFidelityCompare', 60_000],
+  ['getDashboardFidelityFixPlan', 60_000],
+  ['previewDashboardFidelityFixes', 60_000],
+  ['recompareDashboardFidelity', 60_000],
+  ['runDashboardFidelityQa', 60_000],
   ['getBuildStyleCatalog', 120_000],
   ['getBuildIntentPlan', 60_000],
   ['getBuildAssetKitReport', 120_000],
@@ -4159,6 +4175,12 @@ const V46_TOOL_CATEGORIES = [
       { command: 'tools\\bridge.cmd dashboard image-tls-check', example: 'tools\\bridge.cmd dashboard image-tls-check', bestFor: 'Run V86.1 image/API TLS diagnostics with safe remediation and no secret output.' },
       { command: 'tools\\bridge.cmd dashboard image-delete <referenceId>', example: 'tools\\bridge.cmd dashboard image-delete dash_img_abc123', bestFor: 'Delete only one local V86 image reference from .codex-studio/reference-intake-v86.' },
       { command: 'tools\\bridge.cmd dashboard image-self-check', example: 'tools\\bridge.cmd dashboard image-self-check', bestFor: 'Run V86 dashboard image pipeline privacy and metadata-only checks.' },
+      { command: 'tools\\bridge.cmd dashboard fidelity-loop <reference-or-goal>', example: 'tools\\bridge.cmd dashboard fidelity-loop "dark purple anime dungeon gate"', bestFor: 'Run V88 dashboard compare/fix-preview workflow and stop at approval before apply.' },
+      { command: 'tools\\bridge.cmd dashboard fidelity-state', example: 'tools\\bridge.cmd dashboard fidelity-state', bestFor: 'Show latest V88 fidelity loop status, score delta, approval id, transaction id, and rollback state.' },
+      { command: 'tools\\bridge.cmd dashboard fidelity-preview <reference-or-goal>', example: 'tools\\bridge.cmd dashboard fidelity-preview "dark purple anime dungeon gate"', bestFor: 'Preview safe fidelity fixes through V72 Execution Kernel without applying.' },
+      { command: 'tools\\bridge.cmd dashboard fidelity-apply <approvalId>', example: 'tools\\bridge.cmd dashboard fidelity-apply tx_Autopilot_abc123', bestFor: 'Apply only an approved V88 fidelity fix transaction through the dashboard gate.' },
+      { command: 'tools\\bridge.cmd dashboard fidelity-recompare <reference-or-goal>', example: 'tools\\bridge.cmd dashboard fidelity-recompare "dark purple anime dungeon gate"', bestFor: 'Recompare after apply and compute baseline/after score delta.' },
+      { command: 'tools\\bridge.cmd dashboard fidelity-self-check', example: 'tools\\bridge.cmd dashboard fidelity-self-check', bestFor: 'Run V88 dashboard fidelity loop self-checks.' },
       { command: 'tools\\bridge.cmd dashboard self-check', example: 'tools\\bridge.cmd dashboard self-check', bestFor: 'Run dependency-free V84 dashboard chat/timeline/router/security checks.' },
       { command: 'tools\\bridge.cmd open_dashboard', example: 'tools\\bridge.cmd open_dashboard', bestFor: 'Direct alias for opening the V84 dashboard.' },
       { command: 'tools\\bridge.cmd control_room', example: 'tools\\bridge.cmd control_room', bestFor: 'Direct alias for opening the production control room.' },
@@ -6796,6 +6818,70 @@ async function route(req, res) {
 
   if (dashboardImageMatch && req.method === 'DELETE') {
     sendJson(res, 200, Dashboard.imageDelete(decodeURIComponent(dashboardImageMatch[1])));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/fidelity/state') {
+    sendJson(res, 200, Dashboard.fidelityState());
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/fidelity/loop') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.fidelityLoop(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/fidelity/compare') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.fidelityCompare(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/fidelity/fix-plan') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.fidelityFixPlan(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/fidelity/preview') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.fidelityPreview(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/fidelity/apply') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.fidelityApply(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/fidelity/recompare') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.fidelityRecompare(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/fidelity/qa') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.fidelityQa(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/fidelity/learn') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.fidelityLearn(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/dashboard/fidelity/rollback') {
+    const body = await readBody(req);
+    sendJson(res, 200, await Dashboard.fidelityRollback(body, dashboardEnv()));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/dashboard/fidelity/self-check') {
+    sendJson(res, 200, Dashboard.fidelitySelfCheck());
     return;
   }
 

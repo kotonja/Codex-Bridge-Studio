@@ -43,6 +43,12 @@ async function runSelfCheck() {
     'image-history.js',
     'image-pipeline.js',
     'image-self-check.js',
+    'fidelity-loop.js',
+    'fidelity-state.js',
+    'fidelity-fix-preview.js',
+    'fidelity-score-delta.js',
+    'fidelity-memory.js',
+    'fidelity-self-check.js',
     'self-check.js',
   ];
   for (const file of required) {
@@ -67,6 +73,8 @@ async function runSelfCheck() {
   assert(html.includes('id="imagePath"'), 'Dashboard HTML must expose manual image path fallback');
   assert(app.includes('/dashboard/image/intake'), 'Dashboard JS must call image intake endpoint');
   assert(app.includes('/dashboard/image/worldcompile'), 'Dashboard JS must call image worldcompile endpoint');
+  assert(html.includes('id="fidelityLoop"'), 'Dashboard HTML must expose V88 fidelity loop controls');
+  assert(app.includes('/dashboard/fidelity/'), 'Dashboard JS must call V88 fidelity endpoints');
 
   const state = Dashboard.getState({
     health: { ok: true, version: VERSION, studioConnected: false, paired: false },
@@ -182,6 +190,9 @@ async function runSelfCheck() {
     'dashboard image to world': 'dashboard',
     'one click image build': 'dashboard',
     'build image from dashboard': 'dashboard',
+    'dashboard fidelity loop': 'dashboard',
+    'dashboard match reference': 'dashboard',
+    'improve image match': 'dashboard',
     'build this for real': 'execution',
     'use api': 'ai',
     'compare to reference': 'fidelity',

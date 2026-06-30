@@ -11,6 +11,7 @@ const ApprovalQueue = require('./approval-queue');
 const CostView = require('./cost-view');
 const SafetyReport = require('./safety-report');
 const ImagePipeline = require('./image-pipeline');
+const FidelityState = require('./fidelity-state');
 const { getConnectivitySummary } = require('../ai-orchestrator/connectivity');
 
 const TIMELINE_STEPS = [
@@ -73,6 +74,7 @@ function createDashboardState(env = {}, runtime = {}) {
       images: runtime.latest && runtime.latest.images ? runtime.latest.images : ImagePipeline.stateSummary(),
     },
     images: runtime.latest && runtime.latest.images ? runtime.latest.images : ImagePipeline.stateSummary(),
+    fidelityLoop: FidelityState.createFidelityState(runtime),
     legacyTimeline: TIMELINE_STEPS.map((name) => ({
       name,
       status: latest.timeline && latest.timeline[name] ? latest.timeline[name] : (name === 'Execute Apply' && pendingApproval ? 'pendingApproval' : 'idle'),
@@ -90,6 +92,15 @@ function createDashboardState(env = {}, runtime = {}) {
       'dashboardImageAnalyze',
       'dashboardImageWorldcompile',
       'dashboardImageTlsCheck',
+      'dashboardFidelityLoop',
+      'dashboardFidelityCompare',
+      'dashboardFidelityFixPlan',
+      'dashboardFidelityPreview',
+      'dashboardFidelityApply',
+      'dashboardFidelityRecompare',
+      'dashboardFidelityQa',
+      'dashboardFidelityLearn',
+      'dashboardFidelityRollback',
       'referenceAnalyze',
       'worldcompileCompile',
       'worldcompilePackage',

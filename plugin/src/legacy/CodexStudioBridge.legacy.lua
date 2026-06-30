@@ -1,7 +1,7 @@
 -- Codex Studio Bridge V82.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.86.0"
+local VERSION = "0.88.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0
@@ -21111,6 +21111,21 @@ if commandType == "runAutopilotProductionLoop" then
 		dashboard_image_tls_check = "getDashboardImageTlsCheck",
 		dashboard_image_delete = "deleteDashboardImageReference",
 		dashboard_image_self_check = "getDashboardSelfCheck",
+		dashboard_fidelity_state = "getDashboardFidelityState",
+		dashboard_fidelity_loop = "runDashboardFidelityLoop",
+		dashboard_match_reference = "runDashboardFidelityLoop",
+		dashboard_improve_reference = "runDashboardFidelityLoop",
+		dashboard_fix_fidelity = "runDashboardFidelityLoop",
+		dashboard_fidelity_compare = "runDashboardFidelityCompare",
+		dashboard_fidelity_fix_plan = "getDashboardFidelityFixPlan",
+		dashboard_fidelity_preview = "previewDashboardFidelityFixes",
+		dashboard_fidelity_apply = "applyDashboardFidelityFixes",
+		dashboard_fidelity_recompare = "recompareDashboardFidelity",
+		dashboard_fidelity_qa = "runDashboardFidelityQa",
+		dashboard_fidelity_learn = "learnDashboardFidelityResult",
+		dashboard_fidelity_rollback = "rollbackDashboardFidelityTransaction",
+		one_click_fidelity_fix = "runDashboardFidelityLoop",
+		improve_image_match = "runDashboardFidelityLoop",
 		open_dashboard = "getDashboardUrl",
 		control_room = "getDashboardUrl",
 	}
@@ -21182,6 +21197,46 @@ if commandType == "runAutopilotProductionLoop" then
 
 	if commandType == "deleteDashboardImageReference" then
 		return V82.deleteDashboardImageReference(payload)
+	end
+
+	if commandType == "getDashboardFidelityState" then
+		return V82.getDashboardFidelityState(payload)
+	end
+
+	if commandType == "runDashboardFidelityLoop" then
+		return V82.runDashboardFidelityLoop(payload)
+	end
+
+	if commandType == "runDashboardFidelityCompare" then
+		return V82.runDashboardFidelityCompare(payload)
+	end
+
+	if commandType == "getDashboardFidelityFixPlan" then
+		return V82.getDashboardFidelityFixPlan(payload)
+	end
+
+	if commandType == "previewDashboardFidelityFixes" then
+		return V82.previewDashboardFidelityFixes(payload)
+	end
+
+	if commandType == "applyDashboardFidelityFixes" then
+		return V82.applyDashboardFidelityFixes(payload)
+	end
+
+	if commandType == "recompareDashboardFidelity" then
+		return V82.recompareDashboardFidelity(payload)
+	end
+
+	if commandType == "runDashboardFidelityQa" then
+		return V82.runDashboardFidelityQa(payload)
+	end
+
+	if commandType == "learnDashboardFidelityResult" then
+		return V82.learnDashboardFidelityResult(payload)
+	end
+
+	if commandType == "rollbackDashboardFidelityTransaction" then
+		return V82.rollbackDashboardFidelityTransaction(payload)
 	end
 
 	if commandType == "getCreatorOsStatus" then
@@ -37623,6 +37678,16 @@ V82.actions = {
 	"dashboardImageIntake",
 	"dashboardImageAnalyze",
 	"dashboardImageWorldcompile",
+	"dashboardFidelityState",
+	"dashboardFidelityLoop",
+	"dashboardFidelityCompare",
+	"dashboardFidelityFixPlan",
+	"dashboardFidelityPreview",
+	"dashboardFidelityApply",
+	"dashboardFidelityRecompare",
+	"dashboardFidelityQa",
+	"dashboardFidelityLearn",
+	"dashboardFidelityRollback",
 	"referenceAnalyze",
 	"reconstructInfer",
 	"worldcompileCompile",
@@ -37810,6 +37875,56 @@ end
 
 function V82.deleteDashboardImageReference(payload)
 	return V82.manualDashboardAction(payload, "image-delete")
+end
+
+function V82.dashboardFidelityAction(payload, mode)
+	local result = V82.manualDashboardAction(payload, mode)
+	result.reason = "dashboardFidelityRunsInNodeBridge"
+	result.warnings = {
+		"Dashboard fidelity loop commands are served by bridge/server.js so the browser, approval queue, and V72 receipts stay together.",
+	}
+	result.nextCommand = "tools\\bridge.cmd dashboard fidelity-loop \"" .. tostring((payload or {}).goal or (payload or {}).reference or "dark purple anime dungeon gate") .. "\""
+	return result
+end
+
+function V82.getDashboardFidelityState(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-state")
+end
+
+function V82.runDashboardFidelityLoop(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-loop")
+end
+
+function V82.runDashboardFidelityCompare(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-compare")
+end
+
+function V82.getDashboardFidelityFixPlan(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-fix-plan")
+end
+
+function V82.previewDashboardFidelityFixes(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-preview")
+end
+
+function V82.applyDashboardFidelityFixes(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-apply")
+end
+
+function V82.recompareDashboardFidelity(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-recompare")
+end
+
+function V82.runDashboardFidelityQa(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-qa")
+end
+
+function V82.learnDashboardFidelityResult(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-learn")
+end
+
+function V82.rollbackDashboardFidelityTransaction(payload)
+	return V82.dashboardFidelityAction(payload, "fidelity-rollback")
 end
 
 mutatingTypes = {

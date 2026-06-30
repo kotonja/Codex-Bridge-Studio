@@ -74,6 +74,9 @@ function createRoute(rawQuery = '', options = {}) {
   const dashboardImageSignal = has('upload image to dashboard', 'dashboard image upload', 'use image in dashboard', 'dashboard analyze image', 'dashboard image to world', 'one click image build', 'one-click image build', 'build image from dashboard', 'dashboard reference image', 'dashboard reference-image', 'dashboard image pipeline')
     || ((has('dashboard', 'control room') && has('image', 'upload', 'file', 'reference') && has('analyze', 'world', 'worldcompile', 'build', 'intake', 'use', 'upload')))
     || ((has('one click', 'one-click') && has('image') && has('build', 'pipeline')));
+  const dashboardFidelitySignal = has('dashboard fidelity loop', 'dashboard match reference', 'improve reference match', 'fix fidelity in dashboard', 'one click fidelity fix', 'one-click fidelity fix', 'improve image match', 'make dashboard build closer to reference', 'dashboard compare and fix')
+    || ((has('dashboard', 'control room') && has('fidelity', 'reference match', 'match reference', 'closer to reference', 'compare and fix', 'image match')))
+    || ((has('one click', 'one-click') && has('fidelity', 'reference match', 'image match')));
   const dashboardSignal = has('open dashboard', 'show dashboard', 'open control room', 'production dashboard', 'dashboard status', 'open ai ui', 'show ai control panel', 'ai control panel', 'control room', 'chat with bridge', 'dashboard chat', 'open ai chat', 'show tool timeline', 'show approvals', 'approve dashboard run', 'dashboard pipeline', 'one click build', 'one-click build', 'show dashboard runs', 'show dashboard safety', 'show dashboard cost')
     || ((has('dashboard', 'control room') && has('chat', 'timeline', 'approval', 'approvals', 'pipeline', 'runs', 'cost', 'safety', 'open', 'show')))
     || (has('one click', 'one-click') && has('build', 'pipeline'));
@@ -147,6 +150,19 @@ function createRoute(rawQuery = '', options = {}) {
       safety: 'readOnlyNoSecrets',
       reason: 'API/TLS/certificate connectivity language detected. Run V86.1 diagnostics; do not disable TLS verification.',
       commands: ['tools\\bridge.cmd ai tls-check', 'tools\\bridge.cmd dashboard image-tls-check'],
+    });
+  } else if (dashboardFidelitySignal) {
+    setRoute({
+      category: 'dashboard',
+      title: 'V88 Dashboard Reference Fidelity Improvement Loop',
+      confidence: 0.98,
+      safety: 'dashboardApprovalGatedExecutionKernel',
+      reason: 'Dashboard-specific reference fidelity fix language detected. Run the local dashboard loop and stop at approval before V72 Execute Apply.',
+      commands: [
+        `tools\\bridge.cmd dashboard fidelity-loop ${quoteForCommand(intent)}`,
+        'tools\\bridge.cmd dashboard fidelity-state',
+        'tools\\bridge.cmd dashboard approvals',
+      ],
     });
   } else if (dashboardImageSignal) {
     const dashboardCommand = has('analyze') ? `tools\\bridge.cmd dashboard image-analyze ${quoteForCommand(intent)}`
@@ -658,6 +674,11 @@ function catalog(version = null) {
     ['compare to reference', 'tools\\bridge.cmd fidelity compare "<reference-or-goal>"'],
     ['does it match the image', 'tools\\bridge.cmd fidelity score "<reference-or-goal>"'],
     ['make it closer to the image', 'tools\\bridge.cmd fidelity fix-plan "<reference-or-goal>"'],
+    ['dashboard fidelity loop', 'tools\\bridge.cmd dashboard fidelity-loop "<reference-or-goal>"'],
+    ['dashboard match reference', 'tools\\bridge.cmd dashboard fidelity-loop "<reference-or-goal>"'],
+    ['improve reference match', 'tools\\bridge.cmd dashboard fidelity-loop "<reference-or-goal>"'],
+    ['one click fidelity fix', 'tools\\bridge.cmd dashboard fidelity-loop "<reference-or-goal>"'],
+    ['improve image match', 'tools\\bridge.cmd dashboard fidelity-loop "<reference-or-goal>"'],
     ['open dashboard', 'tools\\bridge.cmd dashboard open'],
     ['show dashboard', 'tools\\bridge.cmd dashboard open'],
     ['open control room', 'tools\\bridge.cmd dashboard open'],
