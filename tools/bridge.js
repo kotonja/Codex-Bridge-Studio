@@ -15,6 +15,7 @@ const QaSwarm = require('../bridge/qa-swarm');
 const Autopilot = require('../bridge/autopilot');
 const Memory = require('../bridge/memory');
 const Execution = require('../bridge/execution');
+const Detail = require('../bridge/detail');
 const AiOrchestrator = require('../bridge/ai-orchestrator');
 const ReferenceLab = require('../bridge/reference-lab');
 const Reconstruction = require('../bridge/reconstruction');
@@ -22,8 +23,8 @@ const WorldCompiler = require('../bridge/world-compiler');
 const Fidelity = require('../bridge/fidelity');
 const Dashboard = require('../bridge/dashboard');
 
-const HELPER_VERSION = '0.88.0';
-const MCP_PROXY_VERSION = '0.88.0';
+const HELPER_VERSION = '0.89.0';
+const MCP_PROXY_VERSION = '0.89.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -140,6 +141,23 @@ const MCP_PROXY_TOOLS = [
   'worldgen_route',
   'worldgen_budget',
   'worldgen_manifest',
+  'detail_status',
+  'detail_styles',
+  'detail_plan',
+  'detail_compile',
+  'detail_portal',
+  'detail_building',
+  'detail_interior',
+  'detail_path',
+  'detail_props',
+  'detail_lighting',
+  'detail_material_swatches',
+  'detail_sockets',
+  'detail_budget',
+  'detail_audit',
+  'detail_polish',
+  'detail_execute_preview',
+  'detail_manifest',
   'assetforge_status',
   'assetforge_styles',
   'assetforge_plan',
@@ -223,6 +241,7 @@ const MCP_PROXY_TOOLS = [
   'execute_apply',
   'execute_worldgen',
   'execute_assetkit',
+  'execute_detail',
   'execute_cinematic',
   'execute_qa_markers',
   'execute_polish',
@@ -6797,6 +6816,10 @@ async function runExecute(subcommand = 'status', args = []) {
     print(Execution.assetkit(cleanGoal(), { source: 'tools.bridge.execution.assetkit' }));
     return;
   }
+  if (subcommand === 'detail' || subcommand === 'premium-geometry') {
+    print(Execution.detail(cleanGoal(), { source: 'tools.bridge.execution.detail' }));
+    return;
+  }
   if (subcommand === 'cinematic') {
     print(Execution.cinematic(cleanGoal(), { source: 'tools.bridge.execution.cinematic' }));
     return;
@@ -6841,7 +6864,7 @@ async function runExecute(subcommand = 'status', args = []) {
     print(Execution.manifest(cleanGoal()));
     return;
   }
-  throw new Error('execute command must be status, roots, preview, apply, worldgen, assetkit, cinematic, qa-markers, polish, safe-fix, verify, transactions, receipt, rollback, manifest, or self-check.');
+  throw new Error('execute command must be status, roots, preview, apply, worldgen, assetkit, detail, cinematic, qa-markers, polish, safe-fix, verify, transactions, receipt, rollback, manifest, or self-check.');
 }
 
 async function runReference(subcommand = 'status', args = []) {
@@ -7686,6 +7709,100 @@ async function runWorldgen(subcommand = 'status', args = []) {
     return;
   }
   throw new Error('worldgen command must be status, styles, plan, graph, generate, audit, polish, route, budget, manifest, or self-check.');
+}
+
+async function runDetail(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'premium high-detail Roblox build';
+  const mode = String(subcommand || 'status').toLowerCase();
+  if (mode === 'status') {
+    print(Detail.createStatus());
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-detail.js'));
+    return;
+  }
+  if (mode === 'styles' || mode === 'style-catalog' || mode === 'catalog') {
+    const styles = Detail.getStyleCatalog();
+    print({ ok: true, version: HELPER_VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd detail plan "dark purple anime dungeon gate"' });
+    return;
+  }
+  if (mode === 'plan') {
+    const goal = cleanGoal();
+    print(Detail.createBuildPlan(goal, { source: 'tools.bridge.detail.plan' }));
+    return;
+  }
+  if (mode === 'compile' || mode === 'build') {
+    const goal = cleanGoal();
+    print(Detail.createCompilePlan(goal, { source: 'tools.bridge.detail.compile' }));
+    return;
+  }
+  if (mode === 'portal' || mode === 'gate') {
+    const goal = cleanGoal();
+    print(Detail.createPortalPlan(goal, { source: 'tools.bridge.detail.portal' }));
+    return;
+  }
+  if (mode === 'building' || mode === 'facade') {
+    const goal = cleanGoal();
+    print(Detail.createBuildingPlan(goal, { source: 'tools.bridge.detail.building' }));
+    return;
+  }
+  if (mode === 'interior' || mode === 'inside') {
+    const goal = cleanGoal();
+    print(Detail.createInteriorPlan(goal, { source: 'tools.bridge.detail.interior' }));
+    return;
+  }
+  if (mode === 'path' || mode === 'walkway') {
+    const goal = cleanGoal();
+    print(Detail.createPathPlan(goal, { source: 'tools.bridge.detail.path' }));
+    return;
+  }
+  if (mode === 'props' || mode === 'prop-clusters' || mode === 'clusters') {
+    const goal = cleanGoal();
+    print(Detail.createPropClusterPlan(goal, { source: 'tools.bridge.detail.props' }));
+    return;
+  }
+  if (mode === 'lighting' || mode === 'lights' || mode === 'fixtures') {
+    const goal = cleanGoal();
+    print(Detail.createLightingPlan(goal, { source: 'tools.bridge.detail.lighting' }));
+    return;
+  }
+  if (mode === 'material-swatches' || mode === 'swatches' || mode === 'materials') {
+    const goal = cleanGoal();
+    print(Detail.createMaterialSwatchPlan(goal, { source: 'tools.bridge.detail.materialSwatches' }));
+    return;
+  }
+  if (mode === 'sockets') {
+    const goal = cleanGoal();
+    print(Detail.createSocketPlan(goal, { source: 'tools.bridge.detail.sockets' }));
+    return;
+  }
+  if (mode === 'budget') {
+    const goal = cleanGoal();
+    print(Detail.createBudgetReport(goal, { source: 'tools.bridge.detail.budget' }));
+    return;
+  }
+  if (mode === 'audit') {
+    const goal = cleanGoal();
+    print(Detail.createAuditReport(goal, { source: 'tools.bridge.detail.audit' }));
+    return;
+  }
+  if (mode === 'polish') {
+    const goal = cleanGoal();
+    print(Detail.createPolishPlan(goal, { source: 'tools.bridge.detail.polish' }));
+    return;
+  }
+  if (mode === 'execute-preview' || mode === 'preview') {
+    const goal = cleanGoal();
+    print(Execution.detail(goal, { source: 'tools.bridge.detail.executePreview' }));
+    return;
+  }
+  if (mode === 'manifest') {
+    const goal = cleanGoal();
+    print(Detail.createManifest(goal, { source: 'tools.bridge.detail.manifest' }));
+    return;
+  }
+  throw new Error('detail command must be status, styles, plan, compile, portal, building, interior, path, props, lighting, material-swatches, sockets, budget, audit, polish, execute-preview, manifest, or self-check.');
 }
 
 async function assetforgeStudioOptions(extra = {}) {
@@ -13281,6 +13398,11 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'premium' && (args[0] || '').toLowerCase() === 'geometry') {
+    await runDetail('compile', args.slice(1));
+    return;
+  }
+
   if (command === 'premium') {
     await runPremium(args[0] || 'status', args.slice(1));
     return;
@@ -13296,6 +13418,7 @@ async function main(argv) {
     apply_plan: 'apply',
     safe_build: 'apply',
     real_build: 'apply',
+    execute_detail: 'detail',
   };
   if (directExecutionCommands[command]) {
     await runExecute(directExecutionCommands[command], args);
@@ -13318,6 +13441,23 @@ async function main(argv) {
 
   if (command === 'pcg') {
     await runWorldgen(args[0] || 'plan', args.slice(1));
+    return;
+  }
+
+  if (command === 'detail') {
+    await runDetail(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  const directDetailCommands = {
+    high_detail: 'compile',
+    premium_detail: 'compile',
+    detail_build: 'compile',
+    make_less_placeholder: 'compile',
+    improve_build_detail: 'compile',
+  };
+  if (directDetailCommands[command]) {
+    await runDetail(directDetailCommands[command], args);
     return;
   }
 
@@ -13437,6 +13577,30 @@ async function main(argv) {
   };
   if (directWorldgenCommands[command]) {
     await runWorldgen(directWorldgenCommands[command], args);
+    return;
+  }
+
+  const directDetailMcpCommands = {
+    detail_status: 'status',
+    detail_styles: 'styles',
+    detail_plan: 'plan',
+    detail_compile: 'compile',
+    detail_portal: 'portal',
+    detail_building: 'building',
+    detail_interior: 'interior',
+    detail_path: 'path',
+    detail_props: 'props',
+    detail_lighting: 'lighting',
+    detail_material_swatches: 'material-swatches',
+    detail_sockets: 'sockets',
+    detail_budget: 'budget',
+    detail_audit: 'audit',
+    detail_polish: 'polish',
+    detail_execute_preview: 'execute-preview',
+    detail_manifest: 'manifest',
+  };
+  if (directDetailMcpCommands[command]) {
+    await runDetail(directDetailMcpCommands[command], args);
     return;
   }
 
@@ -13831,6 +13995,11 @@ async function main(argv) {
       return;
     }
     await runUi(args[0] || 'audit', args.slice(1));
+    return;
+  }
+
+  if (command === 'dashboard' && (args[0] || '').toLowerCase() === 'detail') {
+    await runDetail('compile', args.slice(1));
     return;
   }
 

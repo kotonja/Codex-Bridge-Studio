@@ -5,6 +5,7 @@ const { classifyRisk } = require('./safety-policy');
 const { genericOperations } = require('./instance-compiler');
 const { compileWorldgen } = require('./worldgen-compiler');
 const { compileAssetKit } = require('./assetkit-compiler');
+const { compileDetail } = require('./detail-compiler');
 const { compileCinematic } = require('./cinematic-compiler');
 const { compileQaMarkers } = require('./qa-marker-compiler');
 const { compilePolish } = require('./polish-compiler');
@@ -13,6 +14,7 @@ const { compileSafeFix } = require('./safe-fix-compiler');
 function chooseCompiler(system) {
   if (system === SYSTEMS.worldgen || system === SYSTEMS.premium) return compileWorldgen;
   if (system === SYSTEMS.assetkit) return compileAssetKit;
+  if (system === SYSTEMS.detail) return compileDetail;
   if (system === SYSTEMS.cinematic) return compileCinematic;
   if (system === SYSTEMS.qaMarkers) return compileQaMarkers;
   if (system === SYSTEMS.polish) return compilePolish;
@@ -48,6 +50,7 @@ function createPreviewPlan(parsed, options = {}) {
   return {
     ok: safety.blockers.length === 0,
     version: VERSION,
+    compilerVersion: compiled.version || VERSION,
     at: nowIso(),
     transactionId: tx,
     goal: parsed.goal,
@@ -82,6 +85,9 @@ function createPreviewPlan(parsed, options = {}) {
     blockedActions: [...(compiled.blockedActions || []), ...safety.blockers.map((reason) => ({ reason }))],
     sourcePlan: compiled.sourcePlan || 'execution',
     source: compiled,
+    operationCount: actions.length,
+    manualRequired: [...(compiled.manualRequiredActions || compiled.manualRequired || []), ...safety.manualRequiredActions],
+    previewOnly: true,
     warnings: [...(compiled.warnings || []), ...safety.warnings],
     blockers: [...(compiled.blockers || []), ...safety.blockers],
     nextCommand: `tools\\bridge.cmd execute apply "${parsed.goal}"`,

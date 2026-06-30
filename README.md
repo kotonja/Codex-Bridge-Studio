@@ -154,6 +154,28 @@ Premium Director now includes Asset Forge Pro in asset planning and scoring:
 .\tools\bridge.cmd do --json "make premium props for anime dungeon"
 ```
 
+## V89 High-Detail Build Compiler
+
+V89 upgrades the real-build path for scenes that feel too placeholder. Use it when the user asks to add more detail, improve geometry, add trims/bevels, make a portal gate or dungeon hub look built instead of blocky, add material swatches, prop clusters, lighting fixtures, or premium geometry. It compiles Codex-owned primitive geometry, trim bands, bevel-illusion parts, material swatches, prop clusters, VFX/audio/camera/prompt sockets, collision proxies, mobile budgets, audits, and polish plans.
+
+```powershell
+.\tools\bridge.cmd detail status
+.\tools\bridge.cmd detail styles
+.\tools\bridge.cmd detail plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail compile "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail portal "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail props "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail lighting "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail material-swatches "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail budget "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail audit "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail polish "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail execute-preview "dark purple anime dungeon gate"
+.\tools\bridge.cmd high_detail "dark purple anime dungeon gate"
+```
+
+`detail compile` and `detail execute-preview` are plan/preview surfaces. Actual Studio mutation still goes through V72 `execute apply`, which produces transaction receipts, verification, and rollback. V89 never fakes mesh IDs, texture IDs, SurfaceAppearance/PBR maps, marketplace imports, publishes/uploads, DataStore/economy writes, or production script edits.
+
 ## V68 Cinematic Motion Director
 
 V68 adds a synced motion/game-feel layer for moments that need animation, VFX, audio, camera, screen shake, hit-stop, UI punch, and mobile-safe readability to feel like one premium beat. Use it when the request says combat feels weak, add impact, hit stop, screen shake, cinematic intro, boss intro, sync animation/VFX/audio, or make an ability feel powerful.

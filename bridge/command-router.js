@@ -37,6 +37,8 @@ function createRoute(rawQuery = '', options = {}) {
     || ((has('map', 'world', 'layout', 'zone', 'biome', 'dungeon', 'arena', 'hub', 'lobby') && has('generate', 'build', 'make', 'pcg', 'graph', 'layout', 'polish', 'audit', 'flow')));
   const assetforgeSignal = has('make asset kit', 'generate asset', 'make props', 'kitbash', 'mesh plan', 'material plan', 'make this look detailed', 'create reusable assets', 'asset library', 'make premium props', 'make dungeon asset kit', 'make anime portal assets', 'make shop stand assets', 'make boss arena props', 'fix cheap assets', 'polish assets', 'audit assets', 'create material palette')
     || ((has('asset', 'assets', 'prop', 'props', 'kit', 'kitbash', 'mesh', 'material', 'materials', 'surfaceappearance', 'decal', 'signage', 'library', 'palette', 'trim', 'bevel') && has('make', 'create', 'generate', 'plan', 'polish', 'audit', 'fix', 'premium', 'detailed')));
+  const detailSignal = has('make it less placeholder', 'add more detail', 'make the build more detailed', 'improve geometry detail', 'premium geometry', 'add trims and bevels', 'add trim and bevel', 'make better portal gate', 'make detailed dungeon gate', 'improve build detail', 'high detail build', 'make it look built not placeholder', 'add material swatches', 'add prop clusters', 'add lighting fixtures', 'detail compiler', 'detail build', 'premium detail')
+    || ((has('detail', 'detailed', 'placeholder', 'geometry', 'trims', 'trim', 'bevels', 'bevel', 'material swatches', 'prop clusters', 'lighting fixtures') && has('make', 'add', 'improve', 'build', 'premium', 'compile', 'execute')));
   const vfxSignal = has('vfx', 'effect', 'aura', 'projectile', 'beam', 'slash', 'impact', 'explosion', 'wind', 'lightning', 'smoke', 'portal');
   const cinematicSignal = has('make it feel premium', 'make combat feel good', 'add impact', 'add hit stop', 'hit stop', 'add screen shake', 'screen shake', 'make cinematic', 'sync animation vfx audio', 'camera shake', 'ability timing', 'impact frames', 'make attack feel powerful', 'make movement feel better', 'make boss intro cinematic', 'opening cutscene', 'make opening cutscene', 'polish animation timing', 'polish game feel', 'fix weak ability', 'game feel', 'gamefeel', 'sync moment')
     || ((has('motion', 'cinematic', 'camera', 'impact', 'hit-stop', 'hitstop', 'shake', 'timing', 'anticipation', 'follow through', 'recoil') && has('plan', 'make', 'add', 'polish', 'fix', 'sync', 'generate', 'feel')));
@@ -387,6 +389,29 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd visual critique ${quoteForCommand(intent)}`,
         visualCommand,
         `tools\\bridge.cmd visual score ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (detailSignal && !premiumBuildSignal && !visualSignal) {
+    const action = has('audit', 'score') ? 'audit'
+      : has('polish', 'improve') ? 'polish'
+        : has('preview', 'execute') ? 'execute-preview'
+          : has('portal', 'gate') ? 'portal'
+            : has('interior', 'inside') ? 'interior'
+              : has('path') ? 'path'
+                : has('prop cluster', 'prop clusters') ? 'props'
+                  : has('lighting fixture', 'lighting fixtures') ? 'lighting'
+                    : has('material swatch', 'material swatches') ? 'material-swatches'
+                      : 'compile';
+    setRoute({
+      category: 'detail',
+      title: 'V89 High-Detail Build Compiler',
+      confidence: 0.96,
+      safety: action === 'execute-preview' ? 'executionKernelPreviewOnly' : 'readOnlyDetailCompilePlan',
+      reason: 'High-detail geometry, trim, bevel, material-swatch, prop-cluster, lighting-fixture, or less-placeholder language detected.',
+      commands: [
+        `tools\\bridge.cmd detail plan ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd detail ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd detail audit ${quoteForCommand(intent)}`,
       ],
     });
   } else if (worldgenSignal && !premiumBuildSignal && !assetforgeSignal) {

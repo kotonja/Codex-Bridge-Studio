@@ -22,6 +22,10 @@ function assetkit(goal, options = {}) {
   return createPreviewPlan(parseGoal(goal, { ...options, system: SYSTEMS.assetkit }), options);
 }
 
+function detail(goal, options = {}) {
+  return createPreviewPlan(parseGoal(goal, { ...options, system: SYSTEMS.detail }), options);
+}
+
 function cinematic(goal, options = {}) {
   return createPreviewPlan(parseGoal(goal, { ...options, system: SYSTEMS.cinematic }), options);
 }
@@ -164,6 +168,7 @@ module.exports = {
   createPreviewPlan,
   createRootsReport,
   createStatus,
+  detail,
   manifest,
   parseGoal,
   polish,

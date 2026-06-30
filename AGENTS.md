@@ -274,6 +274,31 @@ V67 Asset Forge Pro is the preferred specialist when the user asks for reusable 
 
 Routing priority for V67: pairing/recovery wins, explicit visual critique wins, explicit VFX wins, whole premium game/lobby requests go to Premium Director, map/layout/world requests go to Worldgen, and asset/object/prop/kit/mesh/material/library requests go to Asset Forge. Asset Forge may create Codex-owned placeholders/manifests/sockets/material plans under `Workspace.CodexAssetForge`, `ReplicatedStorage.CodexAssetForge`, and `ReplicatedStorage.CodexPremiumDirector.AssetForge`, but mesh uploads, SurfaceAppearance texture maps, marketplace/asset buying, publishing, DataStore/economy/monetization, production script overwrites, and broad deletes remain blocked or manual. Never fake mesh IDs or texture maps.
 
+V89 High-Detail Build Compiler is the preferred specialist when the user says the build looks placeholder/blocky/flat, asks for more detail, premium geometry, trims, bevels, material swatches, prop clusters, lighting fixtures, or a better portal/gate/building/interior/path. It turns intent into layered Codex-owned primitive geometry, trim bands, bevel-illusion parts, sockets, collision proxies, mobile budgets, audits, polish plans, and V72-compatible execution preview actions:
+
+```powershell
+.\tools\bridge.cmd detail status
+.\tools\bridge.cmd detail styles
+.\tools\bridge.cmd detail plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail compile "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail portal "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail building "anime dungeon shop stand"
+.\tools\bridge.cmd detail interior "dark purple portal room"
+.\tools\bridge.cmd detail path "misty dungeon path"
+.\tools\bridge.cmd detail props "floating crystals quest board reward chest"
+.\tools\bridge.cmd detail lighting "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail material-swatches "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail sockets "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail budget "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail audit "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail polish "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail execute-preview "dark purple anime dungeon gate"
+.\tools\bridge.cmd high_detail "dark purple anime dungeon gate"
+.\tools\bridge.cmd premium geometry "dark purple anime dungeon gate"
+```
+
+Routing priority for V89: pairing/recovery still wins, explicit VFX stays VFX, explicit visual critique/fidelity stays Visual/Fidelity, map/layout/world graph requests stay Worldgen, reusable mesh/material/asset-kit planning stays Asset Forge, and actual Studio apply still goes through V72 Execution Kernel. V89 outputs are Codex-owned under `Workspace.CodexProduction.DetailCompiler`, `ReplicatedStorage.CodexDetailCompiler`, and `ReplicatedStorage.CodexPremiumDirector.DetailCompiler`. It must not mutate non-Codex content, fake mesh/texture/PBR/asset IDs, publish/upload, use marketplace insertion, touch DataStore/economy/monetization, edit production scripts, or delete user content.
+
 V68 Cinematic Motion Director is the preferred specialist when the user says combat feels weak, add impact, add hit stop, add screen shake, make it cinematic, sync animation VFX audio, boss intro, opening cutscene, game feel, make the ability feel powerful, or polish animation timing. It plans animation, marker timing, VFX layers, audio cues, camera beats, shake, hit-stop, UI punch, ability windows, mobile motion budget, preview, audit, polish, and manifests as one synced moment:
 
 ```powershell

@@ -65,6 +65,7 @@ const SYSTEMS = {
   generic: 'ExecutionKernel',
   worldgen: 'Worldgen',
   assetkit: 'AssetForge',
+  detail: 'DetailCompiler',
   cinematic: 'Cinematic',
   qaMarkers: 'QaSwarm',
   polish: 'Autopilot',

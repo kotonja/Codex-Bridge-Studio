@@ -15,6 +15,7 @@ const QaSwarm = require('./qa-swarm');
 const Autopilot = require('./autopilot');
 const Memory = require('./memory');
 const Execution = require('./execution');
+const Detail = require('./detail');
 const AiOrchestrator = require('./ai-orchestrator');
 const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
@@ -22,7 +23,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.88.0';
+const VERSION = '0.89.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -378,6 +379,46 @@ const supportedCommands = new Set([
   'worldgen_budget',
   'worldgen_manifest',
   'generate_world',
+  'getDetailCompilerStatus',
+  'getDetailStyleCatalog',
+  'getDetailBuildPlan',
+  'getDetailCompilePlan',
+  'getDetailPortalPlan',
+  'getDetailBuildingPlan',
+  'getDetailInteriorPlan',
+  'getDetailPathPlan',
+  'getDetailPropClusterPlan',
+  'getDetailLightingPlan',
+  'getDetailMaterialSwatchPlan',
+  'getDetailSocketPlan',
+  'getDetailBudgetReport',
+  'getDetailAuditReport',
+  'getDetailPolishPlan',
+  'getDetailExecutionPreview',
+  'getDetailManifest',
+  'bakeDetailManifest',
+  'detail_status',
+  'detail_styles',
+  'detail_plan',
+  'detail_compile',
+  'detail_portal',
+  'detail_building',
+  'detail_interior',
+  'detail_path',
+  'detail_props',
+  'detail_lighting',
+  'detail_material_swatches',
+  'detail_sockets',
+  'detail_budget',
+  'detail_audit',
+  'detail_polish',
+  'detail_execute_preview',
+  'detail_manifest',
+  'high_detail',
+  'premium_detail',
+  'detail_build',
+  'make_less_placeholder',
+  'improve_build_detail',
   'getAssetForgeStatus',
   'getAssetForgeStyleCatalog',
   'getAssetForgeIntentPlan',
@@ -2135,6 +2176,23 @@ const CACHEABLE_TTLS = new Map([
   ['audio_audit', 60_000],
   ['audio_plan', 60_000],
   ['audio_live', 15_000],
+  ['getDetailCompilerStatus', 15_000],
+  ['getDetailStyleCatalog', 120_000],
+  ['getDetailBuildPlan', 30_000],
+  ['getDetailCompilePlan', 60_000],
+  ['getDetailPortalPlan', 60_000],
+  ['getDetailBuildingPlan', 60_000],
+  ['getDetailInteriorPlan', 60_000],
+  ['getDetailPathPlan', 60_000],
+  ['getDetailPropClusterPlan', 60_000],
+  ['getDetailLightingPlan', 60_000],
+  ['getDetailMaterialSwatchPlan', 60_000],
+  ['getDetailSocketPlan', 60_000],
+  ['getDetailBudgetReport', 30_000],
+  ['getDetailAuditReport', 60_000],
+  ['getDetailPolishPlan', 60_000],
+  ['getDetailExecutionPreview', 30_000],
+  ['getDetailManifest', 60_000],
   ['getAiOrchestratorStatus', 15_000],
   ['getAiOrchestratorConfig', 15_000],
   ['getAiTlsConnectivityReport', 15_000],
@@ -4511,6 +4569,26 @@ const V46_TOOL_CATEGORIES = [
       { command: 'tools\\bridge.cmd assetforge audit <goal>', example: 'tools\\bridge.cmd assetforge audit "premium anime dungeon hub"', bestFor: 'Score style, silhouette, materials, sockets, LOD, Worldgen fit, and premium asset feel.' },
       { command: 'tools\\bridge.cmd assetforge polish <goal>', example: 'tools\\bridge.cmd assetforge polish "premium anime dungeon hub"', bestFor: 'Return the 11-stage asset polish plan.' },
       { command: 'tools\\bridge.cmd generate_asset <goal>', example: 'tools\\bridge.cmd generate_asset "anime portal arch kit"', bestFor: 'Direct alias for V67 asset kit generation.' },
+    ],
+  },
+  {
+    id: 'detail',
+    title: 'V89 High-Detail Build Compiler',
+    safety: 'readOnlyCompilePlansOrV72ExecutionKernelPreview',
+    readiness: ['bridge', 'plugin', 'codexReady', 'executionKernel', 'visualCritic', 'fidelity', 'worldcompile'],
+    commands: [
+      { command: 'tools\\bridge.cmd detail status', example: 'tools\\bridge.cmd detail status', bestFor: 'Check V89 detail compiler readiness, roots, safety, and integrations.' },
+      { command: 'tools\\bridge.cmd detail styles', example: 'tools\\bridge.cmd detail styles', bestFor: 'List high-detail style catalogs with shape, trim, materials, lighting, props, sockets, and mobile hints.' },
+      { command: 'tools\\bridge.cmd detail plan <goal>', example: 'tools\\bridge.cmd detail plan "dark purple anime dungeon gate"', bestFor: 'Plan how to reduce placeholder feel with macro shapes, trim, bevel illusion, materials, sockets, and budget.' },
+      { command: 'tools\\bridge.cmd detail compile <goal>', example: 'tools\\bridge.cmd detail compile "dark purple anime dungeon gate"', bestFor: 'Return V89 Codex-owned operations for high-detail geometry without applying Studio changes.' },
+      { command: 'tools\\bridge.cmd detail portal <goal>', example: 'tools\\bridge.cmd detail portal "premium purple portal gate"', bestFor: 'Create a focused portal/gate architecture plan.' },
+      { command: 'tools\\bridge.cmd detail props <goal>', example: 'tools\\bridge.cmd detail props "anime dungeon reward area"', bestFor: 'Create prop clusters such as crystals, quest boards, chests, and prompt sockets.' },
+      { command: 'tools\\bridge.cmd detail lighting <goal>', example: 'tools\\bridge.cmd detail lighting "dark portal hub"', bestFor: 'Create lighting fixtures and mobile-aware light placement.' },
+      { command: 'tools\\bridge.cmd detail material-swatches <goal>', example: 'tools\\bridge.cmd detail material-swatches "anime dungeon gate"', bestFor: 'Return material/color swatches and style notes.' },
+      { command: 'tools\\bridge.cmd detail budget <goal>', example: 'tools\\bridge.cmd detail budget "premium dungeon gate"', bestFor: 'Check part/light/particle budget before applying detailed geometry.' },
+      { command: 'tools\\bridge.cmd detail audit <goal>', example: 'tools\\bridge.cmd detail audit "premium dungeon gate"', bestFor: 'Score silhouette, trim depth, material variety, sockets, collision, mobile budget, and premium feel.' },
+      { command: 'tools\\bridge.cmd detail execute-preview <goal>', example: 'tools\\bridge.cmd detail execute-preview "premium dungeon gate"', bestFor: 'Return V72-compatible preview actions; apply still goes through Execution Kernel receipts.' },
+      { command: 'tools\\bridge.cmd high_detail <goal>', example: 'tools\\bridge.cmd high_detail "portal gate"', bestFor: 'Direct alias for a V89 high-detail compile plan.' },
     ],
   },
   {
@@ -7515,6 +7593,7 @@ async function route(req, res) {
       'apply-plan': () => Execution.apply(goal),
       worldgen: () => Execution.worldgen(goal),
       assetkit: () => Execution.assetkit(goal),
+      detail: () => Execution.detail(goal),
       cinematic: () => Execution.cinematic(goal),
       'qa-markers': () => Execution.qaMarkers(goal),
       polish: () => Execution.polish(goal),
@@ -7706,6 +7785,107 @@ async function route(req, res) {
   if (req.method === 'GET' && path === '/codex/worldgen/manifest') {
     const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium Roblox world';
     sendJson(res, 200, Worldgen.createManifest(goal, { source: 'bridge.http.worldgen.manifest' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/status') {
+    sendJson(res, 200, Detail.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/styles') {
+    const styles = Detail.getStyleCatalog();
+    sendJson(res, 200, { ok: true, version: VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd detail plan "dark purple anime dungeon gate"' });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/plan') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium high-detail Roblox build';
+    sendJson(res, 200, Detail.createBuildPlan(goal, { source: 'bridge.http.detail.plan' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/compile') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium high-detail Roblox build';
+    sendJson(res, 200, Detail.createCompilePlan(goal, { source: 'bridge.http.detail.compile' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/portal') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium portal gate';
+    sendJson(res, 200, Detail.createPortalPlan(goal, { source: 'bridge.http.detail.portal' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/building') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium building facade';
+    sendJson(res, 200, Detail.createBuildingPlan(goal, { source: 'bridge.http.detail.building' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/interior') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium interior room';
+    sendJson(res, 200, Detail.createInteriorPlan(goal, { source: 'bridge.http.detail.interior' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/path') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium readable path';
+    sendJson(res, 200, Detail.createPathPlan(goal, { source: 'bridge.http.detail.path' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/props') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium prop clusters';
+    sendJson(res, 200, Detail.createPropClusterPlan(goal, { source: 'bridge.http.detail.props' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/lighting') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium lighting fixtures';
+    sendJson(res, 200, Detail.createLightingPlan(goal, { source: 'bridge.http.detail.lighting' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/material-swatches') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium material swatches';
+    sendJson(res, 200, Detail.createMaterialSwatchPlan(goal, { source: 'bridge.http.detail.materialSwatches' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/sockets') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium detail sockets';
+    sendJson(res, 200, Detail.createSocketPlan(goal, { source: 'bridge.http.detail.sockets' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/budget') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium high-detail Roblox build';
+    sendJson(res, 200, Detail.createBudgetReport(goal, { source: 'bridge.http.detail.budget' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/audit') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium high-detail Roblox build';
+    sendJson(res, 200, Detail.createAuditReport(goal, { source: 'bridge.http.detail.audit' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/polish') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium high-detail Roblox build';
+    sendJson(res, 200, Detail.createPolishPlan(goal, { source: 'bridge.http.detail.polish' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/execute-preview') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium high-detail Roblox build';
+    sendJson(res, 200, Detail.createExecutionPreview(goal, { source: 'bridge.http.detail.executePreview' }));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/detail/manifest') {
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium high-detail Roblox build';
+    sendJson(res, 200, Detail.createManifest(goal, { source: 'bridge.http.detail.manifest' }));
     return;
   }
 
