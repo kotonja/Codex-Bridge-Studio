@@ -299,6 +299,42 @@ V89 High-Detail Build Compiler is the preferred specialist when the user says th
 
 Routing priority for V89: pairing/recovery still wins, explicit VFX stays VFX, explicit visual critique/fidelity stays Visual/Fidelity, map/layout/world graph requests stay Worldgen, reusable mesh/material/asset-kit planning stays Asset Forge, and actual Studio apply still goes through V72 Execution Kernel. V89 outputs are Codex-owned under `Workspace.CodexProduction.DetailCompiler`, `ReplicatedStorage.CodexDetailCompiler`, and `ReplicatedStorage.CodexPremiumDirector.DetailCompiler`. It must not mutate non-Codex content, fake mesh/texture/PBR/asset IDs, publish/upload, use marketplace insertion, touch DataStore/economy/monetization, edit production scripts, or delete user content.
 
+V91 Advanced Shape Grammar + Modular Architecture is the preferred specialist when the user says better shapes, improve silhouette, advanced shape grammar, modular architecture, make the architecture better, better portal shape, better arches, improve roof shape, make walls modular, better windows/doors, less blocky, fix blocky geometry, building shape premium, or improve dungeon architecture. V91 improves the underlying architectural grammar before tiny detail density: module grids, silhouettes, walls, arches, rooflines, windows, doors, pillars, stairs, interiors, trims, depth layers, variants, mobile budgets, audits, and V72-compatible execution preview actions.
+
+```powershell
+.\tools\bridge.cmd architecture status
+.\tools\bridge.cmd architecture styles
+.\tools\bridge.cmd architecture grammar "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture compile "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture portal "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture arch "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture walls "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture roof "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture windows "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture doors "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture pillars "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture stairs "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture interior "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture trims "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture variants "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture budget "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture audit "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture polish "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture execute-preview "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture manifest "dark purple anime dungeon gate"
+.\tools\bridge.cmd shape grammar "dark purple anime dungeon gate"
+.\tools\bridge.cmd shape_build "dark purple anime dungeon gate"
+.\tools\bridge.cmd modular_architecture "dark purple anime dungeon gate"
+.\tools\bridge.cmd better_shapes "dark purple anime dungeon gate"
+.\tools\bridge.cmd improve_silhouette "dark purple anime dungeon gate"
+.\tools\bridge.cmd architectural_detail "dark purple anime dungeon gate"
+.\tools\bridge.cmd portal_architecture "dark purple anime dungeon gate"
+.\tools\bridge.cmd detail architecture "dark purple anime dungeon gate"
+```
+
+Routing priority for V91: pairing/recovery still wins, explicit VFX stays VFX, explicit visual critique/fidelity stays Visual/Fidelity, map/layout/world graph requests stay Worldgen, reusable mesh/material/asset-kit planning stays Asset Forge, and actual Studio apply still goes through V72 Execution Kernel. Detail/trim/placeholder requests such as `make it less placeholder` and `add more detail` remain V89 Detail unless the wording is clearly shape, silhouette, modular, or architecture. V91 outputs are Codex-owned under `Workspace.CodexProduction.Architecture` and `ReplicatedStorage.CodexArchitecture`, and may be previewed through `.\tools\bridge.cmd execute preview "dark purple anime dungeon gate architecture pass"`. It must not mutate non-Codex content, fake mesh/texture/PBR/asset IDs, publish/upload, use marketplace insertion, touch DataStore/economy/monetization, edit production scripts, or delete user content.
+
 V68 Cinematic Motion Director is the preferred specialist when the user says combat feels weak, add impact, add hit stop, add screen shake, make it cinematic, sync animation VFX audio, boss intro, opening cutscene, game feel, make the ability feel powerful, or polish animation timing. It plans animation, marker timing, VFX layers, audio cues, camera beats, shake, hit-stop, UI punch, ability windows, mobile motion budget, preview, audit, polish, and manifests as one synced moment:
 
 ```powershell

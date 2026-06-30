@@ -8,6 +8,7 @@ function parseGoal(goal, options = {}) {
   let system = options.system || SYSTEMS.generic;
   if (!options.system) {
     const wantsDetail = /less placeholder|built not placeholder|high detail|more detail|detailed|geometry detail|premium geometry|trim|trims|bevel|bevels|material swatch|material swatches|prop cluster|prop clusters|lighting fixture|lighting fixtures|detail pass/.test(q);
+    const wantsArchitecture = /advanced shape grammar|shape grammar|modular architecture|architecture pass|architectural detail|architectural depth|architecture detail|portal architecture|better portal shape|better arch|better arches|improve silhouette|silhouette grammar|wall module|wall modules|roof grammar|window grammar|door grammar|pillar grammar|stair grammar|interior module|depth layering|less blocky architecture|blocky architecture|building shape premium|dungeon architecture/.test(q);
     const wantsWorld = /world|map|dungeon|hub|layout|zone|path|lobby|arena|playable|reference|gate|portal/.test(q);
     const wantsAsset = /asset|prop|kit|mesh|material|trim|bevel|swatch/.test(q);
     const wantsCinematic = /cinematic|camera|beat|intro|gamefeel|game feel|hitstop|screen shake|motion/.test(q);
@@ -15,7 +16,8 @@ function parseGoal(goal, options = {}) {
     const wantsPolish = /polish|improve|premium pass|fix/.test(q);
     const wantsSafeFix = /safe fix|apply safe|fix issue/.test(q);
 
-    if (wantsDetail) system = SYSTEMS.detail;
+    if (wantsArchitecture) system = SYSTEMS.architecture;
+    else if (wantsDetail) system = SYSTEMS.detail;
     else if (wantsWorld) system = SYSTEMS.worldgen;
     else if (wantsAsset) system = SYSTEMS.assetkit;
     else if (wantsCinematic) system = SYSTEMS.cinematic;

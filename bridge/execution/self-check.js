@@ -25,6 +25,7 @@ const REQUIRED_MODULES = [
   'qa-marker-compiler.js',
   'polish-compiler.js',
   'safe-fix-compiler.js',
+  'architecture-compiler.js',
   'preview-builder.js',
   'apply-plan.js',
   'verification.js',
@@ -77,6 +78,11 @@ function run() {
   assert.ok(assetkit.actions.some((action) => action.path.includes('.Families.')));
   assert.ok(assetkit.manualRequiredActions.length >= 1);
 
+  const architecture = Execution.architecture('dark purple anime dungeon gate architecture pass');
+  assert.equal(architecture.system, 'ArchitectureCompiler');
+  assert.ok(architecture.actions.some((action) => action.role === 'archSegment' || action.path.includes('.PortalArch.')));
+  assert.ok(architecture.manualRequiredActions.some((item) => /mesh|texture|pbr/i.test(item.action || item.reason || '')));
+
   const cinematic = Execution.cinematic('anime boss intro attack');
   assert.ok(cinematic.actions.some((action) => action.path.includes('.Camera.')));
   assert.ok(cinematic.actions.some((action) => action.path.includes('.VfxAudio.')));
@@ -122,6 +128,7 @@ function run() {
   checkRoute('make combat feel good', 'cinematic');
   checkRoute('remember this style', 'memory');
   checkRoute('build and test everything', 'autopilot');
+  checkRoute('modular architecture for dungeon portal', 'architecture');
 
   return {
     ok: true,
@@ -135,6 +142,7 @@ function run() {
       'receipt',
       'worldgen',
       'assetkit',
+      'architecture',
       'cinematic',
       'qaMarkers',
       'pathOwnedProperties',

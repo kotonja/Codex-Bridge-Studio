@@ -6,6 +6,7 @@ const { genericOperations } = require('./instance-compiler');
 const { compileWorldgen } = require('./worldgen-compiler');
 const { compileAssetKit } = require('./assetkit-compiler');
 const { compileDetail } = require('./detail-compiler');
+const { compileArchitecture } = require('./architecture-compiler');
 const { compileCinematic } = require('./cinematic-compiler');
 const { compileQaMarkers } = require('./qa-marker-compiler');
 const { compilePolish } = require('./polish-compiler');
@@ -15,6 +16,7 @@ function chooseCompiler(system) {
   if (system === SYSTEMS.worldgen || system === SYSTEMS.premium) return compileWorldgen;
   if (system === SYSTEMS.assetkit) return compileAssetKit;
   if (system === SYSTEMS.detail) return compileDetail;
+  if (system === SYSTEMS.architecture) return compileArchitecture;
   if (system === SYSTEMS.cinematic) return compileCinematic;
   if (system === SYSTEMS.qaMarkers) return compileQaMarkers;
   if (system === SYSTEMS.polish) return compilePolish;

@@ -20,6 +20,9 @@ function createAuditReport(goal, compilePlan = {}) {
     premiumDetailFeel: 80,
   };
   const overallScore = clampScore(Object.values(scores).reduce((sum, score) => sum + score, 0) / Object.keys(scores).length);
+  const architectureScore = compilePlan.architectureHints
+    ? clampScore((scores.silhouetteStrength + scores.macroShapeReadability + scores.scaleHierarchy) / 3)
+    : null;
   return {
     ok: true,
     version: compilePlan.version,
@@ -27,6 +30,8 @@ function createAuditReport(goal, compilePlan = {}) {
     goal,
     requiredKeys: AUDIT_KEYS,
     scores,
+    architectureScore,
+    architectureHints: compilePlan.architectureHints || null,
     overallScore,
     rating: overallScore >= 85 ? 'premiumReady' : overallScore >= 74 ? 'solidNeedsPolish' : 'placeholderRisk',
     topIssues: Object.entries(scores)

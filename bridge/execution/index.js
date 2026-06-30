@@ -26,6 +26,10 @@ function detail(goal, options = {}) {
   return createPreviewPlan(parseGoal(goal, { ...options, system: SYSTEMS.detail }), options);
 }
 
+function architecture(goal, options = {}) {
+  return createPreviewPlan(parseGoal(goal, { ...options, system: SYSTEMS.architecture }), options);
+}
+
 function cinematic(goal, options = {}) {
   return createPreviewPlan(parseGoal(goal, { ...options, system: SYSTEMS.cinematic }), options);
 }
@@ -162,6 +166,7 @@ module.exports = {
   SAFETY,
   SYSTEMS,
   apply,
+  architecture,
   assetkit,
   cinematic,
   createApplyPlan,

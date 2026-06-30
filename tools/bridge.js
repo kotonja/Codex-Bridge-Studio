@@ -16,6 +16,7 @@ const Autopilot = require('../bridge/autopilot');
 const Memory = require('../bridge/memory');
 const Execution = require('../bridge/execution');
 const Detail = require('../bridge/detail');
+const Architecture = require('../bridge/architecture');
 const AiOrchestrator = require('../bridge/ai-orchestrator');
 const ReferenceLab = require('../bridge/reference-lab');
 const Reconstruction = require('../bridge/reconstruction');
@@ -23,8 +24,8 @@ const WorldCompiler = require('../bridge/world-compiler');
 const Fidelity = require('../bridge/fidelity');
 const Dashboard = require('../bridge/dashboard');
 
-const HELPER_VERSION = '0.89.0';
-const MCP_PROXY_VERSION = '0.89.0';
+const HELPER_VERSION = '0.91.0';
+const MCP_PROXY_VERSION = '0.91.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -158,6 +159,27 @@ const MCP_PROXY_TOOLS = [
   'detail_polish',
   'detail_execute_preview',
   'detail_manifest',
+  'architecture_status',
+  'architecture_styles',
+  'architecture_grammar',
+  'architecture_plan',
+  'architecture_compile',
+  'architecture_portal',
+  'architecture_arch',
+  'architecture_walls',
+  'architecture_roof',
+  'architecture_windows',
+  'architecture_doors',
+  'architecture_pillars',
+  'architecture_stairs',
+  'architecture_interior',
+  'architecture_trims',
+  'architecture_variants',
+  'architecture_budget',
+  'architecture_audit',
+  'architecture_polish',
+  'architecture_execute_preview',
+  'architecture_manifest',
   'assetforge_status',
   'assetforge_styles',
   'assetforge_plan',
@@ -7805,6 +7827,120 @@ async function runDetail(subcommand = 'status', args = []) {
   throw new Error('detail command must be status, styles, plan, compile, portal, building, interior, path, props, lighting, material-swatches, sockets, budget, audit, polish, execute-preview, manifest, or self-check.');
 }
 
+async function runArchitecture(subcommand = 'status', args = []) {
+  const cleanGoal = () => args.join(' ').trim() || 'premium Roblox modular architecture';
+  const mode = String(subcommand || 'status').toLowerCase();
+  if (mode === 'status') {
+    print(Architecture.createStatus());
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-architecture.js'));
+    return;
+  }
+  if (mode === 'styles' || mode === 'style-catalog' || mode === 'catalog') {
+    const styles = Architecture.getStyleCatalog();
+    print({ ok: true, version: HELPER_VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd architecture plan "dark purple anime dungeon gate"' });
+    return;
+  }
+  if (mode === 'grammar' || mode === 'policy') {
+    const goal = cleanGoal();
+    print(Architecture.createGrammarReport(goal, { source: 'tools.bridge.architecture.grammar' }));
+    return;
+  }
+  if (mode === 'plan') {
+    const goal = cleanGoal();
+    print(Architecture.createPlan(goal, { source: 'tools.bridge.architecture.plan' }));
+    return;
+  }
+  if (mode === 'compile' || mode === 'build') {
+    const goal = cleanGoal();
+    print(Architecture.createCompilePlan(goal, { source: 'tools.bridge.architecture.compile' }));
+    return;
+  }
+  if (mode === 'portal' || mode === 'gate') {
+    const goal = cleanGoal();
+    print(Architecture.createPortalPlan(goal, { source: 'tools.bridge.architecture.portal' }));
+    return;
+  }
+  if (mode === 'arch' || mode === 'arches') {
+    const goal = cleanGoal();
+    print(Architecture.createArchPlan(goal, { source: 'tools.bridge.architecture.arch' }));
+    return;
+  }
+  if (mode === 'walls' || mode === 'wall-modules') {
+    const goal = cleanGoal();
+    print(Architecture.createWallPlan(goal, { source: 'tools.bridge.architecture.walls' }));
+    return;
+  }
+  if (mode === 'roof' || mode === 'roofs') {
+    const goal = cleanGoal();
+    print(Architecture.createRoofPlan(goal, { source: 'tools.bridge.architecture.roof' }));
+    return;
+  }
+  if (mode === 'windows') {
+    const goal = cleanGoal();
+    print(Architecture.createWindowPlan(goal, { source: 'tools.bridge.architecture.windows' }));
+    return;
+  }
+  if (mode === 'doors') {
+    const goal = cleanGoal();
+    print(Architecture.createDoorPlan(goal, { source: 'tools.bridge.architecture.doors' }));
+    return;
+  }
+  if (mode === 'pillars' || mode === 'columns') {
+    const goal = cleanGoal();
+    print(Architecture.createPillarPlan(goal, { source: 'tools.bridge.architecture.pillars' }));
+    return;
+  }
+  if (mode === 'stairs' || mode === 'stair') {
+    const goal = cleanGoal();
+    print(Architecture.createStairPlan(goal, { source: 'tools.bridge.architecture.stairs' }));
+    return;
+  }
+  if (mode === 'interior' || mode === 'inside' || mode === 'rooms') {
+    const goal = cleanGoal();
+    print(Architecture.createInteriorPlan(goal, { source: 'tools.bridge.architecture.interior' }));
+    return;
+  }
+  if (mode === 'trims' || mode === 'trim') {
+    const goal = cleanGoal();
+    print(Architecture.createTrimPlan(goal, { source: 'tools.bridge.architecture.trims' }));
+    return;
+  }
+  if (mode === 'variants' || mode === 'variant') {
+    const goal = cleanGoal();
+    print(Architecture.createVariantPlan(goal, { source: 'tools.bridge.architecture.variants' }));
+    return;
+  }
+  if (mode === 'budget') {
+    const goal = cleanGoal();
+    print(Architecture.createBudgetReport(goal, { source: 'tools.bridge.architecture.budget' }));
+    return;
+  }
+  if (mode === 'audit') {
+    const goal = cleanGoal();
+    print(Architecture.createAuditReport(goal, { source: 'tools.bridge.architecture.audit' }));
+    return;
+  }
+  if (mode === 'polish') {
+    const goal = cleanGoal();
+    print(Architecture.createPolishPlan(goal, { source: 'tools.bridge.architecture.polish' }));
+    return;
+  }
+  if (mode === 'execute-preview' || mode === 'preview') {
+    const goal = cleanGoal();
+    print(Architecture.createExecutionPreview(goal, { source: 'tools.bridge.architecture.executePreview' }));
+    return;
+  }
+  if (mode === 'manifest') {
+    const goal = cleanGoal();
+    print(Architecture.createManifest(goal, { source: 'tools.bridge.architecture.manifest' }));
+    return;
+  }
+  throw new Error('architecture command must be status, styles, grammar, plan, compile, portal, arch, walls, roof, windows, doors, pillars, stairs, interior, trims, variants, budget, audit, polish, execute-preview, manifest, or self-check.');
+}
+
 async function assetforgeStudioOptions(extra = {}) {
   const health = await requestSafe('/health', { timeoutMs: 1200, noAutoStart: true });
   return {
@@ -13403,6 +13539,11 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'premium' && (args[0] || '').toLowerCase() === 'architecture') {
+    await runArchitecture('compile', args.slice(1));
+    return;
+  }
+
   if (command === 'premium') {
     await runPremium(args[0] || 'status', args.slice(1));
     return;
@@ -13445,7 +13586,21 @@ async function main(argv) {
   }
 
   if (command === 'detail') {
+    if ((args[0] || '').toLowerCase() === 'architecture') {
+      await runArchitecture('compile', args.slice(1));
+      return;
+    }
     await runDetail(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'architecture') {
+    await runArchitecture(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'shape' && (args[0] || '').toLowerCase() === 'grammar') {
+    await runArchitecture('grammar', args.slice(1));
     return;
   }
 
@@ -13458,6 +13613,19 @@ async function main(argv) {
   };
   if (directDetailCommands[command]) {
     await runDetail(directDetailCommands[command], args);
+    return;
+  }
+
+  const directArchitectureCommands = {
+    shape_build: 'compile',
+    modular_architecture: 'compile',
+    better_shapes: 'compile',
+    improve_silhouette: 'grammar',
+    architectural_detail: 'compile',
+    portal_architecture: 'portal',
+  };
+  if (directArchitectureCommands[command]) {
+    await runArchitecture(directArchitectureCommands[command], args);
     return;
   }
 
@@ -13601,6 +13769,34 @@ async function main(argv) {
   };
   if (directDetailMcpCommands[command]) {
     await runDetail(directDetailMcpCommands[command], args);
+    return;
+  }
+
+  const directArchitectureMcpCommands = {
+    architecture_status: 'status',
+    architecture_styles: 'styles',
+    architecture_grammar: 'grammar',
+    architecture_plan: 'plan',
+    architecture_compile: 'compile',
+    architecture_portal: 'portal',
+    architecture_arch: 'arch',
+    architecture_walls: 'walls',
+    architecture_roof: 'roof',
+    architecture_windows: 'windows',
+    architecture_doors: 'doors',
+    architecture_pillars: 'pillars',
+    architecture_stairs: 'stairs',
+    architecture_interior: 'interior',
+    architecture_trims: 'trims',
+    architecture_variants: 'variants',
+    architecture_budget: 'budget',
+    architecture_audit: 'audit',
+    architecture_polish: 'polish',
+    architecture_execute_preview: 'execute-preview',
+    architecture_manifest: 'manifest',
+  };
+  if (directArchitectureMcpCommands[command]) {
+    await runArchitecture(directArchitectureMcpCommands[command], args);
     return;
   }
 

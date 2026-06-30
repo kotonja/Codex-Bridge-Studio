@@ -39,6 +39,8 @@ function createRoute(rawQuery = '', options = {}) {
     || ((has('asset', 'assets', 'prop', 'props', 'kit', 'kitbash', 'mesh', 'material', 'materials', 'surfaceappearance', 'decal', 'signage', 'library', 'palette', 'trim', 'bevel') && has('make', 'create', 'generate', 'plan', 'polish', 'audit', 'fix', 'premium', 'detailed')));
   const detailSignal = has('make it less placeholder', 'add more detail', 'make the build more detailed', 'improve geometry detail', 'premium geometry', 'add trims and bevels', 'add trim and bevel', 'make better portal gate', 'make detailed dungeon gate', 'improve build detail', 'high detail build', 'make it look built not placeholder', 'add material swatches', 'add prop clusters', 'add lighting fixtures', 'detail compiler', 'detail build', 'premium detail')
     || ((has('detail', 'detailed', 'placeholder', 'geometry', 'trims', 'trim', 'bevels', 'bevel', 'material swatches', 'prop clusters', 'lighting fixtures') && has('make', 'add', 'improve', 'build', 'premium', 'compile', 'execute')));
+  const architectureSignal = has('make better shapes', 'improve silhouette', 'advanced shape grammar', 'shape grammar', 'modular architecture', 'make the architecture better', 'better portal shape', 'make better arches', 'improve roof shape', 'make walls modular', 'make better windows and doors', 'make it look less blocky', 'fix blocky geometry', 'make the building shape premium', 'improve dungeon architecture', 'portal architecture')
+    || ((has('architecture', 'architectural', 'silhouette', 'modular', 'shape grammar', 'roof shape', 'wall module', 'walls modular', 'arches', 'portal shape', 'window rhythm', 'door rhythm', 'blocky geometry', 'less blocky') && has('make', 'improve', 'better', 'fix', 'compile', 'plan', 'premium')));
   const vfxSignal = has('vfx', 'effect', 'aura', 'projectile', 'beam', 'slash', 'impact', 'explosion', 'wind', 'lightning', 'smoke', 'portal');
   const cinematicSignal = has('make it feel premium', 'make combat feel good', 'add impact', 'add hit stop', 'hit stop', 'add screen shake', 'screen shake', 'make cinematic', 'sync animation vfx audio', 'camera shake', 'ability timing', 'impact frames', 'make attack feel powerful', 'make movement feel better', 'make boss intro cinematic', 'opening cutscene', 'make opening cutscene', 'polish animation timing', 'polish game feel', 'fix weak ability', 'game feel', 'gamefeel', 'sync moment')
     || ((has('motion', 'cinematic', 'camera', 'impact', 'hit-stop', 'hitstop', 'shake', 'timing', 'anticipation', 'follow through', 'recoil') && has('plan', 'make', 'add', 'polish', 'fix', 'sync', 'generate', 'feel')));
@@ -389,6 +391,32 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd visual critique ${quoteForCommand(intent)}`,
         visualCommand,
         `tools\\bridge.cmd visual score ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (architectureSignal && !premiumBuildSignal && !visualSignal && !assetforgeSignal && !worldcompileSignal && !executionExplicitSignal) {
+    const action = has('audit', 'score') ? 'audit'
+      : has('polish', 'improve') ? 'polish'
+        : has('preview', 'execute') ? 'execute-preview'
+          : has('portal', 'gate') ? 'portal'
+            : has('arch', 'arches') ? 'arch'
+              : has('wall', 'walls') ? 'walls'
+                : has('roof') ? 'roof'
+                  : has('window') ? 'windows'
+                    : has('door') ? 'doors'
+                      : has('stair') ? 'stairs'
+                        : has('interior', 'inside') ? 'interior'
+                          : has('trim') ? 'trims'
+                            : 'compile';
+    setRoute({
+      category: 'architecture',
+      title: 'V91 Advanced Shape Grammar + Modular Architecture',
+      confidence: 0.96,
+      safety: action === 'execute-preview' ? 'executionKernelPreviewOnly' : 'readOnlyArchitectureCompilePlan',
+      reason: 'Shape, silhouette, modular architecture, arch, roof, wall, window, door, or blocky-geometry language detected.',
+      commands: [
+        `tools\\bridge.cmd architecture grammar ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd architecture ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd architecture audit ${quoteForCommand(intent)}`,
       ],
     });
   } else if (detailSignal && !premiumBuildSignal && !visualSignal) {

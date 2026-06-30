@@ -176,6 +176,37 @@ V89 upgrades the real-build path for scenes that feel too placeholder. Use it wh
 
 `detail compile` and `detail execute-preview` are plan/preview surfaces. Actual Studio mutation still goes through V72 `execute apply`, which produces transaction receipts, verification, and rollback. V89 never fakes mesh IDs, texture IDs, SurfaceAppearance/PBR maps, marketplace imports, publishes/uploads, DataStore/economy writes, or production script edits.
 
+## V91 Advanced Shape Grammar + Modular Architecture
+
+V91 is the shape-quality layer above V89 detail density. Use it when a build looks blocky in its silhouette, needs better modular walls, arches, rooflines, window/door rhythm, pillars, stairs, interior modules, depth layering, or reusable architectural grammar. Detail adds trims and density; Architecture fixes the underlying shape language.
+
+```powershell
+.\tools\bridge.cmd architecture status
+.\tools\bridge.cmd architecture styles
+.\tools\bridge.cmd architecture grammar "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture compile "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture portal "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture arch "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture walls "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture roof "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture windows "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture doors "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture pillars "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture stairs "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture interior "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture trims "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture variants "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture budget "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture audit "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture polish "dark purple anime dungeon gate"
+.\tools\bridge.cmd architecture execute-preview "dark purple anime dungeon gate"
+.\tools\bridge.cmd shape grammar "dark purple anime dungeon gate"
+.\tools\bridge.cmd modular_architecture "dark purple anime dungeon gate"
+.\tools\bridge.cmd portal_architecture "dark purple anime dungeon gate"
+```
+
+`architecture compile` is read-only planning. `architecture execute-preview` returns V72-compatible Codex-owned operations, and actual Studio mutation still goes through `.\tools\bridge.cmd execute apply "dark purple anime dungeon gate architecture pass"` with transaction receipt, verify, and rollback. V91 never fakes mesh IDs, texture IDs, PBR maps, marketplace imports, publish/upload, DataStore/economy writes, production script edits, or non-Codex deletes.
+
 ## V68 Cinematic Motion Director
 
 V68 adds a synced motion/game-feel layer for moments that need animation, VFX, audio, camera, screen shake, hit-stop, UI punch, and mobile-safe readability to feel like one premium beat. Use it when the request says combat feels weak, add impact, hit stop, screen shake, cinematic intro, boss intro, sync animation/VFX/audio, or make an ability feel powerful.

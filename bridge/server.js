@@ -16,6 +16,7 @@ const Autopilot = require('./autopilot');
 const Memory = require('./memory');
 const Execution = require('./execution');
 const Detail = require('./detail');
+const Architecture = require('./architecture');
 const AiOrchestrator = require('./ai-orchestrator');
 const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
@@ -23,7 +24,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.89.0';
+const VERSION = '0.91.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -397,6 +398,55 @@ const supportedCommands = new Set([
   'getDetailExecutionPreview',
   'getDetailManifest',
   'bakeDetailManifest',
+  'getArchitectureStatus',
+  'getArchitectureStyleCatalog',
+  'getArchitectureGrammar',
+  'getArchitecturePlan',
+  'getArchitectureCompilePlan',
+  'getArchitecturePortalPlan',
+  'getArchitectureArchPlan',
+  'getArchitectureWallPlan',
+  'getArchitectureRoofPlan',
+  'getArchitectureWindowPlan',
+  'getArchitectureDoorPlan',
+  'getArchitecturePillarPlan',
+  'getArchitectureStairPlan',
+  'getArchitectureInteriorPlan',
+  'getArchitectureTrimPlan',
+  'getArchitectureVariantPlan',
+  'getArchitectureBudgetReport',
+  'getArchitectureAuditReport',
+  'getArchitecturePolishPlan',
+  'getArchitectureExecutionPreview',
+  'getArchitectureManifest',
+  'bakeArchitectureManifest',
+  'architecture_status',
+  'architecture_styles',
+  'architecture_grammar',
+  'architecture_plan',
+  'architecture_compile',
+  'architecture_portal',
+  'architecture_arch',
+  'architecture_walls',
+  'architecture_roof',
+  'architecture_windows',
+  'architecture_doors',
+  'architecture_pillars',
+  'architecture_stairs',
+  'architecture_interior',
+  'architecture_trims',
+  'architecture_variants',
+  'architecture_budget',
+  'architecture_audit',
+  'architecture_polish',
+  'architecture_execute_preview',
+  'architecture_manifest',
+  'shape_build',
+  'modular_architecture',
+  'better_shapes',
+  'improve_silhouette',
+  'architectural_detail',
+  'portal_architecture',
   'detail_status',
   'detail_styles',
   'detail_plan',
@@ -2193,6 +2243,27 @@ const CACHEABLE_TTLS = new Map([
   ['getDetailPolishPlan', 60_000],
   ['getDetailExecutionPreview', 30_000],
   ['getDetailManifest', 60_000],
+  ['getArchitectureStatus', 15_000],
+  ['getArchitectureStyleCatalog', 120_000],
+  ['getArchitectureGrammar', 60_000],
+  ['getArchitecturePlan', 60_000],
+  ['getArchitectureCompilePlan', 60_000],
+  ['getArchitecturePortalPlan', 60_000],
+  ['getArchitectureArchPlan', 60_000],
+  ['getArchitectureWallPlan', 60_000],
+  ['getArchitectureRoofPlan', 60_000],
+  ['getArchitectureWindowPlan', 60_000],
+  ['getArchitectureDoorPlan', 60_000],
+  ['getArchitecturePillarPlan', 60_000],
+  ['getArchitectureStairPlan', 60_000],
+  ['getArchitectureInteriorPlan', 60_000],
+  ['getArchitectureTrimPlan', 60_000],
+  ['getArchitectureVariantPlan', 60_000],
+  ['getArchitectureBudgetReport', 30_000],
+  ['getArchitectureAuditReport', 60_000],
+  ['getArchitecturePolishPlan', 60_000],
+  ['getArchitectureExecutionPreview', 30_000],
+  ['getArchitectureManifest', 60_000],
   ['getAiOrchestratorStatus', 15_000],
   ['getAiOrchestratorConfig', 15_000],
   ['getAiTlsConnectivityReport', 15_000],
@@ -4589,6 +4660,28 @@ const V46_TOOL_CATEGORIES = [
       { command: 'tools\\bridge.cmd detail audit <goal>', example: 'tools\\bridge.cmd detail audit "premium dungeon gate"', bestFor: 'Score silhouette, trim depth, material variety, sockets, collision, mobile budget, and premium feel.' },
       { command: 'tools\\bridge.cmd detail execute-preview <goal>', example: 'tools\\bridge.cmd detail execute-preview "premium dungeon gate"', bestFor: 'Return V72-compatible preview actions; apply still goes through Execution Kernel receipts.' },
       { command: 'tools\\bridge.cmd high_detail <goal>', example: 'tools\\bridge.cmd high_detail "portal gate"', bestFor: 'Direct alias for a V89 high-detail compile plan.' },
+    ],
+  },
+  {
+    id: 'architecture',
+    title: 'V91 Advanced Shape Grammar + Modular Architecture',
+    safety: 'readOnlyGrammarPlansOrV72ExecutionKernelPreview',
+    readiness: ['bridge', 'plugin', 'codexReady', 'executionKernel', 'detailCompiler', 'visualCritic', 'fidelity'],
+    commands: [
+      { command: 'tools\\bridge.cmd architecture status', example: 'tools\\bridge.cmd architecture status', bestFor: 'Check V91 architecture readiness, roots, safety, and integrations.' },
+      { command: 'tools\\bridge.cmd architecture styles', example: 'tools\\bridge.cmd architecture styles', bestFor: 'List architectural style catalogs with silhouette, module grid, arch, roof, wall, window, door, pillar, trim, and mobile grammar.' },
+      { command: 'tools\\bridge.cmd architecture grammar <goal>', example: 'tools\\bridge.cmd architecture grammar "dark purple anime dungeon gate"', bestFor: 'Return module size, rhythm, silhouette, roofline, trim, sockets, and mobile grammar rules.' },
+      { command: 'tools\\bridge.cmd architecture compile <goal>', example: 'tools\\bridge.cmd architecture compile "dark purple anime dungeon gate"', bestFor: 'Return V91 Codex-owned modular architecture operations without applying Studio changes.' },
+      { command: 'tools\\bridge.cmd architecture portal <goal>', example: 'tools\\bridge.cmd architecture portal "dark purple anime dungeon gate"', bestFor: 'Create focused portal/gate architecture: plinth, pillars, arch segments, keystone, depth, crystals, sockets, and collision.' },
+      { command: 'tools\\bridge.cmd architecture arch <goal>', example: 'tools\\bridge.cmd architecture arch "dark purple anime dungeon gate"', bestFor: 'Plan arch/gate grammar and proportions.' },
+      { command: 'tools\\bridge.cmd architecture walls <goal>', example: 'tools\\bridge.cmd architecture walls "dark purple anime dungeon gate"', bestFor: 'Plan modular wall bays, seams, trims, windows, and rhythm.' },
+      { command: 'tools\\bridge.cmd architecture roof <goal>', example: 'tools\\bridge.cmd architecture roof "dark purple anime dungeon gate"', bestFor: 'Plan roof and upper silhouette grammar.' },
+      { command: 'tools\\bridge.cmd architecture interior <goal>', example: 'tools\\bridge.cmd architecture interior "dark purple anime dungeon gate"', bestFor: 'Plan interior modules, room graph, sightlines, and traversal sockets.' },
+      { command: 'tools\\bridge.cmd architecture budget <goal>', example: 'tools\\bridge.cmd architecture budget "dark purple anime dungeon gate"', bestFor: 'Check mobile part/light/transparent-glow budgets before applying modular architecture.' },
+      { command: 'tools\\bridge.cmd architecture audit <goal>', example: 'tools\\bridge.cmd architecture audit "dark purple anime dungeon gate"', bestFor: 'Score silhouette strength, modular consistency, arch quality, depth layering, rhythm, collision, and premium feel.' },
+      { command: 'tools\\bridge.cmd architecture execute-preview <goal>', example: 'tools\\bridge.cmd architecture execute-preview "dark purple anime dungeon gate"', bestFor: 'Return V72-compatible preview actions; apply still goes through Execution Kernel receipts.' },
+      { command: 'tools\\bridge.cmd shape grammar <goal>', example: 'tools\\bridge.cmd shape grammar "portal gate"', bestFor: 'Direct alias for V91 shape grammar.' },
+      { command: 'tools\\bridge.cmd modular_architecture <goal>', example: 'tools\\bridge.cmd modular_architecture "dungeon gate"', bestFor: 'Direct alias for V91 architecture compile.' },
     ],
   },
   {
@@ -7594,6 +7687,7 @@ async function route(req, res) {
       worldgen: () => Execution.worldgen(goal),
       assetkit: () => Execution.assetkit(goal),
       detail: () => Execution.detail(goal),
+      architecture: () => Execution.architecture(goal),
       cinematic: () => Execution.cinematic(goal),
       'qa-markers': () => Execution.qaMarkers(goal),
       polish: () => Execution.polish(goal),
@@ -7887,6 +7981,47 @@ async function route(req, res) {
     const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium high-detail Roblox build';
     sendJson(res, 200, Detail.createManifest(goal, { source: 'bridge.http.detail.manifest' }));
     return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/architecture/status') {
+    sendJson(res, 200, Architecture.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/architecture/styles') {
+    const styles = Architecture.getStyleCatalog();
+    sendJson(res, 200, { ok: true, version: VERSION, styleCount: styles.length, styles, nextCommand: 'tools\\bridge.cmd architecture plan "dark purple anime dungeon gate"' });
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/architecture/')) {
+    const endpoint = path.replace('/codex/architecture/', '');
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'premium modular Roblox architecture';
+    const map = {
+      grammar: () => Architecture.createGrammarReport(goal, { source: 'bridge.http.architecture.grammar' }),
+      plan: () => Architecture.createPlan(goal, { source: 'bridge.http.architecture.plan' }),
+      compile: () => Architecture.createCompilePlan(goal, { source: 'bridge.http.architecture.compile' }),
+      portal: () => Architecture.createPortalPlan(goal, { source: 'bridge.http.architecture.portal' }),
+      arch: () => Architecture.createArchPlan(goal, { source: 'bridge.http.architecture.arch' }),
+      walls: () => Architecture.createWallPlan(goal, { source: 'bridge.http.architecture.walls' }),
+      roof: () => Architecture.createRoofPlan(goal, { source: 'bridge.http.architecture.roof' }),
+      windows: () => Architecture.createWindowPlan(goal, { source: 'bridge.http.architecture.windows' }),
+      doors: () => Architecture.createDoorPlan(goal, { source: 'bridge.http.architecture.doors' }),
+      pillars: () => Architecture.createPillarPlan(goal, { source: 'bridge.http.architecture.pillars' }),
+      stairs: () => Architecture.createStairPlan(goal, { source: 'bridge.http.architecture.stairs' }),
+      interior: () => Architecture.createInteriorPlan(goal, { source: 'bridge.http.architecture.interior' }),
+      trims: () => Architecture.createTrimPlan(goal, { source: 'bridge.http.architecture.trims' }),
+      variants: () => Architecture.createVariantPlan(goal, { source: 'bridge.http.architecture.variants' }),
+      budget: () => Architecture.createBudgetReport(goal, { source: 'bridge.http.architecture.budget' }),
+      audit: () => Architecture.createAuditReport(goal, { source: 'bridge.http.architecture.audit' }),
+      polish: () => Architecture.createPolishPlan(goal, { source: 'bridge.http.architecture.polish' }),
+      'execute-preview': () => Architecture.createExecutionPreview(goal, { source: 'bridge.http.architecture.executePreview' }),
+      manifest: () => Architecture.createManifest(goal, { source: 'bridge.http.architecture.manifest' }),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, map[endpoint]());
+      return;
+    }
   }
 
   if (req.method === 'GET' && path === '/codex/assetforge/status') {

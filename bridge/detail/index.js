@@ -19,6 +19,17 @@ const { createPolishPlan } = require('./polish-plan');
 const { createManifest } = require('./manifest-store');
 const { compileForExecution, createExecutionPreview } = require('./execution-bridge');
 
+function architectureHintsFor(goal) {
+  const q = String(goal || '').toLowerCase();
+  const shapeHeavy = /architecture|architectural|silhouette|modular|shape|arch|arches|roof|wall rhythm|window|door|blocky/.test(q);
+  if (!shapeHeavy) return null;
+  return {
+    recommended: true,
+    reason: 'Goal includes shape, silhouette, modular, arch, roof, wall, window, door, or blocky-geometry language. Use V91 Architecture for reusable modular grammar before or after detail density.',
+    nextCommand: `tools\\bridge.cmd architecture compile "${safeGoal(goal)}"`,
+  };
+}
+
 function createBuildPlan(goal, options = {}) {
   const parsed = parseGoal(goal, options);
   const style = getStyle(parsed.styleId);
@@ -52,7 +63,8 @@ function createBuildPlan(goal, options = {}) {
     ],
     warnings: [],
     blockers: [],
-    nextCommand: `tools\\bridge.cmd detail compile "${parsed.goal}"`,
+    architectureHints: architectureHintsFor(parsed.goal),
+    nextCommand: architectureHintsFor(parsed.goal) ? `tools\\bridge.cmd architecture compile "${parsed.goal}"` : `tools\\bridge.cmd detail compile "${parsed.goal}"`,
   };
 }
 
@@ -75,7 +87,8 @@ function createCompilePlan(goal, options = {}) {
     manifest: compiled.manifest,
     warnings: compiled.warnings,
     blockers: compiled.blockers,
-    nextCommand: `tools\\bridge.cmd detail execute-preview "${compiled.goal}"`,
+    architectureHints: architectureHintsFor(compiled.goal),
+    nextCommand: architectureHintsFor(compiled.goal) ? `tools\\bridge.cmd architecture execute-preview "${compiled.goal}"` : `tools\\bridge.cmd detail execute-preview "${compiled.goal}"`,
   };
 }
 
@@ -115,6 +128,7 @@ function createBudget(goal, options = {}) {
 
 function createAudit(goal, options = {}) {
   const compiled = compileForExecution(goal, options);
+  compiled.architectureHints = architectureHintsFor(compiled.goal);
   return createAuditReport(compiled.goal, compiled);
 }
 

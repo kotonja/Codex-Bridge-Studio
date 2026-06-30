@@ -66,6 +66,7 @@ const SYSTEMS = {
   worldgen: 'Worldgen',
   assetkit: 'AssetForge',
   detail: 'DetailCompiler',
+  architecture: 'ArchitectureCompiler',
   cinematic: 'Cinematic',
   qaMarkers: 'QaSwarm',
   polish: 'Autopilot',
