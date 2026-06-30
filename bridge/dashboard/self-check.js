@@ -5,6 +5,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const Router = require('../command-router');
 const Dashboard = require('./index');
+const RunHistory = require('./run-history');
 const { VERSION, ACTIONS, redact } = require('./schema');
 
 function assertNoSecretText(label, text) {
@@ -124,6 +125,24 @@ async function runSelfCheck() {
   assert(Array.isArray(timeline.timeline), 'timeline should be structured');
   const imageSelfCheck = await Dashboard.imageSelfCheck();
   assert.equal(imageSelfCheck.ok, true);
+  const reconciled = RunHistory.listRuns({
+    approvals: [{ approvalId: 'tx_self_check', status: 'rejected', updatedAt: '2026-01-01T00:00:00.000Z' }],
+    runs: [{
+      runId: 'dash_self_check',
+      kind: 'dashboardPipeline',
+      goal: 'self check',
+      routeCategory: 'dashboard',
+      status: 'waitingApproval',
+      startedAt: '2026-01-01T00:00:00.000Z',
+      completedAt: null,
+      approvals: [{ approvalId: 'tx_self_check' }],
+      steps: [],
+      warnings: [],
+      blockers: [],
+      nextCommand: 'tools\\bridge.cmd dashboard approve tx_self_check',
+    }],
+  });
+  assert.equal(reconciled.runs[0].status, 'rejected', 'dashboard runs should not show rejected approvals as waitingApproval');
 
   const redacted = redact({
     token: 'abc',
@@ -185,6 +204,7 @@ async function runSelfCheck() {
     noSecretFrontend: true,
     chatFallbackWorks: true,
     timelineStructured: true,
+    staleRunReconciliationWorks: true,
     approvalQueueWorks: true,
     pipelinePresetsWork: true,
     imagePipelineWorks: true,

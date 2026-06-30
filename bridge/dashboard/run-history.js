@@ -2,6 +2,7 @@
 
 const crypto = require('node:crypto');
 const { VERSION, nowIso, redact, safeGoal, resultSummary } = require('./schema');
+const Execution = require('../execution');
 
 function ensureRuns(runtime = {}) {
   if (!Array.isArray(runtime.runs)) runtime.runs = [];
@@ -46,6 +47,53 @@ function updateRun(runtime, runId, patch = {}) {
   return run;
 }
 
+function currentTransactionStatus(transactionId) {
+  if (!transactionId) return null;
+  try {
+    const list = Execution.transactionList(200);
+    const tx = Array.isArray(list.transactions)
+      ? list.transactions.find((item) => item.transactionId === transactionId)
+      : null;
+    return tx ? tx.status || null : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function reconcileRunForDisplay(runtime = {}, run = {}) {
+  const approvals = Array.isArray(runtime.approvals) ? runtime.approvals : [];
+  const approvalId = (Array.isArray(run.approvals) && run.approvals[0] && run.approvals[0].approvalId)
+    || (run.resultSummary && run.resultSummary.transactionId)
+    || null;
+  const currentApproval = approvalId ? approvals.find((item) => item.approvalId === approvalId) : null;
+  const transactionStatus = currentTransactionStatus(approvalId);
+  const approvalStatus = currentApproval ? currentApproval.status || 'pending' : (approvalId ? 'unknown' : null);
+  let status = run.status;
+  let completedAt = run.completedAt;
+  let nextCommand = run.nextCommand;
+
+  if (run.status === 'waitingApproval') {
+    if (transactionStatus === 'rolledBack') {
+      status = 'rolledBack';
+      nextCommand = `tools\\bridge.cmd execute verify ${approvalId}`;
+    } else if (approvalStatus === 'approved') {
+      status = 'applied';
+      nextCommand = `tools\\bridge.cmd execute verify ${approvalId}`;
+    } else if (approvalStatus === 'rejected') {
+      status = 'rejected';
+      nextCommand = 'tools\\bridge.cmd dashboard approvals';
+    } else if (approvalStatus === 'failed') {
+      status = 'failed';
+      nextCommand = 'tools\\bridge.cmd dashboard approvals';
+    }
+    if (status !== 'waitingApproval') {
+      completedAt = completedAt || (currentApproval && currentApproval.updatedAt) || run.startedAt || nowIso();
+    }
+  }
+
+  return { status, completedAt, nextCommand, approvalStatus, transactionStatus };
+}
+
 function listRuns(runtime = {}, limit = 25) {
   const runs = ensureRuns(runtime);
   return {
@@ -53,21 +101,26 @@ function listRuns(runtime = {}, limit = 25) {
     version: VERSION,
     at: nowIso(),
     count: runs.length,
-    runs: runs.slice(0, Number(limit || 25)).map((run) => redact({
-      runId: run.runId,
-      kind: run.kind,
-      goal: run.goal,
-      routeCategory: run.routeCategory,
-      status: run.status,
-      startedAt: run.startedAt,
-      completedAt: run.completedAt,
-      stepCount: Array.isArray(run.steps) ? run.steps.length : 0,
-      approvalCount: Array.isArray(run.approvals) ? run.approvals.length : 0,
-      resultSummary: run.resultSummary,
-      warnings: run.warnings,
-      blockers: run.blockers,
-      nextCommand: run.nextCommand,
-    })),
+    runs: runs.slice(0, Number(limit || 25)).map((run) => {
+      const display = reconcileRunForDisplay(runtime, run);
+      return redact({
+        runId: run.runId,
+        kind: run.kind,
+        goal: run.goal,
+        routeCategory: run.routeCategory,
+        status: display.status,
+        startedAt: run.startedAt,
+        completedAt: display.completedAt,
+        stepCount: Array.isArray(run.steps) ? run.steps.length : 0,
+        approvalCount: Array.isArray(run.approvals) ? run.approvals.length : 0,
+        approvalStatus: display.approvalStatus,
+        transactionStatus: display.transactionStatus,
+        resultSummary: run.resultSummary,
+        warnings: run.warnings,
+        blockers: run.blockers,
+        nextCommand: display.nextCommand,
+      });
+    }),
     warnings: [],
     blockers: [],
     nextCommand: 'tools\\bridge.cmd dashboard timeline',
@@ -103,5 +156,6 @@ module.exports = {
   ensureRuns,
   getRun,
   listRuns,
+  reconcileRunForDisplay,
   updateRun,
 };

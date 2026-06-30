@@ -7,6 +7,7 @@ const Timeline = require('./timeline');
 const RunHistory = require('./run-history');
 const ApprovalQueue = require('./approval-queue');
 const ImagePipeline = require('./image-pipeline');
+const ImageStore = require('./image-store');
 
 function stepForAction(action, goal) {
   if (action === 'approvalGate') {
@@ -51,15 +52,29 @@ function createPipelinePlan(goal, presetId) {
   });
 }
 
-function resolveImageInput(body = {}, goal = '') {
-  const input = body.referenceId || body.id || body.imagePath || body.path || body.source || goal;
-  if (!input) return null;
+function latestImageInputForPreset(preset) {
+  if (!preset || preset.id !== 'imageToWorldPreview') return null;
+  const latest = ImageStore.listRecords(1)[0];
+  if (!latest || !latest.referenceId) return null;
   try {
-    const resolved = ImagePipeline.resolveInput(input, { source: 'dashboard.pipeline.resolve' });
+    const resolved = ImagePipeline.resolveInput(latest.referenceId, { source: 'dashboard.pipeline.latestImage' });
     return resolved && resolved.ok ? resolved : null;
   } catch (_error) {
     return null;
   }
+}
+
+function resolveImageInput(body = {}, goal = '', preset = null) {
+  const input = body.referenceId || body.id || body.imagePath || body.path || body.source || goal;
+  if (input) {
+    try {
+      const resolved = ImagePipeline.resolveInput(input, { source: 'dashboard.pipeline.resolve' });
+      if (resolved && resolved.ok) return resolved;
+    } catch (_error) {
+      // Fall through to the active dashboard image reference below.
+    }
+  }
+  return latestImageInputForPreset(preset);
 }
 
 function imageAwarePreset(preset, imageInput) {
@@ -94,8 +109,9 @@ function nextGoalFromResult(action, wrapper, fallbackGoal) {
 
 async function runPipeline(runtime, body = {}, env = {}) {
   const goal = safeGoal(body.goal || body.intent || body.message || body.text || body.query || 'premium Roblox production goal');
-  const imageInput = resolveImageInput(body, goal);
-  const preset = imageAwarePreset(getPreset(body.preset || body.presetId || goal), imageInput);
+  const requestedPreset = getPreset(body.preset || body.presetId || goal);
+  const imageInput = resolveImageInput(body, goal, requestedPreset);
+  const preset = imageAwarePreset(requestedPreset, imageInput);
   const plan = createPipelinePlan(goal, preset.id);
   if (body.planOnly === true || body.mode === 'plan') return plan;
 
