@@ -22,7 +22,7 @@ const PRESETS = [
     title: 'Image To World Preview',
     mode: 'preview',
     summary: 'Route an image/reference path through honest intake, reconstruction, worldcompile, and execution preview.',
-    actions: ['referenceAnalyze', 'reconstructInfer', 'worldcompilePackage', 'executePreview'],
+    actions: ['memoryRecommend', 'dashboardImageAnalyze', 'dashboardImageWorldcompile', 'executePreview'],
   },
   {
     id: 'dashboardQaLaunch',

@@ -98,6 +98,8 @@ function resultSummary(result) {
     version: clean.version,
     mode: clean.mode,
     goal: clean.goal || clean.intent || clean.query,
+    referenceId: clean.referenceId,
+    actualVisionUsed: clean.actualVisionUsed,
     transactionId: clean.transactionId || (clean.transaction && clean.transaction.transactionId) || (clean.receipt && clean.receipt.transactionId),
     score: clean.overallScore || clean.score || (clean.scores && clean.scores.overall) || clean.launchReadinessScore || clean.finalScore,
     warnings: Array.isArray(clean.warnings) ? clean.warnings.slice(0, 8) : [],

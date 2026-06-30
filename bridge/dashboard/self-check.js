@@ -109,6 +109,10 @@ async function runSelfCheck() {
   assert(history.messages.length >= 2, 'chat history should include user and assistant messages');
   const presets = Dashboard.presets();
   assert(presets.presets.some((preset) => preset.id === 'referenceToWorldPreview'), 'pipeline presets should include referenceToWorldPreview');
+  const imagePreset = presets.presets.find((preset) => preset.id === 'imageToWorldPreview');
+  assert(imagePreset, 'pipeline presets should include imageToWorldPreview');
+  assert(imagePreset.actions.includes('dashboardImageAnalyze'), 'image pipeline preset should use dashboardImageAnalyze');
+  assert(imagePreset.actions.includes('dashboardImageWorldcompile'), 'image pipeline preset should use dashboardImageWorldcompile');
   const pipeline = await Dashboard.pipeline({ goal: 'premium anime dashboard self check', planOnly: true });
   assert.equal(pipeline.ok, true);
   assert.equal(pipeline.planOnly, true);

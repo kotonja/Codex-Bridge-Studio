@@ -6,6 +6,7 @@ const { runDashboardCommand } = require('./run-controller');
 const Timeline = require('./timeline');
 const RunHistory = require('./run-history');
 const ApprovalQueue = require('./approval-queue');
+const ImagePipeline = require('./image-pipeline');
 
 function stepForAction(action, goal) {
   if (action === 'approvalGate') {
@@ -50,9 +51,51 @@ function createPipelinePlan(goal, presetId) {
   });
 }
 
+function resolveImageInput(body = {}, goal = '') {
+  const input = body.referenceId || body.id || body.imagePath || body.path || body.source || goal;
+  if (!input) return null;
+  try {
+    const resolved = ImagePipeline.resolveInput(input, { source: 'dashboard.pipeline.resolve' });
+    return resolved && resolved.ok ? resolved : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function imageAwarePreset(preset, imageInput) {
+  if (!imageInput) return preset;
+  if (preset.id === 'referenceToWorldPreview' || preset.id === 'imageToWorldPreview') {
+    return getPreset('imageToWorldPreview');
+  }
+  return preset;
+}
+
+function argsForAction(action, body, goal, currentGoal, imageInput) {
+  const args = { goal: currentGoal, source: body.source || body.path || currentGoal };
+  if (imageInput && (action === 'dashboardImageAnalyze' || action === 'dashboardImageWorldcompile')) {
+    args.referenceId = imageInput.referenceId;
+    args.source = imageInput.referenceId;
+    args.goal = imageInput.referenceId;
+  }
+  return args;
+}
+
+function nextGoalFromResult(action, wrapper, fallbackGoal) {
+  const result = wrapper && wrapper.result ? wrapper.result : wrapper;
+  if (action === 'dashboardImageWorldcompile') {
+    return (result.worldcompile && result.worldcompile.goal)
+      || (result.package && result.package.goal)
+      || (result.executePreview && result.executePreview.goal)
+      || result.goal
+      || fallbackGoal;
+  }
+  return fallbackGoal;
+}
+
 async function runPipeline(runtime, body = {}, env = {}) {
   const goal = safeGoal(body.goal || body.intent || body.message || body.text || body.query || 'premium Roblox production goal');
-  const preset = getPreset(body.preset || body.presetId || goal);
+  const imageInput = resolveImageInput(body, goal);
+  const preset = imageAwarePreset(getPreset(body.preset || body.presetId || goal), imageInput);
   const plan = createPipelinePlan(goal, preset.id);
   if (body.planOnly === true || body.mode === 'plan') return plan;
 
@@ -64,6 +107,8 @@ async function runPipeline(runtime, body = {}, env = {}) {
     nextCommand: 'tools\\bridge.cmd dashboard approvals',
   });
   const results = [];
+  let currentGoal = imageInput ? imageInput.referenceId : goal;
+  let actualVisionUsed = false;
   const executable = preset.actions.filter((action) => action !== 'approvalGate' && action !== 'executeApply' && action !== 'executeVerify');
   for (const action of executable) {
     const step = Timeline.appendStep(runtime, {
@@ -71,9 +116,9 @@ async function runPipeline(runtime, body = {}, env = {}) {
       system: 'dashboardPipeline',
       status: 'running',
       command: action,
-      summary: `${Timeline.actionLabel(action)} for ${goal}`,
+      summary: `${Timeline.actionLabel(action)} for ${currentGoal}`,
     });
-    const result = await runDashboardCommand(runtime, { action, args: { goal, source: body.source || body.path || goal } }, env);
+    const result = await runDashboardCommand(runtime, { action, args: argsForAction(action, body, goal, currentGoal, imageInput) }, env);
     Timeline.updateStep(runtime, step.stepId, {
       status: result.ok === false ? (result.status || 'failed') : 'complete',
       completedAt: nowIso(),
@@ -81,8 +126,10 @@ async function runPipeline(runtime, body = {}, env = {}) {
       warnings: result.warnings,
       blockers: result.blockers,
     });
+    actualVisionUsed = actualVisionUsed || Boolean(result.actualVisionUsed) || Boolean(result.result && result.result.actualVisionUsed);
     results.push({ action, status: result.status || (result.ok === false ? 'failed' : 'ok'), summary: resultSummary(result.result || result) });
     if (result.ok === false && result.status !== 'manualRequired') break;
+    currentGoal = nextGoalFromResult(action, result, currentGoal);
   }
 
   if (runtime.pendingApproval) runtime.pendingApproval.runId = run.runId;
@@ -104,6 +151,9 @@ async function runPipeline(runtime, body = {}, env = {}) {
     mode: 'dashboardPipelinePreview',
     runId: run.runId,
     goal,
+    imageReferenceId: imageInput ? imageInput.referenceId : null,
+    actualVisionUsed,
+    executionGoal: currentGoal,
     preset,
     steps: results,
     pendingApproval: runtime.pendingApproval || null,
