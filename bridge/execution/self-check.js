@@ -5,6 +5,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const Router = require('../command-router');
 const Execution = require('./index');
+const { operationToStep } = require('./instance-compiler');
 const { ROOTS, VERSION, isCodexPath } = require('./schema');
 
 const REQUIRED_MODULES = [
@@ -83,6 +84,17 @@ function run() {
   const qa = Execution.qaMarkers('premium anime dungeon hub');
   assert.ok(qa.actions.some((action) => action.path.includes('.PerformanceProbes.')));
 
+  const namedOperationStep = operationToStep({
+    type: 'createInstance',
+    className: 'Sound',
+    path: `${ROOTS.workspace.production}.SelfCheck.SoundCue`,
+    role: 'audioSocket',
+    properties: { Name: 'ShouldNotRenameReceiptPath', Volume: 0.25 },
+  }, { transactionId: 'tx_self_check', goal: 'self check', system: 'ExecutionKernel' });
+  assert.equal(namedOperationStep.className, 'Sound');
+  assert.equal(namedOperationStep.properties.Name, undefined);
+  assert.equal(namedOperationStep.properties.Volume, 0.25);
+
   const safeFix = Execution.safeFix('premium anime dungeon hub');
   assert.ok(safeFix.actions.every((action) => !action.path || isCodexPath(action.path)));
   const unsafe = Execution.preview('publish marketplace datastore economy update');
@@ -125,6 +137,7 @@ function run() {
       'assetkit',
       'cinematic',
       'qaMarkers',
+      'pathOwnedProperties',
       'safeFix',
       'rollback',
       'verification',

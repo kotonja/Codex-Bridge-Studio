@@ -70,17 +70,27 @@ function withExecutionAttributes(step, operation, context = {}) {
   };
 }
 
+function pathOwnedProperties(properties = {}) {
+  const sanitized = { ...(properties || {}) };
+  // The receipt path is the source of truth for generated object names.
+  // Passing a Name property lets Studio create the expected path, then rename
+  // the instance, which breaks live verification and receipt-scoped rollback.
+  delete sanitized.Name;
+  return sanitized;
+}
+
 function operationToStep(operation, context = {}) {
   if (!operation || typeof operation !== 'object') return null;
   const path = String(operation.path || '');
   if (!path || !isCodexPath(path)) return null;
   const className = operation.className || 'Folder';
+  const properties = pathOwnedProperties(operation.properties || {});
   let step = null;
-  if (operation.type === 'folder' || className === 'Folder') step = { type: 'createInstance', className: 'Folder', path, properties: operation.properties || {} };
+  if (operation.type === 'folder' || className === 'Folder') step = { type: 'createInstance', className: 'Folder', path, properties };
   else if (operation.type === 'model' || className === 'Model') step = model(path);
-  else if (operation.type === 'part' || className === 'Part') step = part(path, operation.properties || {});
-  else if (className === 'StringValue') step = stringValue(path, operation.value || (operation.properties && operation.properties.Value) || '');
-  else step = { type: 'createInstance', className, path, properties: operation.properties || {} };
+  else if (operation.type === 'part' || className === 'Part') step = part(path, properties);
+  else if (className === 'StringValue') step = stringValue(path, operation.value || properties.Value || '');
+  else step = { type: 'createInstance', className, path, properties };
   return withExecutionAttributes(step, operation, context);
 }
 
@@ -136,5 +146,6 @@ module.exports = {
   genericOperations,
   operationToStep,
   part,
+  pathOwnedProperties,
   stringValue,
 };
