@@ -9,8 +9,10 @@ function actionToCreated(action) {
     role: action.role || action.type || 'generated',
     reason: action.reason || 'Compiled by V72 Production Execution Kernel.',
     sourcePlan: action.sourcePlan || action.source || 'execution',
+    expectedProperties: action.expectedProperties || (action.verify && action.verify.expectedProperties) || {},
+    propertyVerification: Boolean(action.expectedProperties || (action.verify && action.verify.expectedProperties)),
     rollbackAction: 'deleteIfCodexGenerated',
-    verifyAction: 'existsWithReceipt',
+    verifyAction: action.expectedProperties || (action.verify && action.verify.expectedProperties) ? 'propertyLevelReceipt' : 'existsWithReceipt',
   };
 }
 

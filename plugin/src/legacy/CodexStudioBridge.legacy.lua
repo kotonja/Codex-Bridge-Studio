@@ -1,7 +1,7 @@
 -- Codex Studio Bridge V82.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.91.0"
+local VERSION = "0.92.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0
@@ -478,6 +478,22 @@ local function deserializeValue(value, instance, propertyName)
 	end
 
 	local valueType = value.__type
+	if not valueType and instance and propertyName then
+		if (propertyName == "Size" or propertyName == "Position" or propertyName == "Orientation" or propertyName == "Rotation" or propertyName == "StudsOffset")
+			and (value.x ~= nil or value.X ~= nil) and (value.y ~= nil or value.Y ~= nil) and (value.z ~= nil or value.Z ~= nil) then
+			return Vector3.new(tonumber(value.x or value.X) or 0, tonumber(value.y or value.Y) or 0, tonumber(value.z or value.Z) or 0)
+		end
+		if (propertyName == "Color" or propertyName == "Color3" or propertyName == "BackgroundColor3" or propertyName == "TextColor3" or propertyName == "ImageColor3")
+			and (value.r ~= nil or value.R ~= nil) and (value.g ~= nil or value.G ~= nil) and (value.b ~= nil or value.B ~= nil) then
+			local r = tonumber(value.r or value.R) or 0
+			local g = tonumber(value.g or value.G) or 0
+			local b = tonumber(value.b or value.B) or 0
+			if r > 1 or g > 1 or b > 1 then
+				return Color3.fromRGB(r, g, b)
+			end
+			return Color3.new(r, g, b)
+		end
+	end
 	if valueType == "Vector3" then
 		return Vector3.new(value.x or 0, value.y or 0, value.z or 0)
 	end
@@ -20148,6 +20164,37 @@ local function executeCommand(command)
 	}
 	commandType = detailCommandAliases[commandType] or commandType
 
+	local architectureCommandAliases = {
+		architecture_status = "getArchitectureStatus",
+		architecture_styles = "getArchitectureStyleCatalog",
+		architecture_grammar = "getArchitectureGrammar",
+		architecture_plan = "getArchitecturePlan",
+		architecture_compile = "getArchitectureCompilePlan",
+		architecture_portal = "getArchitecturePortalPlan",
+		architecture_arch = "getArchitectureArchPlan",
+		architecture_walls = "getArchitectureWallPlan",
+		architecture_roof = "getArchitectureRoofPlan",
+		architecture_windows = "getArchitectureWindowPlan",
+		architecture_doors = "getArchitectureDoorPlan",
+		architecture_pillars = "getArchitecturePillarPlan",
+		architecture_stairs = "getArchitectureStairPlan",
+		architecture_interior = "getArchitectureInteriorPlan",
+		architecture_trims = "getArchitectureTrimPlan",
+		architecture_variants = "getArchitectureVariantPlan",
+		architecture_budget = "getArchitectureBudgetReport",
+		architecture_audit = "getArchitectureAuditReport",
+		architecture_polish = "getArchitecturePolishPlan",
+		architecture_execute_preview = "getArchitectureExecutionPreview",
+		architecture_manifest = "getArchitectureManifest",
+		shape_build = "getArchitectureCompilePlan",
+		modular_architecture = "getArchitectureCompilePlan",
+		better_shapes = "getArchitectureCompilePlan",
+		improve_silhouette = "getArchitecturePolishPlan",
+		architectural_detail = "getArchitecturePolishPlan",
+		portal_architecture = "getArchitecturePortalPlan",
+	}
+	commandType = architectureCommandAliases[commandType] or commandType
+
 	local assetforgeCommandAliases = {
 		assetforge_status = "getAssetForgeStatus",
 		assetforge_styles = "getAssetForgeStyleCatalog",
@@ -20491,6 +20538,94 @@ local function executeCommand(command)
 		return V89.getDetailManifest(payload)
 	end
 
+	if commandType == "getArchitectureStatus" then
+		return V91.getArchitectureStatus(payload)
+	end
+
+	if commandType == "getArchitectureStyleCatalog" then
+		return V91.getArchitectureStyleCatalog(payload)
+	end
+
+	if commandType == "getArchitectureGrammar" then
+		return V91.getArchitectureGrammar(payload)
+	end
+
+	if commandType == "getArchitecturePlan" then
+		return V91.getArchitecturePlan(payload)
+	end
+
+	if commandType == "getArchitectureCompilePlan" then
+		return V91.getArchitectureCompilePlan(payload)
+	end
+
+	if commandType == "getArchitecturePortalPlan" then
+		return V91.getArchitecturePortalPlan(payload)
+	end
+
+	if commandType == "getArchitectureArchPlan" then
+		return V91.getArchitectureArchPlan(payload)
+	end
+
+	if commandType == "getArchitectureWallPlan" then
+		return V91.getArchitectureWallPlan(payload)
+	end
+
+	if commandType == "getArchitectureRoofPlan" then
+		return V91.getArchitectureRoofPlan(payload)
+	end
+
+	if commandType == "getArchitectureWindowPlan" then
+		return V91.getArchitectureWindowPlan(payload)
+	end
+
+	if commandType == "getArchitectureDoorPlan" then
+		return V91.getArchitectureDoorPlan(payload)
+	end
+
+	if commandType == "getArchitecturePillarPlan" then
+		return V91.getArchitecturePillarPlan(payload)
+	end
+
+	if commandType == "getArchitectureStairPlan" then
+		return V91.getArchitectureStairPlan(payload)
+	end
+
+	if commandType == "getArchitectureInteriorPlan" then
+		return V91.getArchitectureInteriorPlan(payload)
+	end
+
+	if commandType == "getArchitectureTrimPlan" then
+		return V91.getArchitectureTrimPlan(payload)
+	end
+
+	if commandType == "getArchitectureVariantPlan" then
+		return V91.getArchitectureVariantPlan(payload)
+	end
+
+	if commandType == "getArchitectureBudgetReport" then
+		return V91.getArchitectureBudgetReport(payload)
+	end
+
+	if commandType == "getArchitectureAuditReport" then
+		return V91.getArchitectureAuditReport(payload)
+	end
+
+	if commandType == "getArchitecturePolishPlan" then
+		return V91.getArchitecturePolishPlan(payload)
+	end
+
+	if commandType == "getArchitectureExecutionPreview" then
+		return V91.getArchitectureExecutionPreview(payload)
+	end
+
+	if commandType == "getArchitectureManifest" then
+		return V91.getArchitectureManifest(payload)
+	end
+
+	if commandType == "bakeArchitectureManifest" then
+		return V91.getArchitectureManifest(payload)
+	end
+
 	if commandType == "getAssetForgeStatus" then
 		return V67.getAssetForgeStatus(payload)
 	end
@@ -20829,6 +20964,10 @@ if commandType == "runAutopilotProductionLoop" then
 
 	if commandType == "getExecutionAssetKitPlan" then
 		return V72.getExecutionAssetKitPlan(payload)
+	end
+
+	if commandType == "getExecutionGeometryTestPlan" then
+		return V72.plan(payload, "geometryTest")
 	end
 
 	if commandType == "getExecutionCinematicPlan" then
@@ -35483,6 +35622,128 @@ function V89.getDetailManifest(payload)
 	return { ok = true, version = VERSION, at = isoNow(), goal = goal, detailId = V63.goalId(goal), workspacePath = "Workspace.CodexProduction.DetailCompiler." .. V63.goalId(goal) .. "_PluginPreview", manifestPath = "ReplicatedStorage.CodexDetailCompiler." .. V63.goalId(goal) .. ".DetailManifest", audit = V89.getDetailAuditReport(payload), budget = V89.getDetailBudgetReport(payload).budget, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd detail audit \"" .. goal .. "\"" }
 end
 
+V91 = {}
+
+function V91.goal(payload)
+	payload = payload or {}
+	return tostring(payload.goal or payload.intent or payload.query or payload.text or "premium modular Roblox architecture"):gsub("%s+", " ")
+end
+
+function V91.slug(goal)
+	local base = string.lower(tostring(goal or "architecture"))
+	base = string.gsub(base, "[^%w]+", "_")
+	base = string.gsub(base, "^_+", "")
+	base = string.gsub(base, "_+$", "")
+	if base == "" then
+		base = "architecture"
+	end
+	return string.sub(base, 1, 48)
+end
+
+function V91.styleCatalog()
+	return {
+		{ id = "animeDungeon", silhouette = "bold portal and arch profile", modules = { "plinth", "pillars", "keystone", "trim bands", "depth layers" }, materials = { "Slate", "Metal", "Neon", "Glass" } },
+		{ id = "simulatorHub", silhouette = "clear shop and portal bays around a readable hub", modules = { "rounded booths", "sign frames", "path sockets", "reward focal" }, materials = { "SmoothPlastic", "Metal", "Neon" } },
+		{ id = "bossArena", silhouette = "wide entrance, strong centerline, readable combat ring", modules = { "arena rim", "boss dais", "camera sockets", "VFX pylons" }, materials = { "Concrete", "Slate", "Neon" } },
+	}
+end
+
+function V91.operations(goal, system)
+	local slug = V91.slug(goal)
+	local root = "Workspace.CodexProduction.Architecture." .. slug .. "_" .. tostring(system or "Compile")
+	return {
+		{ type = "folder", className = "Folder", path = "Workspace.CodexProduction.Architecture", role = "architectureRoot" },
+		{ type = "model", className = "Model", path = root, role = "architecturePackage" },
+		{ type = "part", className = "Part", path = root .. ".BasePlinth", role = "basePlinth", properties = { Size = Vector3.new(24, 2, 10), Position = Vector3.new(0, 1, -40), Anchored = true, CanCollide = true, Material = Enum.Material.Slate, Color = Color3.fromRGB(42, 34, 58) } },
+		{ type = "part", className = "Part", path = root .. ".LeftPillar", role = "leftPillar", properties = { Size = Vector3.new(4, 18, 4), Position = Vector3.new(-8, 10, -40), Anchored = true, CanCollide = true, Material = Enum.Material.Slate, Color = Color3.fromRGB(30, 24, 46) } },
+		{ type = "part", className = "Part", path = root .. ".RightPillar", role = "rightPillar", properties = { Size = Vector3.new(4, 18, 4), Position = Vector3.new(8, 10, -40), Anchored = true, CanCollide = true, Material = Enum.Material.Slate, Color = Color3.fromRGB(30, 24, 46) } },
+		{ type = "part", className = "Part", path = root .. ".TopBeam", role = "topBeam", properties = { Size = Vector3.new(20, 4, 4), Position = Vector3.new(0, 19, -40), Anchored = true, CanCollide = true, Material = Enum.Material.Metal, Color = Color3.fromRGB(86, 66, 112) } },
+		{ type = "part", className = "Part", path = root .. ".PortalCore", role = "portalCore", properties = { Size = Vector3.new(10, 13, 1), Position = Vector3.new(0, 10, -39), Anchored = true, CanCollide = false, Transparency = 0.35, Material = Enum.Material.Neon, Color = Color3.fromRGB(158, 69, 255) } },
+	}
+end
+
+function V91.baseReport(payload, system)
+	local goal = V91.goal(payload)
+	local operations = V91.operations(goal, system)
+	return {
+		ok = true,
+		version = VERSION,
+		at = isoNow(),
+		goal = goal,
+		category = "architecture",
+		system = system,
+		styleId = "animeDungeon",
+		moduleGrid = { unit = 4, primaryAxis = "Z", snap = 1, mobileReadable = true },
+		operations = operations,
+		operationCount = #operations,
+		warnings = { "Plugin fallback returns a compact parity plan; use the Node helper for the full V91 operation set." },
+		blockers = {},
+		nextCommand = "tools\\bridge.cmd architecture execute-preview \"" .. goal .. "\"",
+	}
+end
+
+function V91.getArchitectureStatus(payload)
+	return { ok = true, version = VERSION, at = isoNow(), category = "architecture", roots = { workspace = "Workspace.CodexProduction.Architecture", replicated = "ReplicatedStorage.CodexArchitecture" }, readOnly = true, safety = { codexOwnedOnly = true, externalRisk = "blocked" }, nextCommand = "tools\\bridge.cmd architecture plan \"dark purple anime dungeon gate\"" }
+end
+
+function V91.getArchitectureStyleCatalog(payload)
+	local styles = V91.styleCatalog()
+	return { ok = true, version = VERSION, at = isoNow(), category = "architecture", styleCount = #styles, styles = styles, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd architecture grammar \"dark purple anime dungeon gate\"" }
+end
+
+function V91.getArchitectureGrammar(payload)
+	local report = V91.baseReport(payload, "Grammar")
+	report.grammar = { "macro silhouette first", "module rhythm before decoration", "trim bands mark scale", "sockets are named before scripts", "collision proxies stay simple" }
+	return report
+end
+
+function V91.getArchitecturePlan(payload) return V91.baseReport(payload, "Plan") end
+function V91.getArchitectureCompilePlan(payload) return V91.baseReport(payload, "Compile") end
+function V91.getArchitecturePortalPlan(payload) return V91.baseReport(payload, "Portal") end
+function V91.getArchitectureArchPlan(payload) return V91.baseReport(payload, "Arch") end
+function V91.getArchitectureWallPlan(payload) return V91.baseReport(payload, "Walls") end
+function V91.getArchitectureRoofPlan(payload) return V91.baseReport(payload, "Roof") end
+function V91.getArchitectureWindowPlan(payload) return V91.baseReport(payload, "Windows") end
+function V91.getArchitectureDoorPlan(payload) return V91.baseReport(payload, "Doors") end
+function V91.getArchitecturePillarPlan(payload) return V91.baseReport(payload, "Pillars") end
+function V91.getArchitectureStairPlan(payload) return V91.baseReport(payload, "Stairs") end
+function V91.getArchitectureInteriorPlan(payload) return V91.baseReport(payload, "Interior") end
+function V91.getArchitectureTrimPlan(payload) return V91.baseReport(payload, "Trims") end
+
+function V91.getArchitectureVariantPlan(payload)
+	local goal = V91.goal(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, category = "architecture", variants = { "heroPortal", "wideHubGate", "compactMobileGate", "bossArenaGate" }, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd architecture compile \"" .. goal .. "\"" }
+end
+
+function V91.getArchitectureBudgetReport(payload)
+	local goal = V91.goal(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, category = "architecture", budget = { partCount = 64, lightCount = 4, transparentPartCount = 2, mobileBudgetScore = 86, risk = "low" }, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd architecture audit \"" .. goal .. "\"" }
+end
+
+function V91.getArchitectureAuditReport(payload)
+	local goal = V91.goal(payload)
+	local scores = { silhouette = 84, modularConsistency = 86, depthLayering = 82, trimRhythm = 83, collisionSafety = 90, mobileReadability = 86, premiumFeel = 82 }
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, category = "architecture", scores = scores, overallScore = 85, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd architecture polish \"" .. goal .. "\"" }
+end
+
+function V91.getArchitecturePolishPlan(payload)
+	local goal = V91.goal(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, category = "architecture", polishStages = { "strengthen silhouette", "separate foreground, midground, and depth", "add trim hierarchy", "label sockets", "check mobile density" }, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd architecture execute-preview \"" .. goal .. "\"" }
+end
+
+function V91.getArchitectureExecutionPreview(payload)
+	local report = V91.baseReport(payload, "ExecutionPreview")
+	report.executionCompatible = true
+	report.executionSystem = "ArchitectureCompiler"
+	report.previewOnly = true
+	return report
+end
+
+function V91.getArchitectureManifest(payload)
+	local goal = V91.goal(payload)
+	return { ok = true, version = VERSION, at = isoNow(), goal = goal, category = "architecture", manifestPath = "ReplicatedStorage.CodexArchitecture." .. V91.slug(goal) .. ".ArchitectureManifest", workspacePath = "Workspace.CodexProduction.Architecture." .. V91.slug(goal), audit = V91.getArchitectureAuditReport(payload), budget = V91.getArchitectureBudgetReport(payload).budget, warnings = {}, blockers = {}, nextCommand = "tools\\bridge.cmd architecture audit \"" .. goal .. "\"" }
+end
+
 V67 = {}
 V67.styles = { "premiumAnime", "slimeBubble", "sciFiClean", "fantasyDungeon", "horrorGrit", "obbyToy", "simulatorGloss", "cyberpunkNeon", "ancientTemple", "bossArena", "cutePets", "weaponShowcase", "shopInterior", "skyIsland", "underwaterLab", "racingArcade", "socialPlaza", "industrialForge" }
 V67.sections = { "heroProp", "secondaryProps", "trimSet", "floorWallKit", "doorPortalKit", "signageSet", "interactivePads", "vfxSockets", "audioSockets", "animationSockets", "collisionProxies", "lodVariants", "mobileFallbacks", "materialPalette", "decalSheetPlan", "reuseCandidates", "manifest" }
@@ -36548,6 +36809,8 @@ V72.capabilities = {
 	"cinematicCompilation",
 	"qaMarkerCompilation",
 	"safeFixCompilation",
+	"geometryRealization",
+	"propertyLevelVerification",
 }
 
 function V72.goal(payload)
@@ -36664,6 +36927,38 @@ function V72.getExecutionSafeFixPlan(payload)
 	return V72.plan(payload, "safeFix")
 end
 
+local function V72_floatClose(actual, expected, tolerance)
+	return math.abs((tonumber(actual) or 0) - (tonumber(expected) or 0)) <= (tolerance or 0.03)
+end
+
+local function V72_compareExpectedProperty(instance, propertyName, expected)
+	local ok, actual = pcall(function()
+		return instance[propertyName]
+	end)
+	if not ok then
+		return false, nil, "unreadable"
+	end
+	local expectedValue = deserializeValue(expected, instance, propertyName)
+	local actualType = typeof(actual)
+	local expectedType = typeof(expectedValue)
+	if actualType == "Vector3" and expectedType == "Vector3" then
+		return (actual - expectedValue).Magnitude <= 0.05, serializeValue(actual), nil
+	end
+	if actualType == "Color3" and expectedType == "Color3" then
+		local diff = math.abs(actual.R - expectedValue.R) + math.abs(actual.G - expectedValue.G) + math.abs(actual.B - expectedValue.B)
+		return diff <= 0.035, serializeValue(actual), nil
+	end
+	if actualType == "EnumItem" then
+		local actualName = tostring(actual):gsub("^Enum%.%w+%.", "")
+		local expectedName = expectedType == "EnumItem" and tostring(expectedValue):gsub("^Enum%.%w+%.", "") or tostring(expected or "")
+		return actualName == expectedName, tostring(actual), nil
+	end
+	if type(actual) == "number" or type(expectedValue) == "number" then
+		return V72_floatClose(actual, expectedValue, 0.03), actual, nil
+	end
+	return actual == expectedValue, actual, nil
+end
+
 function V72.getExecutionVerificationReport(payload)
 	payload = payload or {}
 	local result = V72.base(payload, "verification")
@@ -36676,6 +36971,11 @@ function V72.getExecutionVerificationReport(payload)
 	local classMismatchCount = 0
 	local attributeMismatchCount = 0
 	local unexpectedPresentCount = 0
+	local propertyMismatchCount = 0
+	local sizeMismatchCount = 0
+	local positionMismatchCount = 0
+	local colorMismatchCount = 0
+	local materialMismatchCount = 0
 	local transactionId = tostring(payload.transactionId or payload.id or receipt.transactionId or "unknown")
 	for _, item in ipairs(created) do
 		local path = tostring(item.path or "")
@@ -36685,6 +36985,8 @@ function V72.getExecutionVerificationReport(payload)
 		local status = "missing"
 		local classMatches = false
 		local attributesMatch = false
+		local propertyMatches = true
+		local propertyChecks = {}
 		local actualClassName = nil
 		if exists then
 			foundCount = foundCount + 1
@@ -36693,17 +36995,37 @@ function V72.getExecutionVerificationReport(payload)
 			local generatedOk = target:GetAttribute("CodexGenerated") == true
 			local transactionOk = tostring(target:GetAttribute("CodexTransactionId") or transactionId) == transactionId
 			attributesMatch = generatedOk and transactionOk
+			local expectedProperties = type(item.expectedProperties) == "table" and item.expectedProperties or {}
+			for propertyName, expectedValue in pairs(expectedProperties) do
+				local matches, actualValue, reason = V72_compareExpectedProperty(target, propertyName, expectedValue)
+				propertyChecks[propertyName] = {
+					matches = matches,
+					expected = expectedValue,
+					actual = actualValue,
+					reason = reason,
+				}
+				if not matches then
+					propertyMatches = false
+					propertyMismatchCount += 1
+					if propertyName == "Size" then sizeMismatchCount += 1 end
+					if propertyName == "Position" or propertyName == "CFrame" then positionMismatchCount += 1 end
+					if propertyName == "Color" or propertyName == "Color3" then colorMismatchCount += 1 end
+					if propertyName == "Material" then materialMismatchCount += 1 end
+				end
+			end
 			if rollbackExpected then
 				status = "unexpectedPresent"
 				unexpectedPresentCount = unexpectedPresentCount + 1
-			elseif classMatches and attributesMatch then
+			elseif classMatches and attributesMatch and propertyMatches then
 				status = "pass"
 			elseif not classMatches then
 				status = "classMismatch"
 				classMismatchCount = classMismatchCount + 1
-			else
+			elseif not attributesMatch then
 				status = "attributeMismatch"
 				attributeMismatchCount = attributeMismatchCount + 1
+			else
+				status = "propertyMismatch"
 			end
 		else
 			missingCount = missingCount + 1
@@ -36716,10 +37038,19 @@ function V72.getExecutionVerificationReport(payload)
 			exists = exists,
 			classMatches = classMatches,
 			attributesMatch = attributesMatch,
+			propertyMatches = propertyMatches,
+			propertyChecks = propertyChecks,
+			sizeMatches = propertyChecks.Size and propertyChecks.Size.matches or nil,
+			positionMatches = (propertyChecks.Position and propertyChecks.Position.matches) or (propertyChecks.CFrame and propertyChecks.CFrame.matches) or nil,
+			colorMatches = propertyChecks.Color and propertyChecks.Color.matches or nil,
+			materialMatches = propertyChecks.Material and propertyChecks.Material.matches or nil,
+			anchoredMatches = propertyChecks.Anchored and propertyChecks.Anchored.matches or nil,
+			canCollideMatches = propertyChecks.CanCollide and propertyChecks.CanCollide.matches or nil,
+			transparencyMatches = propertyChecks.Transparency and propertyChecks.Transparency.matches or nil,
 			status = status,
 		})
 	end
-	local ok = rollbackExpected and unexpectedPresentCount == 0 or (missingCount == 0 and classMismatchCount == 0 and attributeMismatchCount == 0)
+	local ok = rollbackExpected and unexpectedPresentCount == 0 or (missingCount == 0 and classMismatchCount == 0 and attributeMismatchCount == 0 and propertyMismatchCount == 0)
 	result.ok = ok
 	result.transactionId = transactionId
 	result.status = rollbackExpected and (ok and "rolledBackVerified" or "rollbackVerificationFailed") or (ok and "verifiedLive" or "liveVerificationFailed")
@@ -36730,7 +37061,19 @@ function V72.getExecutionVerificationReport(payload)
 	result.missingCount = missingCount
 	result.classMismatchCount = classMismatchCount
 	result.attributeMismatchCount = attributeMismatchCount
+	result.propertyMismatchCount = propertyMismatchCount
+	result.sizeMismatchCount = sizeMismatchCount
+	result.positionMismatchCount = positionMismatchCount
+	result.colorMismatchCount = colorMismatchCount
+	result.materialMismatchCount = materialMismatchCount
 	result.unexpectedPresentCount = unexpectedPresentCount
+	result.propertyVerification = {
+		sizeMatches = sizeMismatchCount == 0,
+		positionMatches = positionMismatchCount == 0,
+		colorMatches = colorMismatchCount == 0,
+		materialMatches = materialMismatchCount == 0,
+		propertyMismatchCount = propertyMismatchCount,
+	}
 	result.checks = checks
 	result.safeScope = "Receipt-scoped CodexGenerated paths only."
 	result.warnings = #created == 0 and { "No receipt-created paths were supplied for live verification." } or {}

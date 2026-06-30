@@ -9,6 +9,7 @@ function trimBand(path, role, style, size, context = {}) {
     Material: 'Metal',
     Color: tint,
     Size: size || vec3(8, 0.35, 0.35),
+    ...(context.position ? { Position: context.position } : {}),
     Transparency: 0,
   }, { ...context, budgetCost: 1 });
 }
@@ -19,6 +20,7 @@ function runeInset(path, role, style, size, context = {}) {
     Material: 'Neon',
     Color: tint,
     Size: size || vec3(2, 0.12, 0.2),
+    ...(context.position ? { Position: context.position } : {}),
     Transparency: 0.08,
   }, { ...context, budgetCost: 1 });
 }
@@ -29,6 +31,7 @@ function rivet(path, role, style, context = {}) {
     Material: 'Metal',
     Color: tint,
     Size: vec3(0.45, 0.45, 0.18),
+    ...(context.position ? { Position: context.position } : {}),
     Transparency: 0,
   }, { ...context, budgetCost: 0.5 });
 }

@@ -24,8 +24,8 @@ const WorldCompiler = require('../bridge/world-compiler');
 const Fidelity = require('../bridge/fidelity');
 const Dashboard = require('../bridge/dashboard');
 
-const HELPER_VERSION = '0.91.0';
-const MCP_PROXY_VERSION = '0.91.0';
+const HELPER_VERSION = '0.92.0';
+const MCP_PROXY_VERSION = '0.92.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -180,6 +180,7 @@ const MCP_PROXY_TOOLS = [
   'architecture_polish',
   'architecture_execute_preview',
   'architecture_manifest',
+  'geometry_test_preview',
   'assetforge_status',
   'assetforge_styles',
   'assetforge_plan',
@@ -6798,6 +6799,12 @@ async function queueExecutionVerify(transactionId) {
     missingCount: pluginResult.missingCount,
     classMismatchCount: pluginResult.classMismatchCount,
     attributeMismatchCount: pluginResult.attributeMismatchCount,
+    propertyMismatchCount: pluginResult.propertyMismatchCount,
+    sizeMismatchCount: pluginResult.sizeMismatchCount,
+    positionMismatchCount: pluginResult.positionMismatchCount,
+    colorMismatchCount: pluginResult.colorMismatchCount,
+    materialMismatchCount: pluginResult.materialMismatchCount,
+    propertyVerification: pluginResult.propertyVerification,
     unexpectedPresentCount: pluginResult.unexpectedPresentCount,
     checks: pluginResult.checks || localReport.checks,
     liveVerification: pluginResult,
@@ -6858,6 +6865,10 @@ async function runExecute(subcommand = 'status', args = []) {
     print(Execution.safeFix(cleanGoal(), { source: 'tools.bridge.execution.safeFix' }));
     return;
   }
+  if (subcommand === 'geometry-test' || subcommand === 'geometry') {
+    await runGeometryTest(args[0] || 'preview', args.slice(1));
+    return;
+  }
   if (subcommand === 'transactions' || subcommand === 'list') {
     print(Execution.transactionList(Number(args[0] || 50)));
     return;
@@ -6886,7 +6897,36 @@ async function runExecute(subcommand = 'status', args = []) {
     print(Execution.manifest(cleanGoal()));
     return;
   }
-  throw new Error('execute command must be status, roots, preview, apply, worldgen, assetkit, detail, cinematic, qa-markers, polish, safe-fix, verify, transactions, receipt, rollback, manifest, or self-check.');
+  throw new Error('execute command must be status, roots, preview, apply, worldgen, assetkit, detail, cinematic, qa-markers, polish, safe-fix, geometry-test, verify, transactions, receipt, rollback, manifest, or self-check.');
+}
+
+async function runGeometryTest(subcommand = 'preview', args = []) {
+  const mode = String(subcommand || 'preview').toLowerCase();
+  const goal = 'V92 geometry realization test';
+  if (mode === 'preview' || mode === 'plan') {
+    print(Execution.geometryTest(goal, { source: 'tools.bridge.geometryTest.preview' }));
+    return;
+  }
+  if (mode === 'apply' || mode === 'build') {
+    const applyPlan = Execution.createApplyPlan(goal, { source: 'tools.bridge.geometryTest.apply', system: Execution.SYSTEMS.geometryTest });
+    print(await queueExecutionBlueprint(applyPlan));
+    return;
+  }
+  if (mode === 'verify') {
+    if (!args[0]) throw new Error('geometry-test verify requires <transactionId>.');
+    print(await queueExecutionVerify(args[0]));
+    return;
+  }
+  if (mode === 'rollback') {
+    if (!args[0]) throw new Error('geometry-test rollback requires <transactionId>.');
+    print(await queueExecutionRollback(args[0]));
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-geometry-realization.js'));
+    return;
+  }
+  throw new Error('geometry-test command must be preview, apply, verify <transactionId>, rollback <transactionId>, or self-check.');
 }
 
 async function runReference(subcommand = 'status', args = []) {
@@ -13551,6 +13591,11 @@ async function main(argv) {
 
   if (command === 'execute') {
     await runExecute(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'geometry-test' || command === 'geometry_test') {
+    await runGeometryTest(args[0] || 'preview', args.slice(1));
     return;
   }
 

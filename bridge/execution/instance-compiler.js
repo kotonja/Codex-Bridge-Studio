@@ -1,6 +1,7 @@
 'use strict';
 
 const { ROOTS, VERSION, isCodexPath, nowIso, safeGoal, slugify } = require('./schema');
+const { normalizeOperation, normalizeProperties, vector3, color3 } = require('./property-codec');
 
 function stringValue(path, value) {
   return { type: 'createInstance', className: 'StringValue', path, properties: { Value: String(value == null ? '' : value).slice(0, 199000) } };
@@ -15,17 +16,18 @@ function model(path) {
 }
 
 function part(path, properties = {}) {
+  const normalized = normalizeProperties('Part', properties);
   return {
     type: 'createPart',
     path,
     properties: {
       Anchored: true,
       CanCollide: false,
-      Transparency: properties.Transparency ?? 0.35,
-      Material: properties.Material || 'Neon',
-      Color: properties.Color || { r: 0.35, g: 0.15, b: 1 },
-      Size: properties.Size || { x: 4, y: 0.25, z: 4 },
-      ...properties,
+      Transparency: normalized.Transparency ?? 0.35,
+      Material: normalized.Material || 'Neon',
+      Color: normalized.Color || color3({ r: 0.35, g: 0.15, b: 1 }),
+      Size: normalized.Size || vector3({ x: 4, y: 0.25, z: 4 }),
+      ...normalized,
     },
   };
 }
@@ -83,15 +85,17 @@ function operationToStep(operation, context = {}) {
   if (!operation || typeof operation !== 'object') return null;
   const path = String(operation.path || '');
   if (!path || !isCodexPath(path)) return null;
-  const className = operation.className || 'Folder';
-  const properties = pathOwnedProperties(operation.properties || {});
+  const normalizedOperation = normalizeOperation(operation, context);
+  const className = normalizedOperation.className || 'Folder';
+  const properties = pathOwnedProperties(normalizedOperation.properties || {});
   let step = null;
-  if (operation.type === 'folder' || className === 'Folder') step = { type: 'createInstance', className: 'Folder', path, properties };
-  else if (operation.type === 'model' || className === 'Model') step = model(path);
+  if (normalizedOperation.type === 'folder' || className === 'Folder') step = { type: 'createInstance', className: 'Folder', path, properties };
+  else if (normalizedOperation.type === 'model' || className === 'Model') step = model(path);
   else if (operation.type === 'part' || className === 'Part') step = part(path, properties);
   else if (className === 'StringValue') step = stringValue(path, operation.value || properties.Value || '');
   else step = { type: 'createInstance', className, path, properties };
-  return withExecutionAttributes(step, operation, context);
+  step.expectedProperties = normalizedOperation.expectedProperties || {};
+  return withExecutionAttributes(step, normalizedOperation, context);
 }
 
 function compileBlueprint(plan) {
@@ -99,8 +103,8 @@ function compileBlueprint(plan) {
   const goal = safeGoal(plan.goal);
   const system = plan.system || 'ExecutionKernel';
   const steps = createBaseSteps(transactionId, goal, system);
-  for (const operation of plan.actions || []) {
-    const step = operationToStep(operation, { transactionId, goal, system });
+  for (const [index, operation] of (plan.actions || []).entries()) {
+    const step = operationToStep(operation, { transactionId, goal, system, index });
     if (step) steps.push(step);
   }
   const manifestPath = `${ROOTS.replicatedStorage.manifestsRoot}.${transactionId}.ManifestJson`;

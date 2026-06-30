@@ -26,6 +26,8 @@ const REQUIRED_MODULES = [
   'polish-compiler.js',
   'safe-fix-compiler.js',
   'architecture-compiler.js',
+  'geometry-test-compiler.js',
+  'property-codec.js',
   'preview-builder.js',
   'apply-plan.js',
   'verification.js',
@@ -82,6 +84,16 @@ function run() {
   assert.equal(architecture.system, 'ArchitectureCompiler');
   assert.ok(architecture.actions.some((action) => action.role === 'archSegment' || action.path.includes('.PortalArch.')));
   assert.ok(architecture.manualRequiredActions.some((item) => /mesh|texture|pbr/i.test(item.action || item.reason || '')));
+
+  const geometryTest = Execution.geometryTest();
+  assert.equal(geometryTest.system, 'GeometryRealization');
+  const redCube = geometryTest.actions.find((action) => action.path.endsWith('.RedCube_Left'));
+  assert.ok(redCube);
+  assert.equal(redCube.properties.Size.__type, 'Vector3');
+  assert.equal(redCube.properties.Position.__type, 'Vector3');
+  assert.equal(redCube.properties.Color.__type, 'Color3');
+  assert.ok(redCube.expectedProperties.Size);
+  assert.ok(redCube.expectedProperties.Position);
 
   const cinematic = Execution.cinematic('anime boss intro attack');
   assert.ok(cinematic.actions.some((action) => action.path.includes('.Camera.')));
@@ -143,6 +155,7 @@ function run() {
       'worldgen',
       'assetkit',
       'architecture',
+      'geometryRealization',
       'cinematic',
       'qaMarkers',
       'pathOwnedProperties',

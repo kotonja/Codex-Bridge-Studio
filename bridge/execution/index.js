@@ -30,6 +30,10 @@ function architecture(goal, options = {}) {
   return createPreviewPlan(parseGoal(goal, { ...options, system: SYSTEMS.architecture }), options);
 }
 
+function geometryTest(goal = 'V92 geometry realization test', options = {}) {
+  return createPreviewPlan(parseGoal(goal, { ...options, system: SYSTEMS.geometryTest }), options);
+}
+
 function cinematic(goal, options = {}) {
   return createPreviewPlan(parseGoal(goal, { ...options, system: SYSTEMS.cinematic }), options);
 }
@@ -174,6 +178,7 @@ module.exports = {
   createRootsReport,
   createStatus,
   detail,
+  geometryTest,
   manifest,
   parseGoal,
   polish,

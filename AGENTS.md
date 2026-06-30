@@ -335,6 +335,19 @@ V91 Advanced Shape Grammar + Modular Architecture is the preferred specialist wh
 
 Routing priority for V91: pairing/recovery still wins, explicit VFX stays VFX, explicit visual critique/fidelity stays Visual/Fidelity, map/layout/world graph requests stay Worldgen, reusable mesh/material/asset-kit planning stays Asset Forge, and actual Studio apply still goes through V72 Execution Kernel. Detail/trim/placeholder requests such as `make it less placeholder` and `add more detail` remain V89 Detail unless the wording is clearly shape, silhouette, modular, or architecture. V91 outputs are Codex-owned under `Workspace.CodexProduction.Architecture` and `ReplicatedStorage.CodexArchitecture`, and may be previewed through `.\tools\bridge.cmd execute preview "dark purple anime dungeon gate architecture pass"`. It must not mutate non-Codex content, fake mesh/texture/PBR/asset IDs, publish/upload, use marketplace insertion, touch DataStore/economy/monetization, edit production scripts, or delete user content.
 
+V92 Geometry Realization Kernel is the first thing to check if Studio creates organized Explorer folders but visible parts look stacked, same-sized, uncolored, or stuck near the map center. It fixes the real builder contract: generated operations now carry Roblox-friendly typed `Size`, `Position`, `Orientation`, `Color`, `Material`, `Anchored`, `CanCollide`, and `Transparency`, transaction receipts preserve expected properties, and live verify checks those properties instead of only confirming paths exist.
+
+```powershell
+.\tools\bridge.cmd geometry-test preview
+.\tools\bridge.cmd geometry-test apply
+.\tools\bridge.cmd geometry-test verify <transactionId>
+.\tools\bridge.cmd geometry-test rollback <transactionId>
+.\tools\bridge.cmd geometry-test self-check
+.\tools\bridge.cmd execute geometry-test preview
+```
+
+Use the geometry test before blaming Worldgen, Detail, Architecture, or Dashboard when real parts are wrong. The test should create a red cube left, blue pillar right, green platform forward, purple portal frame, crystals, light, and prompt anchor under `Workspace.CodexExecutionKernel.GeometryTest_*`. Apply remains V72-only and Codex-owned; rollback remains receipt-scoped; real mesh/texture/PBR/upload/marketplace/publish/DataStore/economy work remains manual or blocked.
+
 V68 Cinematic Motion Director is the preferred specialist when the user says combat feels weak, add impact, add hit stop, add screen shake, make it cinematic, sync animation VFX audio, boss intro, opening cutscene, game feel, make the ability feel powerful, or polish animation timing. It plans animation, marker timing, VFX layers, audio cues, camera beats, shake, hit-stop, UI punch, ability windows, mobile motion budget, preview, audit, polish, and manifests as one synced moment:
 
 ```powershell

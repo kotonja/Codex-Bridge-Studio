@@ -24,7 +24,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.91.0';
+const VERSION = '0.92.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -631,6 +631,7 @@ const supportedCommands = new Set([
   'getExecutionApplyPlan',
   'getExecutionWorldgenPlan',
   'getExecutionAssetKitPlan',
+  'getExecutionGeometryTestPlan',
   'getExecutionCinematicPlan',
   'getExecutionQaMarkerPlan',
   'getExecutionPolishPlan',
@@ -6850,6 +6851,12 @@ async function executeVerifyInStudio(transactionId, body = {}) {
     missingCount: pluginResult.missingCount,
     classMismatchCount: pluginResult.classMismatchCount,
     attributeMismatchCount: pluginResult.attributeMismatchCount,
+    propertyMismatchCount: pluginResult.propertyMismatchCount,
+    sizeMismatchCount: pluginResult.sizeMismatchCount,
+    positionMismatchCount: pluginResult.positionMismatchCount,
+    colorMismatchCount: pluginResult.colorMismatchCount,
+    materialMismatchCount: pluginResult.materialMismatchCount,
+    propertyVerification: pluginResult.propertyVerification,
     unexpectedPresentCount: pluginResult.unexpectedPresentCount,
     checks: pluginResult.checks || localReport.checks,
     liveVerification: pluginResult,
@@ -7688,6 +7695,7 @@ async function route(req, res) {
       assetkit: () => Execution.assetkit(goal),
       detail: () => Execution.detail(goal),
       architecture: () => Execution.architecture(goal),
+      'geometry-test': () => Execution.geometryTest(goal),
       cinematic: () => Execution.cinematic(goal),
       'qa-markers': () => Execution.qaMarkers(goal),
       polish: () => Execution.polish(goal),

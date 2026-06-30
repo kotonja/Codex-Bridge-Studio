@@ -50,20 +50,26 @@ function part(path, role, properties = {}, context = {}) {
 }
 
 function neon(path, role, size, tint, context = {}) {
+  const position = size && size.Position;
+  const cleanSize = size && size.Position ? { x: size.x, y: size.y, z: size.z } : size;
   return part(path, role, {
     Material: 'Neon',
     Color: tint || color(0.55, 0.1, 1),
-    Size: size || vec3(1, 1, 1),
+    Size: cleanSize || vec3(1, 1, 1),
+    ...(position ? { Position: position } : {}),
     Transparency: 0.15,
     CanCollide: false,
   }, { ...context, budgetCost: context.budgetCost || 2 });
 }
 
 function transparentProxy(path, role, size, context = {}) {
+  const position = size && size.Position;
+  const cleanSize = size && size.Position ? { x: size.x, y: size.y, z: size.z } : size;
   return part(path, role, {
     Material: 'ForceField',
     Color: color(0.2, 1, 1),
-    Size: size || vec3(6, 6, 1),
+    Size: cleanSize || vec3(6, 6, 1),
+    ...(position ? { Position: position } : {}),
     Transparency: 0.92,
     CanCollide: true,
   }, { ...context, budgetCost: context.budgetCost || 1 });

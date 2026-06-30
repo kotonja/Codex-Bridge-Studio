@@ -207,6 +207,21 @@ V91 is the shape-quality layer above V89 detail density. Use it when a build loo
 
 `architecture compile` is read-only planning. `architecture execute-preview` returns V72-compatible Codex-owned operations, and actual Studio mutation still goes through `.\tools\bridge.cmd execute apply "dark purple anime dungeon gate architecture pass"` with transaction receipt, verify, and rollback. V91 never fakes mesh IDs, texture IDs, PBR maps, marketplace imports, publish/upload, DataStore/economy writes, production script edits, or non-Codex deletes.
 
+## V92 Geometry Realization Kernel
+
+V92 fixes the real Studio builder path so generated plans become visible, spatially separated Roblox geometry instead of same/default-size parts stacked near the map center. It normalizes `Size`, `Position`, `Orientation`, `Color`, `Material`, `Anchored`, `CanCollide`, and `Transparency` into Roblox-friendly payloads, preserves expected properties in transaction receipts, and upgrades live verification to compare properties instead of only checking paths.
+
+```powershell
+.\tools\bridge.cmd geometry-test preview
+.\tools\bridge.cmd geometry-test apply
+.\tools\bridge.cmd geometry-test verify <transactionId>
+.\tools\bridge.cmd geometry-test rollback <transactionId>
+.\tools\bridge.cmd geometry-test self-check
+.\tools\bridge.cmd execute geometry-test preview
+```
+
+The geometry test creates a Codex-owned red cube, blue pillar, green platform, purple portal frame, crystals, light, and prompt anchor under `Workspace.CodexExecutionKernel.GeometryTest_*`. Apply still goes through V72 Execution Kernel, receipts, verify, and rollback. Verification reports `sizeMatches`, `positionMatches`, `materialMatches`, `colorMatches`, and mismatch counts. V92 does not add mesh/PBR/asset upload work and still blocks publish/upload/marketplace/DataStore/economy mutation.
+
 ## V68 Cinematic Motion Director
 
 V68 adds a synced motion/game-feel layer for moments that need animation, VFX, audio, camera, screen shake, hit-stop, UI punch, and mobile-safe readability to feel like one premium beat. Use it when the request says combat feels weak, add impact, hit stop, screen shake, cinematic intro, boss intro, sync animation/VFX/audio, or make an ability feel powerful.

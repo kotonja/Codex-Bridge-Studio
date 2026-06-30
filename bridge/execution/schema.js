@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.80.0';
+const VERSION = '0.92.0';
 
 const ROOTS = {
   workspace: {
@@ -48,6 +48,8 @@ const CAPABILITIES = [
   'cinematicCompilation',
   'qaMarkerCompilation',
   'safeFixCompilation',
+  'geometryRealization',
+  'propertyLevelVerification',
   'verificationReports',
   'autopilotIntegration',
   'memoryIntegration',
@@ -67,6 +69,7 @@ const SYSTEMS = {
   assetkit: 'AssetForge',
   detail: 'DetailCompiler',
   architecture: 'ArchitectureCompiler',
+  geometryTest: 'GeometryRealization',
   cinematic: 'Cinematic',
   qaMarkers: 'QaSwarm',
   polish: 'Autopilot',
