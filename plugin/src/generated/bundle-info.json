@@ -1,6 +1,6 @@
 {
   "version": "0.92.0",
-  "generatedAt": "2026-06-30T17:16:07.618Z",
+  "generatedAt": "2026-07-01T13:24:55.777Z",
   "entry": "plugin/src/main.lua",
   "output": "plugin/CodexStudioBridge.plugin.lua",
   "sha256": "b0f9a93f7ed0cb5ae312d0ed7fe44eed9397cf446213293764556c3b57ce7653",

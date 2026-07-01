@@ -6812,20 +6812,31 @@ async function executeVerifyInStudio(transactionId, body = {}) {
 
   const transactionInfo = Execution.transactionList(200).transactions.find((item) => item.transactionId === tx) || {};
   const rollbackExpected = transactionInfo.status === 'rolledBack' || body.rollbackExpected === true;
-  const command = queueBridgeCommand({
-    type: 'getExecutionVerificationReport',
-    targetStudioId: active.studioId,
-    payload: {
-      transactionId: tx,
-      receipt: receiptReport.receipt,
-      rollbackExpected,
-      source: 'dashboard.executeVerify',
-      expectedVersion: VERSION,
-    },
-    requiresApproval: false,
-  });
-  const status = await waitForStudioCommand(command.id);
-  const pluginResult = status.result || {};
+  let liveAttempts = 0;
+  let status = null;
+  let pluginResult = {};
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    liveAttempts = attempt;
+    const command = queueBridgeCommand({
+      type: 'getExecutionVerificationReport',
+      targetStudioId: active.studioId,
+      payload: {
+        transactionId: tx,
+        receipt: receiptReport.receipt,
+        rollbackExpected,
+        source: 'dashboard.executeVerify',
+        expectedVersion: VERSION,
+        verificationAttempt: attempt,
+      },
+      requiresApproval: false,
+    });
+    status = await waitForStudioCommand(command.id);
+    pluginResult = status.result || {};
+    if (rollbackExpected || status.status !== 'executed' || pluginResult.ok !== false || pluginResult.status !== 'liveVerificationFailed' || !pluginResult.missingCount) {
+      break;
+    }
+    await waitMs(250 * attempt);
+  }
   if (status.status !== 'executed') {
     return {
       ...localReport,
@@ -6844,6 +6855,7 @@ async function executeVerifyInStudio(transactionId, body = {}) {
     ok: pluginResult.ok !== false,
     status: pluginResult.status || localReport.status,
     liveChecked: true,
+    liveAttempts,
     rollbackExpected,
     commandId: status.id,
     createdPathCount: pluginResult.createdPathCount ?? localReport.createdPathCount,

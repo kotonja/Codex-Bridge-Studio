@@ -6766,15 +6766,27 @@ async function queueExecutionVerify(transactionId) {
       nextCommand: 'tools\\bridge.cmd plugin-health',
     };
   }
-  const command = await queueCommand('getExecutionVerificationReport', {
-    transactionId,
-    receipt: receiptReport.receipt,
-    rollbackExpected,
-    source: 'tools.bridge.execution.verify',
-    expectedVersion: HELPER_VERSION,
-  }, { requiresApproval: false });
-  const status = await waitForCommandStatus(command.id, FINAL_COMMAND_STATUSES, DEFAULT_TIMEOUT_MS);
-  const pluginResult = status.result || {};
+  let liveAttempts = 0;
+  let command = null;
+  let status = null;
+  let pluginResult = {};
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    liveAttempts = attempt;
+    command = await queueCommand('getExecutionVerificationReport', {
+      transactionId,
+      receipt: receiptReport.receipt,
+      rollbackExpected,
+      source: 'tools.bridge.execution.verify',
+      expectedVersion: HELPER_VERSION,
+      verificationAttempt: attempt,
+    }, { requiresApproval: false });
+    status = await waitForCommandStatus(command.id, FINAL_COMMAND_STATUSES, DEFAULT_TIMEOUT_MS);
+    pluginResult = status.result || {};
+    if (rollbackExpected || status.status !== 'executed' || pluginResult.ok !== false || pluginResult.status !== 'liveVerificationFailed' || !pluginResult.missingCount) {
+      break;
+    }
+    await sleep(250 * attempt);
+  }
   if (status.status !== 'executed') {
     return {
       ...localReport,
@@ -6792,6 +6804,7 @@ async function queueExecutionVerify(transactionId) {
     ok: pluginResult.ok !== false,
     status: pluginResult.status || localReport.status,
     liveChecked: true,
+    liveAttempts,
     rollbackExpected,
     commandId: status.id,
     createdPathCount: pluginResult.createdPathCount ?? localReport.createdPathCount,
