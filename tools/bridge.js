@@ -24,9 +24,10 @@ const Reconstruction = require('../bridge/reconstruction');
 const WorldCompiler = require('../bridge/world-compiler');
 const Fidelity = require('../bridge/fidelity');
 const Dashboard = require('../bridge/dashboard');
+const Polish = require('../bridge/polish');
 
-const HELPER_VERSION = '0.93.0';
-const MCP_PROXY_VERSION = '0.93.0';
+const HELPER_VERSION = '0.96.0';
+const MCP_PROXY_VERSION = '0.96.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -362,6 +363,18 @@ const MCP_PROXY_TOOLS = [
   'fidelity_fix_plan',
   'fidelity_memory',
   'fidelity_manifest',
+  'polish_status',
+  'polish_baseline',
+  'polish_issues',
+  'polish_plan',
+  'polish_preview',
+  'polish_apply',
+  'polish_verify',
+  'polish_rescore',
+  'polish_delta',
+  'polish_learn',
+  'polish_rollback',
+  'polish_report',
   'dashboard_status',
   'dashboard_state',
   'dashboard_url',
@@ -8080,6 +8093,85 @@ async function runMaterials(subcommand = 'status', args = []) {
   throw new Error('materials command must be status, styles, palette, plan, swatches, apply-plan, lighting, atmosphere, fixtures, glow, mobile-budget, audit, polish, execute-preview, manifest, or self-check.');
 }
 
+async function runPolish(subcommand = 'status', args = []) {
+  const mode = String(subcommand || 'status').toLowerCase();
+  const approved = args.includes('--approved') || args.includes('--allow-apply');
+  const executed = args.includes('--executed');
+  const cleanArgs = args.filter((arg) => !['--approved', '--allow-apply', '--executed'].includes(arg));
+  const cleanGoal = () => cleanArgs.join(' ').trim() || 'premium Roblox integrated scene polish loop';
+  const tx = cleanArgs[0] || '';
+  if (mode === 'status') {
+    print(Polish.createStatus());
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-polish.js'));
+    return;
+  }
+  if (mode === 'baseline') {
+    print(Polish.createBaseline(cleanGoal(), { source: 'tools.bridge.polish.baseline' }));
+    return;
+  }
+  if (mode === 'issues' || mode === 'issue-report') {
+    print(Polish.createIssueReport(cleanGoal(), { source: 'tools.bridge.polish.issues' }));
+    return;
+  }
+  if (mode === 'plan') {
+    print(Polish.createPlan(cleanGoal(), { source: 'tools.bridge.polish.plan' }));
+    return;
+  }
+  if (mode === 'preview' || mode === 'execute-preview') {
+    print(Polish.createPreview(cleanGoal(), { source: 'tools.bridge.polish.preview' }));
+    return;
+  }
+  if (mode === 'apply') {
+    if (approved) {
+      print(await request('/codex/polish/apply', {
+        method: 'POST',
+        body: JSON.stringify({
+          goal: cleanGoal(),
+          approved: true,
+          allowApply: true,
+          source: 'tools.bridge.polish.apply',
+        }),
+        timeoutMs: RUN_COMMAND_TIMEOUT_MS,
+      }));
+      return;
+    }
+    print(Polish.apply(cleanGoal(), { source: 'tools.bridge.polish.apply', approved: false, allowApply: false }));
+    return;
+  }
+  if (mode === 'verify') {
+    print(Polish.verify(tx || cleanGoal(), { source: 'tools.bridge.polish.verify' }));
+    return;
+  }
+  if (mode === 'rescore') {
+    print(Polish.createRescore(cleanGoal(), { source: 'tools.bridge.polish.rescore' }));
+    return;
+  }
+  if (mode === 'delta') {
+    print(Polish.createDelta(cleanGoal(), { source: 'tools.bridge.polish.delta' }));
+    return;
+  }
+  if (mode === 'learn' || mode === 'memory') {
+    print(Polish.learn(cleanGoal(), { source: 'tools.bridge.polish.learn' }));
+    return;
+  }
+  if (mode === 'rollback') {
+    print(Polish.rollback(tx || cleanGoal(), { source: 'tools.bridge.polish.rollback', executed }));
+    return;
+  }
+  if (mode === 'report') {
+    print(Polish.createReport(cleanGoal(), { source: 'tools.bridge.polish.report' }));
+    return;
+  }
+  if (mode === 'manifest' || mode === 'bake') {
+    print(Polish.createManifest(cleanGoal(), { source: 'tools.bridge.polish.manifest' }));
+    return;
+  }
+  throw new Error('polish command must be status, baseline, issues, plan, preview, apply, verify, rescore, delta, learn, rollback, report, manifest, or self-check.');
+}
+
 async function assetforgeStudioOptions(extra = {}) {
   const health = await requestSafe('/health', { timeoutMs: 1200, noAutoStart: true });
   return {
@@ -13162,6 +13254,31 @@ async function main(argv) {
 
   if (command === 'fidelity' || command === 'reference-fidelity') {
     await runFidelity(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'polish') {
+    await runPolish(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'integrated_polish' || command === 'integrated-polish' || command === 'improve_scene' || command === 'improve-scene' || command === 'polish_scene' || command === 'polish-scene' || command === 'safe_scene_fix' || command === 'safe-scene-fix') {
+    await runPolish('plan', args);
+    return;
+  }
+
+  if (command === 'scene' && (args[0] || '').toLowerCase() === 'polish') {
+    await runPolish(args[1] || 'plan', args.slice(2));
+    return;
+  }
+
+  if (command === 'premium' && ((args[0] || '').toLowerCase() === 'polish-loop' || (args[0] || '').toLowerCase() === 'polishloop')) {
+    await runPolish(args[1] || 'plan', args.slice(2));
+    return;
+  }
+
+  if (command === 'dashboard' && (args[0] || '').toLowerCase() === 'polish') {
+    await runPolish(args[1] || 'plan', args.slice(2));
     return;
   }
 

@@ -1,4 +1,4 @@
-# Codex Studio Bridge V86.0
+# Codex Studio Bridge V96.0
 
 Codex Studio Bridge is a local Roblox Studio plugin plus a dependency-free Node bridge. It lets Codex inspect Studio state, read Output, and queue structured Studio commands without Rojo.
 
@@ -1471,6 +1471,39 @@ V88 adds the Dashboard Reference Fidelity Improvement Loop. Use it when a dashbo
 ```
 
 The loop compares honestly, separates mismatches from intentional gameplay adaptations, produces a safe V72 fix preview, stops at dashboard approval, applies only an approved Codex-owned transaction, recomputes score delta, and can learn or rollback by receipt. If real image vision or Studio pixels are not available, reports must say `actualReferenceVisionUsed: false`, `actualStudioPixelsUsed: false`, and `limitedComparison: true`.
+
+## V96 Integrated Scene Polish Loop
+
+V96 ties the assembled scene stack together after V95: Visual Critic, Fidelity, Architecture, Detail, Materials, QA, Premium Director, Autopilot, plugin health, and Output evidence. Use it when a Codex-owned scene exists and the goal is to polish the whole scene through evidence-linked fixes instead of running isolated specialist passes.
+
+```powershell
+.\tools\bridge.cmd polish status
+.\tools\bridge.cmd polish baseline "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish issues "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish plan "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish preview "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish apply "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish verify <transactionId>
+.\tools\bridge.cmd polish rescore "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish delta "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish learn "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish rollback <transactionId>
+.\tools\bridge.cmd polish report "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish self-check
+.\tools\bridge.cmd integrated_polish "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd scene polish "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd premium polish-loop "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd dashboard polish "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd improve_scene "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish_scene "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd safe_scene_fix "premium dark purple anime dungeon gate hub"
+```
+
+`polish baseline`, `issues`, `plan`, `preview`, `rescore`, `delta`, and `report` are read-only planning/evidence surfaces. `polish preview` emits V72-compatible Codex-owned operations plus verification and rollback plans. `polish apply` does not silently mutate Studio; it returns approval/V72 guidance unless an approved execution path is used. Real Studio changes must still be applied with V72 Execution Kernel receipts, verified with `execute verify`, and rolled back by transaction id only.
+
+The plain-English router sends whole-scene phrases like `polish the whole scene`, `improve the scene`, `fix scene issues`, `integrated polish`, `scene polish loop`, `safe scene fixes`, `make the scene better`, `polish all issues`, and `run polish loop` to V96. Specific requests still keep their specialist routes: `improve materials` goes to Materials, `make better shapes` goes to Architecture, `make it less placeholder` goes to Detail, `compare to reference` goes to Fidelity, `build this for real` goes to Execution, and `new pairing code` goes to Pairing.
+
+V96 never fakes image/pixel/reference comparison, mesh/texture/PBR/asset ids, or Studio execution. Non-Codex edits, deletes, publish/upload/marketplace, DataStore/economy/monetization, arbitrary Luau execution, and global Lighting changes remain blocked or `manualRequired` unless routed through an explicit Codex-owned approved profile.
 
 ## Notes
 

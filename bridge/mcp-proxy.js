@@ -13,8 +13,9 @@ const Reconstruction = require('./reconstruction');
 const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
+const Polish = require('./polish');
 
-const VERSION = '0.93.0';
+const VERSION = '0.96.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -562,6 +563,18 @@ const toolHandlers = {
   dashboard_fidelity_learn: async (args) => requestBridge('POST', '/dashboard/fidelity/learn', { goal: args.goal || args.reference || args.intent || args.text || args.source || '', loopId: args.loopId }, 30000),
   dashboard_fidelity_rollback: async (args) => requestBridge('POST', '/dashboard/fidelity/rollback', { transactionId: args.transactionId || args.tx || args.id }, 45000),
   dashboard_fidelity_self_check: async () => Dashboard.fidelitySelfCheck(),
+  polish_status: async () => requestBridge('GET', '/codex/polish/status', undefined, 2500),
+  polish_baseline: async (args) => requestBridge('GET', `/codex/polish/baseline?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox integrated scene polish loop')}`, undefined, 30000),
+  polish_issues: async (args) => requestBridge('GET', `/codex/polish/issues?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox integrated scene polish loop')}`, undefined, 30000),
+  polish_plan: async (args) => requestBridge('GET', `/codex/polish/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox integrated scene polish loop')}`, undefined, 30000),
+  polish_preview: async (args) => requestBridge('GET', `/codex/polish/preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox integrated scene polish loop')}`, undefined, 30000),
+  polish_apply: async (args) => requestBridge('POST', '/codex/polish/apply', { goal: args.goal || args.intent || args.text || 'premium Roblox integrated scene polish loop', approved: args.approved === true || args.allowApply === true, allowApply: args.allowApply === true }, DEFAULT_COMMAND_TIMEOUT_MS),
+  polish_verify: async (args) => requestBridge('GET', `/codex/polish/verify?transactionId=${encodeURIComponent(args.transactionId || args.tx || args.id || args.goal || '')}`, undefined, 3500),
+  polish_rescore: async (args) => requestBridge('GET', `/codex/polish/rescore?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox integrated scene polish loop')}`, undefined, 30000),
+  polish_delta: async (args) => requestBridge('GET', `/codex/polish/delta?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox integrated scene polish loop')}`, undefined, 30000),
+  polish_learn: async (args) => requestBridge('POST', '/codex/polish/learn', { goal: args.goal || args.intent || args.text || 'premium Roblox integrated scene polish loop' }, 30000),
+  polish_rollback: async (args) => requestBridge('POST', '/codex/polish/rollback', { transactionId: args.transactionId || args.tx || args.id, executed: args.executed === true || args.approved === true }, DEFAULT_COMMAND_TIMEOUT_MS),
+  polish_report: async (args) => requestBridge('GET', `/codex/polish/report?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox integrated scene polish loop')}`, undefined, 30000),
   execute_status: async () => requestBridge('GET', '/codex/execution/status', undefined, 2500),
   execute_roots: async () => requestBridge('GET', '/codex/execution/roots', undefined, 2500),
   execute_preview: async (args) => requestBridge('GET', `/codex/execution/preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox production build')}`, undefined, 3500),
@@ -907,6 +920,18 @@ const toolDefinitions = [
   ['dashboard_fidelity_rollback', 'Rollback a V88 fidelity transaction by receipt-scoped transactionId.', { transactionId: { type: 'string' }, id: { type: 'string' }, tx: { type: 'string' } }],
   ['dashboard_fidelity_self_check', 'Run V88 dashboard fidelity loop self-checks.', {}],
   ['dashboard_self_check', 'Run V84 dashboard chat/timeline/security/router self-checks.', {}],
+  ['polish_status', 'Return V96 Integrated Scene Polish Loop status, safety policy, and next command.', {}],
+  ['polish_baseline', 'Collect V96 baseline scores from visual, fidelity, architecture, detail, materials, QA, premium, and autopilot reports. No Studio mutation.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['polish_issues', 'Normalize current cross-system issues into deduped evidence-linked safe/manualRequired polish issues.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['polish_plan', 'Create a V96 safe integrated scene polish plan with manualRequired blockers separated.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['polish_preview', 'Create a V72-compatible execution preview for safe Codex-owned V96 polish actions. No apply.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['polish_apply', 'Request V96 polish apply. Defaults to manualRequired; only applies through V72 when explicitly approved.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' }, approved: { type: 'boolean' }, allowApply: { type: 'boolean' } }],
+  ['polish_verify', 'Verify a V96/V72 transaction id or return preview verification guidance.', { transactionId: { type: 'string' }, id: { type: 'string' }, tx: { type: 'string' }, goal: { type: 'string' } }],
+  ['polish_rescore', 'Recollect V96 after scores after a polish apply. No Studio mutation.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['polish_delta', 'Compute V96 baseline-to-after score deltas and remaining blockers.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['polish_learn', 'Store a redacted V96 polish lesson in Production Memory. No raw source, patch, token, or image bytes.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['polish_rollback', 'Rollback a V96 transaction by receipt-scoped V72 transaction id.', { transactionId: { type: 'string' }, id: { type: 'string' }, tx: { type: 'string' }, executed: { type: 'boolean' }, approved: { type: 'boolean' } }],
+  ['polish_report', 'Return the combined V96 baseline/issues/plan/preview/delta/report bundle.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['execute_status', 'Return V72 Production Execution Kernel readiness, roots, capabilities, and safety policy.', {}],
   ['execute_roots', 'Return V72 Codex-owned execution roots and rollback-safe path policy.', {}],
   ['execute_preview', 'Preview a V72 transaction-backed real Studio build plan without mutating Studio.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],

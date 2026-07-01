@@ -83,6 +83,11 @@ function createRoute(rawQuery = '', options = {}) {
   const dashboardFidelitySignal = has('dashboard fidelity loop', 'dashboard match reference', 'improve reference match', 'fix fidelity in dashboard', 'one click fidelity fix', 'one-click fidelity fix', 'improve image match', 'make dashboard build closer to reference', 'dashboard compare and fix')
     || ((has('dashboard', 'control room') && has('fidelity', 'reference match', 'match reference', 'closer to reference', 'compare and fix', 'image match')))
     || ((has('one click', 'one-click') && has('fidelity', 'reference match', 'image match')));
+  const polishSignal = has('polish the whole scene', 'improve the scene', 'fix scene issues', 'integrated polish', 'integrated scene polish', 'scene polish loop', 'safe scene fixes', 'make the scene better', 'polish all issues', 'run polish loop', 'scene polish', 'polish scene', 'premium polish loop', 'premium polish-loop', 'improve the build after scoring', 'fix visual qa fidelity issues', 'rerun polish and score')
+    || ((has('scene', 'whole scene', 'all issues', 'build issues') && has('polish', 'improve', 'fix', 'better', 'loop', 'safe fix', 'safe fixes')))
+    || ((has('polish', 'improve') && has('visual', 'fidelity', 'architecture', 'detail', 'materials', 'qa') && has('together', 'integrated', 'all')));
+  const polishEvidenceSignal = has('fix visual qa fidelity issues')
+    || (has('visual') && has('qa') && has('fidelity') && has('fix', 'polish', 'issue', 'issues', 'score'));
   const dashboardSignal = has('open dashboard', 'show dashboard', 'open control room', 'production dashboard', 'dashboard status', 'open ai ui', 'show ai control panel', 'ai control panel', 'control room', 'chat with bridge', 'dashboard chat', 'open ai chat', 'show tool timeline', 'show approvals', 'approve dashboard run', 'dashboard pipeline', 'one click build', 'one-click build', 'show dashboard runs', 'show dashboard safety', 'show dashboard cost')
     || ((has('dashboard', 'control room') && has('chat', 'timeline', 'approval', 'approvals', 'pipeline', 'runs', 'cost', 'safety', 'open', 'show')))
     || (has('one click', 'one-click') && has('build', 'pipeline'));
@@ -343,6 +348,27 @@ function createRoute(rawQuery = '', options = {}) {
         action === 'status' ? 'tools\\bridge.cmd memory status' : `tools\\bridge.cmd memory ${action} ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd memory recommend ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd premium memory ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (polishSignal && !materialsSignal && !architectureSignal && !detailSignal && (!fidelitySignal || polishEvidenceSignal) && !executionExplicitSignal && (!visualSignal || polishEvidenceSignal) && !worldgenSignal && !assetforgeSignal && !vfxOnlySignal && !cinematicSignal) {
+    const action = has('baseline') ? 'baseline'
+      : has('issue', 'issues') ? 'issues'
+        : has('preview') ? 'preview'
+          : has('rescore') ? 'rescore'
+            : has('delta') ? 'delta'
+              : has('learn', 'memory') ? 'learn'
+                : has('report') ? 'report'
+                  : 'plan';
+    setRoute({
+      category: 'polish',
+      title: 'V96 Integrated Scene Polish Loop',
+      confidence: 0.96,
+      safety: action === 'preview' || action === 'plan' || action === 'baseline' || action === 'issues' || action === 'rescore' || action === 'delta' || action === 'report' ? 'readOnlyIntegratedPolishPlan' : 'executionKernelApprovalRequired',
+      reason: 'Integrated scene polish language detected. Normalize cross-system issues, create a safe plan, and route any apply through V72 transaction receipts.',
+      commands: [
+        `tools\\bridge.cmd polish baseline ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd polish ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd polish preview ${quoteForCommand(intent)}`,
       ],
     });
   } else if (executionSignal && (!materialsSignal || executionExplicitSignal) && !vfxOnlySignal && !visualSignal && !cinematicSignal && !qaSignal && !autopilotSignal && (executionExplicitSignal || (!assetforgeSignal && !worldgenSignal))) {

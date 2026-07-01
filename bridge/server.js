@@ -24,8 +24,9 @@ const Reconstruction = require('./reconstruction');
 const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
+const Polish = require('./polish');
 
-const VERSION = '0.93.0';
+const VERSION = '0.96.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -738,6 +739,19 @@ const supportedCommands = new Set([
   'getReferenceFidelityMemoryReport',
   'getReferenceFidelityManifest',
   'bakeReferenceFidelityManifest',
+  'getIntegratedPolishStatus',
+  'getIntegratedPolishBaseline',
+  'getIntegratedPolishIssueReport',
+  'getIntegratedPolishPlan',
+  'getIntegratedPolishPreview',
+  'applyIntegratedPolishPlan',
+  'verifyIntegratedPolishTransaction',
+  'getIntegratedPolishRescore',
+  'getIntegratedPolishDeltaReport',
+  'learnIntegratedPolishResult',
+  'rollbackIntegratedPolishTransaction',
+  'getIntegratedPolishReport',
+  'bakeIntegratedPolishManifest',
   'getDashboardStatus',
   'getDashboardState',
   'getDashboardUrl',
@@ -773,6 +787,10 @@ const supportedCommands = new Set([
   'applyCreatorOsPlan',
   'bakeCreatorStyleBible',
   'polishCreatorOsPackage',
+  'applyIntegratedPolishPlan',
+  'learnIntegratedPolishResult',
+  'rollbackIntegratedPolishTransaction',
+  'bakeIntegratedPolishManifest',
   'creator_os',
   'create_game',
   'premium_build',
@@ -1488,6 +1506,10 @@ const mutatingCommands = new Set([
   'autopilot_polish',
   'autopilot_retest',
   'improve_until_ready',
+  'applyIntegratedPolishPlan',
+  'learnIntegratedPolishResult',
+  'rollbackIntegratedPolishTransaction',
+  'bakeIntegratedPolishManifest',
   'applyExecutionPlan',
   'applyWorldgenExecutionPlan',
   'applyAssetKitExecutionPlan',
@@ -2357,6 +2379,14 @@ const CACHEABLE_TTLS = new Map([
   ['getReferenceFidelityFixPlan', 60_000],
   ['getReferenceFidelityMemoryReport', 60_000],
   ['getReferenceFidelityManifest', 60_000],
+  ['getIntegratedPolishStatus', 15_000],
+  ['getIntegratedPolishBaseline', 60_000],
+  ['getIntegratedPolishIssueReport', 60_000],
+  ['getIntegratedPolishPlan', 60_000],
+  ['getIntegratedPolishPreview', 60_000],
+  ['getIntegratedPolishRescore', 60_000],
+  ['getIntegratedPolishDeltaReport', 60_000],
+  ['getIntegratedPolishReport', 60_000],
   ['getDashboardFidelityState', 15_000],
   ['runDashboardFidelityCompare', 60_000],
   ['getDashboardFidelityFixPlan', 60_000],
@@ -5471,6 +5501,18 @@ async function runRouteHttp(body = {}, requestUrl = null) {
     status = 'executed';
     const search = String(query || '').replace(/tools?|commands?|capabilit(?:y|ies)|manual|what can|codex|bridge/ig, '').trim();
     result = search ? searchTools(search) : codexToolManifest({ full: body.full === true });
+  } else if (route.category === 'polish') {
+    action = 'integratedPolishPreview';
+    status = 'executed';
+    const goal = query || 'premium Roblox integrated scene polish loop';
+    result = {
+      status: Polish.createStatus(),
+      baseline: Polish.createBaseline(goal, { source: 'serverHttp.run.polish.baseline' }),
+      issues: Polish.createIssueReport(goal, { source: 'serverHttp.run.polish.issues' }),
+      plan: Polish.createPlan(goal, { source: 'serverHttp.run.polish.plan' }),
+      preview: Polish.createPreview(goal, { source: 'serverHttp.run.polish.preview' }),
+      note: 'Read-only V96 polish route executed. Any real apply still requires V72 execution approval and a transaction receipt.',
+    };
   } else if (hasPlaceholder) {
     action = 'needsSelector';
     status = 'manualRequired';
@@ -7644,6 +7686,68 @@ async function route(req, res) {
       sendJson(res, 200, await map[endpoint]());
       return;
     }
+  }
+
+  if (req.method === 'GET' && path === '/codex/polish/status') {
+    sendJson(res, 200, Polish.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/polish/')) {
+    const endpoint = path.replace('/codex/polish/', '');
+    const goal = requestUrl.searchParams.get('goal')
+      || requestUrl.searchParams.get('q')
+      || requestUrl.searchParams.get('intent')
+      || requestUrl.searchParams.get('text')
+      || 'premium Roblox integrated scene polish loop';
+    const tx = requestUrl.searchParams.get('transactionId') || requestUrl.searchParams.get('tx') || goal;
+    const map = {
+      baseline: () => Polish.createBaseline(goal, { source: 'serverHttp.polish.baseline' }),
+      issues: () => Polish.createIssueReport(goal, { source: 'serverHttp.polish.issues' }),
+      plan: () => Polish.createPlan(goal, { source: 'serverHttp.polish.plan' }),
+      preview: () => Polish.createPreview(goal, { source: 'serverHttp.polish.preview' }),
+      apply: () => Polish.apply(goal, { source: 'serverHttp.polish.apply' }),
+      verify: () => Polish.verify(tx, { source: 'serverHttp.polish.verify' }),
+      rescore: () => Polish.createRescore(goal, { source: 'serverHttp.polish.rescore' }),
+      delta: () => Polish.createDelta(goal, { source: 'serverHttp.polish.delta' }),
+      learn: () => Polish.learn(goal, { source: 'serverHttp.polish.learn' }),
+      rollback: () => Polish.rollback(tx, { source: 'serverHttp.polish.rollback' }),
+      report: () => Polish.createReport(goal, { source: 'serverHttp.polish.report' }),
+      manifest: () => Polish.createManifest(goal, { source: 'serverHttp.polish.manifest' }),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, map[endpoint]());
+      return;
+    }
+  }
+
+  if (req.method === 'POST' && path === '/codex/polish/apply') {
+    const body = await readBody(req);
+    const goal = body.goal || body.intent || body.text || 'premium Roblox integrated scene polish loop';
+    if (body.approved !== true && body.allowApply !== true) {
+      sendJson(res, 200, Polish.apply(goal, { ...body, source: 'serverHttp.polish.apply' }));
+      return;
+    }
+    sendJson(res, 200, await executeApplyInStudio(`${goal} polish pass`, body));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/codex/polish/learn') {
+    const body = await readBody(req);
+    const goal = body.goal || body.intent || body.text || body.note || 'premium Roblox integrated scene polish loop';
+    sendJson(res, 200, Polish.learn(goal, { ...body, source: 'serverHttp.polish.learn' }));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/codex/polish/rollback') {
+    const body = await readBody(req);
+    const transactionId = body.transactionId || body.tx || body.goal;
+    if (body.executed === true || body.approved === true || body.allowApply === true) {
+      sendJson(res, 200, await executeRollbackInStudio(transactionId, body));
+      return;
+    }
+    sendJson(res, 200, Polish.rollback(transactionId, { ...body, source: 'serverHttp.polish.rollback' }));
+    return;
   }
 
   if (req.method === 'POST' && path === '/codex/ai/run') {

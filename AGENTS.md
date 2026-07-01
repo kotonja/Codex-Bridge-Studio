@@ -1035,3 +1035,30 @@ V88 Dashboard Reference Fidelity Improvement Loop is the preferred route when th
 ```
 
 Routing priority: dashboard-specific phrases like `dashboard fidelity loop`, `dashboard match reference`, `one click fidelity fix`, and `improve image match` go to V88 dashboard. Plain `compare to reference` remains the V80 read-only fidelity route. V88 must never fake image vision or pixel comparison: if real reference vision or Studio pixels are unavailable, keep `actualReferenceVisionUsed: false`, `actualStudioPixelsUsed: false`, and `limitedComparison: true`. Apply is still dashboard-approved and V72 receipt-backed only.
+
+V96 Integrated Scene Polish Loop is the preferred route after an integrated Codex-owned scene exists and the user wants the whole scene improved through evidence-linked fixes instead of one isolated specialist pass. Use it for phrases like `polish the whole scene`, `improve the scene`, `fix scene issues`, `integrated polish`, `scene polish loop`, `safe scene fixes`, `make the scene better`, `polish all issues`, `run polish loop`, `improve the build after scoring`, `fix visual qa fidelity issues`, or `rerun polish and score`.
+
+```powershell
+.\tools\bridge.cmd polish status
+.\tools\bridge.cmd polish baseline "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish issues "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish plan "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish preview "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish apply "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish verify <transactionId>
+.\tools\bridge.cmd polish rescore "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish delta "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish learn "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish rollback <transactionId>
+.\tools\bridge.cmd polish report "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish self-check
+.\tools\bridge.cmd integrated_polish "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd scene polish "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd premium polish-loop "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd dashboard polish "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd improve_scene "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd polish_scene "premium dark purple anime dungeon gate hub"
+.\tools\bridge.cmd safe_scene_fix "premium dark purple anime dungeon gate hub"
+```
+
+V96 collects baseline scores from Visual, Fidelity, Architecture, Detail, Materials, QA, Premium, Autopilot, plugin health, execution state, and Output; normalizes issues with evidence; creates a safe plan; previews V72-compatible Codex-owned operations; then supports verify, rescore, score delta, memory learn, and rollback. `polish apply` must not silently mutate Studio: real changes still need V72 Execution Kernel approval/receipt/verify/rollback. Routing priority: pairing/recovery wins, execution/apply/rollback stays Execution, dashboard UI requests stay Dashboard, and specific materials/architecture/detail/fidelity requests stay their specialists. V96 must not fake image or pixel comparison, Studio execution, mesh IDs, texture IDs, PBR maps, marketplace assets, or asset ids. Non-Codex edits, deletes, publish/upload, DataStore/economy/monetization, arbitrary Luau execution, and global Lighting changes remain blocked or `manualRequired` unless an explicit Codex-owned profile is approved.
