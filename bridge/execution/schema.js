@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.92.0';
+const VERSION = '0.93.0';
 
 const ROOTS = {
   workspace: {
@@ -11,6 +11,8 @@ const ROOTS = {
     qaSwarm: 'Workspace.CodexQaSwarm',
     autopilot: 'Workspace.CodexAutopilot',
     execution: 'Workspace.CodexExecutionKernel',
+    materials: 'Workspace.CodexProduction.MaterialRealization',
+    materialSwatches: 'Workspace.CodexMaterialSwatches',
     markers: 'Workspace.CodexExecutionKernel.Markers',
     preview: 'Workspace.CodexExecutionKernel.Preview',
     applied: 'Workspace.CodexExecutionKernel.Applied',
@@ -30,6 +32,7 @@ const ROOTS = {
     rollback: 'ReplicatedStorage.CodexExecutionKernel.Rollback',
     verification: 'ReplicatedStorage.CodexExecutionKernel.Verification',
     memory: 'ReplicatedStorage.CodexProductionMemory',
+    materials: 'ReplicatedStorage.CodexMaterialProfiles',
   },
   optional: {
     ui: 'StarterGui.CodexGeneratedUI',
@@ -49,6 +52,7 @@ const CAPABILITIES = [
   'qaMarkerCompilation',
   'safeFixCompilation',
   'geometryRealization',
+  'materialColorLightingAtmosphereRealization',
   'propertyLevelVerification',
   'verificationReports',
   'autopilotIntegration',
@@ -70,6 +74,7 @@ const SYSTEMS = {
   detail: 'DetailCompiler',
   architecture: 'ArchitectureCompiler',
   geometryTest: 'GeometryRealization',
+  materials: 'MaterialRealization',
   cinematic: 'Cinematic',
   qaMarkers: 'QaSwarm',
   polish: 'Autopilot',

@@ -17,6 +17,7 @@ const Memory = require('./memory');
 const Execution = require('./execution');
 const Detail = require('./detail');
 const Architecture = require('./architecture');
+const Materials = require('./materials');
 const AiOrchestrator = require('./ai-orchestrator');
 const ReferenceLab = require('./reference-lab');
 const Reconstruction = require('./reconstruction');
@@ -24,7 +25,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.92.0';
+const VERSION = '0.93.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -420,6 +421,22 @@ const supportedCommands = new Set([
   'getArchitectureExecutionPreview',
   'getArchitectureManifest',
   'bakeArchitectureManifest',
+  'getMaterialSystemStatus',
+  'getMaterialStyleCatalog',
+  'getMaterialPalette',
+  'getMaterialPlan',
+  'getMaterialSwatchPlan',
+  'getMaterialApplyPlan',
+  'getLightingPlan',
+  'getAtmospherePlan',
+  'getLightFixturePlan',
+  'getGlowAccentPlan',
+  'getMaterialMobileBudget',
+  'getMaterialAuditReport',
+  'getMaterialPolishPlan',
+  'getMaterialExecutionPreview',
+  'getMaterialManifest',
+  'bakeMaterialManifest',
   'architecture_status',
   'architecture_styles',
   'architecture_grammar',
@@ -2265,6 +2282,21 @@ const CACHEABLE_TTLS = new Map([
   ['getArchitecturePolishPlan', 60_000],
   ['getArchitectureExecutionPreview', 30_000],
   ['getArchitectureManifest', 60_000],
+  ['getMaterialSystemStatus', 15_000],
+  ['getMaterialStyleCatalog', 120_000],
+  ['getMaterialPalette', 60_000],
+  ['getMaterialPlan', 60_000],
+  ['getMaterialSwatchPlan', 60_000],
+  ['getMaterialApplyPlan', 60_000],
+  ['getLightingPlan', 60_000],
+  ['getAtmospherePlan', 60_000],
+  ['getLightFixturePlan', 60_000],
+  ['getGlowAccentPlan', 60_000],
+  ['getMaterialMobileBudget', 30_000],
+  ['getMaterialAuditReport', 60_000],
+  ['getMaterialPolishPlan', 60_000],
+  ['getMaterialExecutionPreview', 30_000],
+  ['getMaterialManifest', 60_000],
   ['getAiOrchestratorStatus', 15_000],
   ['getAiOrchestratorConfig', 15_000],
   ['getAiTlsConnectivityReport', 15_000],
@@ -8037,6 +8069,40 @@ async function route(req, res) {
       polish: () => Architecture.createPolishPlan(goal, { source: 'bridge.http.architecture.polish' }),
       'execute-preview': () => Architecture.createExecutionPreview(goal, { source: 'bridge.http.architecture.executePreview' }),
       manifest: () => Architecture.createManifest(goal, { source: 'bridge.http.architecture.manifest' }),
+    };
+    if (map[endpoint]) {
+      sendJson(res, 200, map[endpoint]());
+      return;
+    }
+  }
+
+  if (req.method === 'GET' && path === '/codex/materials/status') {
+    sendJson(res, 200, Materials.createStatus());
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/codex/materials/styles') {
+    sendJson(res, 200, Materials.createStyleCatalog());
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/codex/materials/')) {
+    const endpoint = path.replace('/codex/materials/', '');
+    const goal = requestUrl.searchParams.get('goal') || requestUrl.searchParams.get('intent') || requestUrl.searchParams.get('q') || 'dark purple anime dungeon gate';
+    const map = {
+      palette: () => Materials.createPalette(goal, { source: 'bridge.http.materials.palette' }),
+      plan: () => Materials.createPlan(goal, { source: 'bridge.http.materials.plan' }),
+      swatches: () => Materials.createSwatchPlan(goal, { source: 'bridge.http.materials.swatches' }),
+      'apply-plan': () => Materials.createApplyPlan(goal, { source: 'bridge.http.materials.applyPlan' }),
+      lighting: () => Materials.createLightingPlan(goal, { source: 'bridge.http.materials.lighting' }),
+      atmosphere: () => Materials.createAtmospherePlan(goal, { source: 'bridge.http.materials.atmosphere' }),
+      fixtures: () => Materials.createLightFixturePlan(goal, { source: 'bridge.http.materials.fixtures' }),
+      glow: () => Materials.createGlowAccentPlan(goal, { source: 'bridge.http.materials.glow' }),
+      'mobile-budget': () => Materials.createMaterialMobileBudget(goal, { source: 'bridge.http.materials.mobileBudget' }),
+      audit: () => Materials.createAuditReport(goal, { source: 'bridge.http.materials.audit' }),
+      polish: () => Materials.createPolishPlan(goal, { source: 'bridge.http.materials.polish' }),
+      'execute-preview': () => Materials.createExecutionPreview(goal, { source: 'bridge.http.materials.executePreview' }),
+      manifest: () => Materials.createManifest(goal, { source: 'bridge.http.materials.manifest' }),
     };
     if (map[endpoint]) {
       sendJson(res, 200, map[endpoint]());

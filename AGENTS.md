@@ -348,6 +348,34 @@ V92 Geometry Realization Kernel is the first thing to check if Studio creates or
 
 Use the geometry test before blaming Worldgen, Detail, Architecture, or Dashboard when real parts are wrong. The test should create a red cube left, blue pillar right, green platform forward, purple portal frame, crystals, light, and prompt anchor under `Workspace.CodexExecutionKernel.GeometryTest_*`. Apply remains V72-only and Codex-owned; rollback remains receipt-scoped; real mesh/texture/PBR/upload/marketplace/publish/DataStore/economy work remains manual or blocked.
 
+V93 Material, Color, Lighting, and Atmosphere Realization is the preferred specialist when a generated build has real geometry but still looks gray, plastic, flat, unlit, color-random, or placeholder. V93 creates a cohesive material language with palette roles, built-in Roblox material mapping, material swatches, glow accents, light fixtures, atmosphere/fog guidance, mobile light budgets, audits, polish plans, and V72-compatible execution preview actions.
+
+```powershell
+.\tools\bridge.cmd materials status
+.\tools\bridge.cmd materials styles
+.\tools\bridge.cmd materials palette "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials swatches "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials apply-plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials lighting "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials atmosphere "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials fixtures "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials glow "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials mobile-budget "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials audit "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials polish "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials execute-preview "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials manifest "dark purple anime dungeon gate"
+.\tools\bridge.cmd material pass "dark purple anime dungeon gate"
+.\tools\bridge.cmd color palette "dark purple anime dungeon gate"
+.\tools\bridge.cmd lighting pass "dark purple anime dungeon gate"
+.\tools\bridge.cmd atmosphere pass "dark purple anime dungeon gate"
+.\tools\bridge.cmd make materials premium "dark purple anime dungeon gate"
+.\tools\bridge.cmd improve colors "dark purple anime dungeon gate"
+```
+
+Routing priority for V93: pairing/recovery still wins, explicit VFX stays VFX, explicit visual critique/fidelity stays Visual/Fidelity, map/layout stays Worldgen, shape/modular architecture stays V91 Architecture, reusable asset-kit or real mesh/material-library planning stays Asset Forge, and plain/detail/trim geometry density stays V89 Detail unless the wording is clearly material, color, lighting, fog, atmosphere, glow, or palette. V93 outputs are Codex-owned under `Workspace.CodexProduction.Materials`, `Workspace.CodexProduction.MaterialSwatches`, and `ReplicatedStorage.CodexMaterials`, and may be previewed through `.\tools\bridge.cmd execute preview "dark purple anime dungeon gate material pass"`. It must not mutate non-Codex content, fake mesh/texture/PBR/asset IDs, publish/upload, use marketplace insertion, touch DataStore/economy/monetization, edit production scripts, or delete user content.
+
 V68 Cinematic Motion Director is the preferred specialist when the user says combat feels weak, add impact, add hit stop, add screen shake, make it cinematic, sync animation VFX audio, boss intro, opening cutscene, game feel, make the ability feel powerful, or polish animation timing. It plans animation, marker timing, VFX layers, audio cues, camera beats, shake, hit-stop, UI punch, ability windows, mobile motion budget, preview, audit, polish, and manifests as one synced moment:
 
 ```powershell

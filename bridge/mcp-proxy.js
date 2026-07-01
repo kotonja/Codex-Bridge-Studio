@@ -14,7 +14,7 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 
-const VERSION = '0.92.0';
+const VERSION = '0.93.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -748,6 +748,21 @@ const toolHandlers = {
   architecture_polish: async (args) => requestBridge('GET', `/codex/architecture/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium modular Roblox architecture')}`, undefined, 2500),
   architecture_execute_preview: async (args) => requestBridge('GET', `/codex/architecture/execute-preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium modular Roblox architecture')}`, undefined, 2500),
   architecture_manifest: async (args) => requestBridge('GET', `/codex/architecture/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium modular Roblox architecture')}`, undefined, 2500),
+  materials_status: async () => requestBridge('GET', '/codex/materials/status', undefined, 2500),
+  materials_styles: async () => requestBridge('GET', '/codex/materials/styles', undefined, 2500),
+  materials_palette: async (args) => requestBridge('GET', `/codex/materials/palette?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_plan: async (args) => requestBridge('GET', `/codex/materials/plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_swatches: async (args) => requestBridge('GET', `/codex/materials/swatches?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_apply_plan: async (args) => requestBridge('GET', `/codex/materials/apply-plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_lighting: async (args) => requestBridge('GET', `/codex/materials/lighting?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_atmosphere: async (args) => requestBridge('GET', `/codex/materials/atmosphere?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_fixtures: async (args) => requestBridge('GET', `/codex/materials/fixtures?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_glow: async (args) => requestBridge('GET', `/codex/materials/glow?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_mobile_budget: async (args) => requestBridge('GET', `/codex/materials/mobile-budget?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_audit: async (args) => requestBridge('GET', `/codex/materials/audit?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_polish: async (args) => requestBridge('GET', `/codex/materials/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_execute_preview: async (args) => requestBridge('GET', `/codex/materials/execute-preview?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
+  materials_manifest: async (args) => requestBridge('GET', `/codex/materials/manifest?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'dark purple anime dungeon gate')}`, undefined, 2500),
   geometry_test_preview: async (args) => requestBridge('GET', `/codex/execution/geometry-test?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'V92 geometry realization test')}`, undefined, 2500),
   assetforge_status: async () => requestBridge('GET', '/codex/assetforge/status', undefined, 2500),
   assetforge_styles: async () => requestBridge('GET', '/codex/assetforge/styles', undefined, 2500),
@@ -1077,6 +1092,21 @@ const toolDefinitions = [
   ['architecture_polish', 'Return V91 staged polish plan to improve silhouette, arch proportions, wall rhythm, roof/upper shape, interior flow, and mobile simplification.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['architecture_execute_preview', 'Return V72-compatible V91 architecture execution preview actions. Does not apply Studio changes.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['architecture_manifest', 'Return V91 architecture manifest metadata and next commands.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_status', 'Return V93 Material, Color, Lighting, and Atmosphere Realization readiness, safety, and roots.', {}],
+  ['materials_styles', 'List V93 material and lighting style catalogs with palettes, glow rules, atmosphere language, and mobile hints.', {}],
+  ['materials_palette', 'Create a V93 material/color palette using built-in Roblox Materials and Color3 values. No fake texture ids.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_plan', 'Plan a V93 material, color, lighting, and atmosphere pass without mutating Studio.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_swatches', 'Return V72-compatible swatch board operations for material/color/glow samples.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_apply_plan', 'Return a Codex-owned material application policy and role mapping; non-Codex targets remain manualRequired.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_lighting', 'Plan mobile-safe key/rim/accent/path/portal lighting without mutating global Lighting.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_atmosphere', 'Create an atmosphere/fog/bloom/color-correction manifest plan; global Lighting apply is manualRequired by default.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_fixtures', 'Return V72-compatible lantern/sconce/crystal/path/portal light fixture operations.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_glow', 'Return V72-compatible Neon/glow accent operations with a strict glow budget.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_mobile_budget', 'Audit the V93 light/glow plan against mobile-safe brightness, range, and count budgets.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_audit', 'Score V93 palette, material discipline, trim contrast, glow discipline, lighting depth, atmosphere, and premium material feel.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_polish', 'Return staged V93 polish actions for contrast, material roles, glow discipline, fixtures, atmosphere, and mobile light reduction.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_execute_preview', 'Return V72-compatible V93 material swatches, fixtures, glow accents, and manifests. Does not apply Studio changes.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['materials_manifest', 'Return V93 material profile manifest metadata and next commands.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['geometry_test_preview', 'Return the V92 geometry realization diagnostic preview with typed Size, Position, Color, Material, and property verification expectations. Does not apply Studio changes.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['assetforge_status', 'Return V67 Asset Forge Pro readiness and integrations.', {}],
   ['assetforge_styles', 'List V67 premium asset style catalog entries.', {}],

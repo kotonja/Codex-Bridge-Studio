@@ -32,6 +32,15 @@ function parsedContext(goal, options = {}) {
   return { parsed, style, moduleGrid };
 }
 
+function materialRoleHintsFor(goal) {
+  return {
+    recommended: true,
+    roles: ['baseStone', 'trim', 'metal', 'glass', 'emissive', 'path', 'crystal', 'fog'],
+    reason: 'V91 establishes shape grammar; V93 should assign material roles, Color3 contrast, lighting fixtures, glow accents, and atmosphere profile manifests.',
+    nextCommand: `tools\\bridge.cmd materials plan "${safeGoal(goal)}"`,
+  };
+}
+
 function createGrammarReport(goal, options = {}) {
   const { parsed, style, moduleGrid } = parsedContext(goal, options);
   return {
@@ -45,6 +54,7 @@ function createGrammarReport(goal, options = {}) {
     silhouette: createSilhouetteGrammar(parsed, style, moduleGrid),
     grammar: createGrammarPolicy(parsed, style, moduleGrid),
     arch: createArchGrammar(parsed, style, moduleGrid),
+    materialRoleHints: materialRoleHintsFor(parsed.goal),
     warnings: [],
     blockers: [],
     nextCommand: `tools\\bridge.cmd architecture compile "${parsed.goal}"`,
@@ -65,6 +75,7 @@ function createPlan(goal, options = {}) {
     moduleGrid,
     systems: parsed.systems,
     grammar: createGrammarPolicy(parsed, style, moduleGrid),
+    materialRoleHints: materialRoleHintsFor(parsed.goal),
     productionRules: ['macro silhouette before trims', 'module rhythm before decoration', 'sockets are named and intentional', 'mobile fallback is planned up front'],
     warnings: [],
     blockers: [],
@@ -94,7 +105,8 @@ function singleSystem(goal, system, compiler, planFactory, options = {}) {
 }
 
 function createCompilePlan(goal, options = {}) {
-  return compileForExecution(goal, options);
+  const compiled = compileForExecution(goal, options);
+  return { ...compiled, materialRoleHints: materialRoleHintsFor(compiled.goal) };
 }
 
 function createBudget(goal, options = {}) {

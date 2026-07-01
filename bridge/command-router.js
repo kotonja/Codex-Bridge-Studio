@@ -41,6 +41,8 @@ function createRoute(rawQuery = '', options = {}) {
     || ((has('detail', 'detailed', 'placeholder', 'geometry', 'trims', 'trim', 'bevels', 'bevel', 'material swatches', 'prop clusters', 'lighting fixtures') && has('make', 'add', 'improve', 'build', 'premium', 'compile', 'execute')));
   const architectureSignal = has('make better shapes', 'improve silhouette', 'advanced shape grammar', 'shape grammar', 'modular architecture', 'make the architecture better', 'better portal shape', 'make better arches', 'improve roof shape', 'make walls modular', 'make better windows and doors', 'make it look less blocky', 'fix blocky geometry', 'make the building shape premium', 'improve dungeon architecture', 'portal architecture')
     || ((has('architecture', 'architectural', 'silhouette', 'modular', 'shape grammar', 'roof shape', 'wall module', 'walls modular', 'arches', 'portal shape', 'window rhythm', 'door rhythm', 'blocky geometry', 'less blocky') && has('make', 'improve', 'better', 'fix', 'compile', 'plan', 'premium')));
+  const materialsSignal = has('improve materials', 'make materials premium', 'fix plain parts', 'improve colors', 'add material palette', 'add material swatches', 'lighting pass', 'make lighting better', 'mood lighting', 'add atmosphere', 'add fog', 'make it less plain', 'make parts look premium', 'apply materials', 'color palette', 'glow accents', 'neon accents')
+    || ((has('material', 'materials', 'color palette', 'colors', 'lighting pass', 'mood lighting', 'atmosphere', 'fog', 'glow accents', 'neon accents', 'plain parts') && has('improve', 'make', 'fix', 'add', 'apply', 'premium', 'pass', 'better')));
   const vfxSignal = has('vfx', 'effect', 'aura', 'projectile', 'beam', 'slash', 'impact', 'explosion', 'wind', 'lightning', 'smoke', 'portal');
   const cinematicSignal = has('make it feel premium', 'make combat feel good', 'add impact', 'add hit stop', 'hit stop', 'add screen shake', 'screen shake', 'make cinematic', 'sync animation vfx audio', 'camera shake', 'ability timing', 'impact frames', 'make attack feel powerful', 'make movement feel better', 'make boss intro cinematic', 'opening cutscene', 'make opening cutscene', 'polish animation timing', 'polish game feel', 'fix weak ability', 'game feel', 'gamefeel', 'sync moment')
     || ((has('motion', 'cinematic', 'camera', 'impact', 'hit-stop', 'hitstop', 'shake', 'timing', 'anticipation', 'follow through', 'recoil') && has('plan', 'make', 'add', 'polish', 'fix', 'sync', 'generate', 'feel')));
@@ -343,7 +345,7 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd premium memory ${quoteForCommand(intent)}`,
       ],
     });
-  } else if (executionSignal && !vfxOnlySignal && !visualSignal && !cinematicSignal && !qaSignal && !autopilotSignal && (executionExplicitSignal || (!assetforgeSignal && !worldgenSignal))) {
+  } else if (executionSignal && (!materialsSignal || executionExplicitSignal) && !vfxOnlySignal && !visualSignal && !cinematicSignal && !qaSignal && !autopilotSignal && (executionExplicitSignal || (!assetforgeSignal && !worldgenSignal))) {
     const action = has('rollback') ? 'rollback'
       : has('transactions', 'show transactions') ? 'transactions'
         : has('verify') ? 'verify'
@@ -417,6 +419,30 @@ function createRoute(rawQuery = '', options = {}) {
         `tools\\bridge.cmd architecture grammar ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd architecture ${action} ${quoteForCommand(intent)}`,
         `tools\\bridge.cmd architecture audit ${quoteForCommand(intent)}`,
+      ],
+    });
+  } else if (materialsSignal && !premiumBuildSignal && !visualSignal && !worldcompileSignal && !executionExplicitSignal) {
+    const action = has('audit', 'score') ? 'audit'
+      : has('polish') ? 'polish'
+        : has('swatch', 'swatches') ? 'swatches'
+          : has('lighting', 'light') ? 'lighting'
+            : has('atmosphere', 'fog') ? 'atmosphere'
+              : has('fixture', 'fixtures') ? 'fixtures'
+                : has('glow', 'neon') ? 'glow'
+                  : has('budget', 'mobile') ? 'mobile-budget'
+                    : has('palette', 'colors') ? 'palette'
+                      : has('apply') ? 'apply-plan'
+                        : 'plan';
+    setRoute({
+      category: 'materials',
+      title: 'V93 Material, Color, Lighting, and Atmosphere Realization',
+      confidence: 0.96,
+      safety: action === 'execute-preview' ? 'executionKernelPreviewOnly' : 'readOnlyMaterialLightingPlan',
+      reason: 'Material, Color3, built-in Roblox material, lighting, atmosphere, fog, glow, or plain-part polish language detected.',
+      commands: [
+        `tools\\bridge.cmd materials palette ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd materials ${action} ${quoteForCommand(intent)}`,
+        `tools\\bridge.cmd materials audit ${quoteForCommand(intent)}`,
       ],
     });
   } else if (detailSignal && !premiumBuildSignal && !visualSignal) {

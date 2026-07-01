@@ -9,6 +9,7 @@ const { compileAssetKit } = require('./assetkit-compiler');
 const { compileDetail } = require('./detail-compiler');
 const { compileArchitecture } = require('./architecture-compiler');
 const { compileGeometryTest } = require('./geometry-test-compiler');
+const { compileMaterials } = require('./materials-compiler');
 const { compileCinematic } = require('./cinematic-compiler');
 const { compileQaMarkers } = require('./qa-marker-compiler');
 const { compilePolish } = require('./polish-compiler');
@@ -20,6 +21,7 @@ function chooseCompiler(system) {
   if (system === SYSTEMS.detail) return compileDetail;
   if (system === SYSTEMS.architecture) return compileArchitecture;
   if (system === SYSTEMS.geometryTest) return compileGeometryTest;
+  if (system === SYSTEMS.materials) return compileMaterials;
   if (system === SYSTEMS.cinematic) return compileCinematic;
   if (system === SYSTEMS.qaMarkers) return compileQaMarkers;
   if (system === SYSTEMS.polish) return compilePolish;

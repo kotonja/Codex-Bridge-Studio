@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.91.0';
+const VERSION = '0.93.0';
 
 const ROOTS = {
   workspace: 'Workspace.CodexProduction.ArchitectureCompiler',

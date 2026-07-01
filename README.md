@@ -222,6 +222,35 @@ V92 fixes the real Studio builder path so generated plans become visible, spatia
 
 The geometry test creates a Codex-owned red cube, blue pillar, green platform, purple portal frame, crystals, light, and prompt anchor under `Workspace.CodexExecutionKernel.GeometryTest_*`. Apply still goes through V72 Execution Kernel, receipts, verify, and rollback. Verification reports `sizeMatches`, `positionMatches`, `materialMatches`, `colorMatches`, and mismatch counts. V92 does not add mesh/PBR/asset upload work and still blocks publish/upload/marketplace/DataStore/economy mutation.
 
+## V93 Material, Color, Lighting, and Atmosphere Realization
+
+V93 is the preferred specialist when real geometry exists but the build still looks plain, plastic, flat, gray, unlit, or placeholder. It turns intent into a cohesive Roblox-safe material language: palette roles, built-in `Enum.Material` choices, color harmony, swatch boards, glow accents, light fixtures, atmosphere/fog suggestions, mobile light budgets, audits, and V72-compatible preview operations.
+
+```powershell
+.\tools\bridge.cmd materials status
+.\tools\bridge.cmd materials styles
+.\tools\bridge.cmd materials palette "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials swatches "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials apply-plan "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials lighting "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials atmosphere "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials fixtures "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials glow "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials mobile-budget "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials audit "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials polish "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials execute-preview "dark purple anime dungeon gate"
+.\tools\bridge.cmd materials manifest "dark purple anime dungeon gate"
+.\tools\bridge.cmd material pass "dark purple anime dungeon gate"
+.\tools\bridge.cmd color palette "dark purple anime dungeon gate"
+.\tools\bridge.cmd lighting pass "dark purple anime dungeon gate"
+.\tools\bridge.cmd atmosphere pass "dark purple anime dungeon gate"
+.\tools\bridge.cmd make materials premium "dark purple anime dungeon gate"
+```
+
+`materials palette`, `plan`, and `audit` are read-only. `materials execute-preview` returns V72-compatible Codex-owned operations under `Workspace.CodexProduction.Materials`, `Workspace.CodexProduction.MaterialSwatches`, and `ReplicatedStorage.CodexMaterials`. Actual Studio mutation still goes through `.\tools\bridge.cmd execute apply "<goal> material pass"` with receipt, verify, and rollback. V93 uses built-in Roblox materials and honest placeholder-safe swatches; real PBR texture maps, mesh imports, marketplace assets, upload/publish, DataStore/economy/monetization, production script edits, and non-Codex mutation remain manual or blocked.
+
 ## V68 Cinematic Motion Director
 
 V68 adds a synced motion/game-feel layer for moments that need animation, VFX, audio, camera, screen shake, hit-stop, UI punch, and mobile-safe readability to feel like one premium beat. Use it when the request says combat feels weak, add impact, hit stop, screen shake, cinematic intro, boss intro, sync animation/VFX/audio, or make an ability feel powerful.

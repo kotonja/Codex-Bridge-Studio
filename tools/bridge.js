@@ -17,6 +17,7 @@ const Memory = require('../bridge/memory');
 const Execution = require('../bridge/execution');
 const Detail = require('../bridge/detail');
 const Architecture = require('../bridge/architecture');
+const Materials = require('../bridge/materials');
 const AiOrchestrator = require('../bridge/ai-orchestrator');
 const ReferenceLab = require('../bridge/reference-lab');
 const Reconstruction = require('../bridge/reconstruction');
@@ -24,8 +25,8 @@ const WorldCompiler = require('../bridge/world-compiler');
 const Fidelity = require('../bridge/fidelity');
 const Dashboard = require('../bridge/dashboard');
 
-const HELPER_VERSION = '0.92.0';
-const MCP_PROXY_VERSION = '0.92.0';
+const HELPER_VERSION = '0.93.0';
+const MCP_PROXY_VERSION = '0.93.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -180,6 +181,21 @@ const MCP_PROXY_TOOLS = [
   'architecture_polish',
   'architecture_execute_preview',
   'architecture_manifest',
+  'materials_status',
+  'materials_styles',
+  'materials_palette',
+  'materials_plan',
+  'materials_swatches',
+  'materials_apply_plan',
+  'materials_lighting',
+  'materials_atmosphere',
+  'materials_fixtures',
+  'materials_glow',
+  'materials_mobile_budget',
+  'materials_audit',
+  'materials_polish',
+  'materials_execute_preview',
+  'materials_manifest',
   'geometry_test_preview',
   'assetforge_status',
   'assetforge_styles',
@@ -7994,6 +8010,76 @@ async function runArchitecture(subcommand = 'status', args = []) {
   throw new Error('architecture command must be status, styles, grammar, plan, compile, portal, arch, walls, roof, windows, doors, pillars, stairs, interior, trims, variants, budget, audit, polish, execute-preview, manifest, or self-check.');
 }
 
+async function runMaterials(subcommand = 'status', args = []) {
+  const mode = String(subcommand || 'status').toLowerCase();
+  const cleanGoal = () => args.join(' ').trim() || 'dark purple anime dungeon gate';
+  if (mode === 'status') {
+    print(Materials.createStatus());
+    return;
+  }
+  if (mode === 'self-check' || mode === 'selfcheck') {
+    print(runNodeJsonScript('tests/self-check-materials.js'));
+    return;
+  }
+  if (mode === 'styles' || mode === 'style-catalog' || mode === 'catalog') {
+    print(Materials.createStyleCatalog());
+    return;
+  }
+  if (mode === 'palette' || mode === 'colors') {
+    print(Materials.createPalette(cleanGoal(), { source: 'tools.bridge.materials.palette' }));
+    return;
+  }
+  if (mode === 'plan') {
+    print(Materials.createPlan(cleanGoal(), { source: 'tools.bridge.materials.plan' }));
+    return;
+  }
+  if (mode === 'swatches' || mode === 'swatch') {
+    print(Materials.createSwatchPlan(cleanGoal(), { source: 'tools.bridge.materials.swatches' }));
+    return;
+  }
+  if (mode === 'apply-plan' || mode === 'applyplan') {
+    print(Materials.createApplyPlan(cleanGoal(), { source: 'tools.bridge.materials.applyPlan' }));
+    return;
+  }
+  if (mode === 'lighting' || mode === 'light') {
+    print(Materials.createLightingPlan(cleanGoal(), { source: 'tools.bridge.materials.lighting' }));
+    return;
+  }
+  if (mode === 'atmosphere' || mode === 'fog') {
+    print(Materials.createAtmospherePlan(cleanGoal(), { source: 'tools.bridge.materials.atmosphere' }));
+    return;
+  }
+  if (mode === 'fixtures' || mode === 'fixture') {
+    print(Materials.createLightFixturePlan(cleanGoal(), { source: 'tools.bridge.materials.fixtures' }));
+    return;
+  }
+  if (mode === 'glow' || mode === 'glow-accents') {
+    print(Materials.createGlowAccentPlan(cleanGoal(), { source: 'tools.bridge.materials.glow' }));
+    return;
+  }
+  if (mode === 'mobile-budget' || mode === 'budget') {
+    print(Materials.createMaterialMobileBudget(cleanGoal(), { source: 'tools.bridge.materials.mobileBudget' }));
+    return;
+  }
+  if (mode === 'audit' || mode === 'score') {
+    print(Materials.createAuditReport(cleanGoal(), { source: 'tools.bridge.materials.audit' }));
+    return;
+  }
+  if (mode === 'polish') {
+    print(Materials.createPolishPlan(cleanGoal(), { source: 'tools.bridge.materials.polish' }));
+    return;
+  }
+  if (mode === 'execute-preview' || mode === 'preview') {
+    print(Materials.createExecutionPreview(cleanGoal(), { source: 'tools.bridge.materials.executePreview' }));
+    return;
+  }
+  if (mode === 'manifest' || mode === 'bake') {
+    print(Materials.createManifest(cleanGoal(), { source: 'tools.bridge.materials.manifest' }));
+    return;
+  }
+  throw new Error('materials command must be status, styles, palette, plan, swatches, apply-plan, lighting, atmosphere, fixtures, glow, mobile-budget, audit, polish, execute-preview, manifest, or self-check.');
+}
+
 async function assetforgeStudioOptions(extra = {}) {
   const health = await requestSafe('/health', { timeoutMs: 1200, noAutoStart: true });
   return {
@@ -13519,6 +13605,10 @@ async function main(argv) {
   }
 
   if (command === 'lighting') {
+    if ((args[0] || '').toLowerCase() === 'pass') {
+      await runMaterials('lighting', args.slice(1));
+      return;
+    }
     await runLighting(args[0] || 'preview');
     return;
   }
@@ -13597,6 +13687,11 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'premium' && (args[0] || '').toLowerCase() === 'materials') {
+    await runMaterials('plan', args.slice(1));
+    return;
+  }
+
   if (command === 'premium') {
     await runPremium(args[0] || 'status', args.slice(1));
     return;
@@ -13609,6 +13704,51 @@ async function main(argv) {
 
   if (command === 'geometry-test' || command === 'geometry_test') {
     await runGeometryTest(args[0] || 'preview', args.slice(1));
+    return;
+  }
+
+  if (command === 'materials') {
+    await runMaterials(args[0] || 'status', args.slice(1));
+    return;
+  }
+
+  if (command === 'material' && (args[0] || '').toLowerCase() === 'pass') {
+    await runMaterials('execute-preview', args.slice(1));
+    return;
+  }
+
+  if (command === 'color' && (args[0] || '').toLowerCase() === 'palette') {
+    await runMaterials('palette', args.slice(1));
+    return;
+  }
+
+  if (command === 'lighting' && (args[0] || '').toLowerCase() === 'pass') {
+    await runMaterials('lighting', args.slice(1));
+    return;
+  }
+
+  if (command === 'mood' && (args[0] || '').toLowerCase() === 'lighting') {
+    await runMaterials('lighting', args.slice(1));
+    return;
+  }
+
+  if (command === 'atmosphere' && (args[0] || '').toLowerCase() === 'pass') {
+    await runMaterials('atmosphere', args.slice(1));
+    return;
+  }
+
+  if (command === 'make' && (args[0] || '').toLowerCase() === 'materials' && (args[1] || '').toLowerCase() === 'premium') {
+    await runMaterials('plan', args.slice(2));
+    return;
+  }
+
+  if (command === 'improve' && (args[0] || '').toLowerCase() === 'colors') {
+    await runMaterials('palette', args.slice(1));
+    return;
+  }
+
+  if (command === 'apply_materials') {
+    await runMaterials('execute-preview', args);
     return;
   }
 
@@ -13684,6 +13824,28 @@ async function main(argv) {
   };
   if (directArchitectureCommands[command]) {
     await runArchitecture(directArchitectureCommands[command], args);
+    return;
+  }
+
+  const directMaterialsCommands = {
+    materials_status: 'status',
+    materials_styles: 'styles',
+    materials_palette: 'palette',
+    materials_plan: 'plan',
+    materials_swatches: 'swatches',
+    materials_apply_plan: 'apply-plan',
+    materials_lighting: 'lighting',
+    materials_atmosphere: 'atmosphere',
+    materials_fixtures: 'fixtures',
+    materials_glow: 'glow',
+    materials_mobile_budget: 'mobile-budget',
+    materials_audit: 'audit',
+    materials_polish: 'polish',
+    materials_execute_preview: 'execute-preview',
+    materials_manifest: 'manifest',
+  };
+  if (directMaterialsCommands[command]) {
+    await runMaterials(directMaterialsCommands[command], args);
     return;
   }
 

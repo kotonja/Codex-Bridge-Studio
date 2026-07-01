@@ -30,6 +30,14 @@ function architectureHintsFor(goal) {
   };
 }
 
+function materialHintsFor(goal) {
+  return {
+    recommended: true,
+    reason: 'After V89 geometry/detail placement, run V93 Materials to apply intentional built-in Roblox Materials, Color3 palettes, glow discipline, light fixtures, and atmosphere manifests.',
+    nextCommand: `tools\\bridge.cmd materials plan "${safeGoal(goal)}"`,
+  };
+}
+
 function createBuildPlan(goal, options = {}) {
   const parsed = parseGoal(goal, options);
   const style = getStyle(parsed.styleId);
@@ -64,6 +72,7 @@ function createBuildPlan(goal, options = {}) {
     warnings: [],
     blockers: [],
     architectureHints: architectureHintsFor(parsed.goal),
+    materialRealizationHint: materialHintsFor(parsed.goal),
     nextCommand: architectureHintsFor(parsed.goal) ? `tools\\bridge.cmd architecture compile "${parsed.goal}"` : `tools\\bridge.cmd detail compile "${parsed.goal}"`,
   };
 }
@@ -84,6 +93,7 @@ function createCompilePlan(goal, options = {}) {
     budget: compiled.budget,
     audit: compiled.audit,
     polishPlan: compiled.polishPlan,
+    materialRealizationHint: materialHintsFor(compiled.goal),
     manifest: compiled.manifest,
     warnings: compiled.warnings,
     blockers: compiled.blockers,
