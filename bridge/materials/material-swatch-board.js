@@ -5,7 +5,6 @@ const { folder, materialBasePath, model, part, stringValue, vec3 } = require('./
 function createSwatchBoard(goal, palette, parsed, options = {}) {
   const basePath = options.basePath || `${materialBasePath(goal, options.suffix || 'Swatches')}.SwatchBoard`;
   const ops = [
-    folder('Workspace.CodexProduction', 'productionRoot', { goal }),
     folder('Workspace.CodexMaterialSwatches', 'swatchRoot', { goal }),
     model(basePath, 'materialSwatchBoard', { goal }),
   ];
