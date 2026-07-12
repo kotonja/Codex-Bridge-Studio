@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = '0.96.0';
+const VERSION = '0.97.0';
 
 const ROOTS = {
   workspace: {

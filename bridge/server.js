@@ -25,8 +25,9 @@ const WorldCompiler = require('./world-compiler');
 const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 const Polish = require('./polish');
+const McpProxy = require('./mcp-proxy');
 
-const VERSION = '0.96.0';
+const VERSION = '0.97.0';
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.CODEX_STUDIO_BRIDGE_PORT || 28123);
 const STUDIO_MCP_HEALTH_URL = process.env.CODEX_STUDIO_MCP_HEALTH_URL || 'http://127.0.0.1:13469/health';
@@ -2012,15 +2013,20 @@ async function mcpTransportSummary() {
     const activePlace = Array.isArray(places) ? (places.find((place) => place.active) || null) : null;
     const freshEntries = freshStudioEntries();
     const localBridgeHealthy = freshEntries.length > 0 && connectionStateSummary().paired === true;
-    const externalHealthy = studioMcpHealth.ok && Number(studioMcpHealth.studios || 0) > 0;
     return {
       ok: true,
       version: VERSION,
       at: nowIso(),
-      status: externalHealthy
-        ? 'studioMcpHealthy'
-        : (localBridgeHealthy ? 'studioBridgeHealthyButStudioMcpHttpUnhealthy' : 'needsLocalRecovery'),
+      status: localBridgeHealthy ? 'durableHttpMcpAndStudioHealthy' : 'durableHttpMcpHealthyStudioUnavailable',
+      primaryTransport: {
+        ok: true,
+        kind: 'streamableHttpStateless',
+        endpoint: `http://${HOST}:${PORT}/mcp`,
+        toolCount: McpProxy.toolsList().length,
+        dependsOnStudioMcpExe: false,
+      },
       studioMcp: {
+        role: 'optionalDiagnosticOnly',
         healthUrl: STUDIO_MCP_HEALTH_URL,
         ...studioMcpHealth,
       },
@@ -2045,19 +2051,18 @@ async function mcpTransportSummary() {
       },
       codexInternalMcp: {
         detectableFromBridge: false,
-        likelyFailureWhenToolSaysTransportClosed: 'Codex desktop is holding a closed MCP transport even though StudioMCP.exe is healthy.',
+        likelyFailureWhenToolSaysTransportClosed: 'Codex desktop has not reloaded the new Roblox_Studio HTTP MCP config, or its tool discovery session is stale.',
         canLocalBridgeReopenPrivateSocket: false,
-        recovery: 'Restart/reload the affected Codex chat/app session. Local bridge and StudioMCP restarts cannot force an already-closed Codex MCP client socket to reattach.',
+        recovery: 'Toggle/reload Roblox_Studio in Codex MCP settings. The Always-On HTTP endpoint itself remains available independently.',
       },
       fallbackTools: studioMcpToolFallbacks(),
       manualRecovery: [
-        'Run tools\\bridge.cmd mcp status.',
-        'If StudioMCP health is OK and StudioBridge has a fresh active place, the Roblox side is healthy.',
-        'Run tools\\bridge.cmd mcp reset-local only if StudioMCP health is bad or duplicate helpers are present.',
-        'If mcp__Roblox_Studio still says Transport closed while local health is green, restart/reload the affected Codex chat/app session.',
-        'After reload, run mcp__Roblox_Studio/list_roblox_studios again, then tools\\bridge.cmd connect.',
+        'Run tools\\bridge.cmd mcp-proxy smoke to verify both HTTP MCP and stdio compatibility paths.',
+        'Run tools\\bridge.cmd connect to restore a stale or unpaired Roblox Studio heartbeat.',
+        'Toggle/reload Roblox_Studio in Codex MCP settings after changing config.toml.',
+        'Use tools\\bridge.cmd run "check now" if Codex tool discovery itself is unavailable.',
       ],
-      nextCommand: externalHealthy ? 'tools\\bridge.cmd mcp fallbacks' : 'tools\\bridge.cmd always-on repair',
+      nextCommand: localBridgeHealthy ? 'tools\\bridge.cmd codex-context' : 'tools\\bridge.cmd connect',
     };
   } catch (error) {
     return {
@@ -5302,14 +5307,17 @@ function codexLiveContext(options = {}) {
   const ui = pulse && pulse.ui ? pulse.ui : null;
   const camera = pulse && pulse.camera ? pulse.camera : null;
   const world = pulse && pulse.world ? pulse.world : null;
+  const studioFresh = targetEntry
+    ? isPlaceFresh(targetEntry)
+    : Boolean(activeSnapshot.studio.lastSeenAt && (Date.now() - Date.parse(activeSnapshot.studio.lastSeenAt)) <= PLACE_HEARTBEAT_FRESH_MS);
   let nextCommand = 'tools\\bridge.cmd watch now';
   let nextReason = 'Read current live state.';
   if (!activeSnapshot.sessionToken) {
     nextCommand = 'tools\\bridge.cmd pair code';
     nextReason = 'Bridge is not paired.';
-  } else if (!activeSnapshot.studio.lastSeenAt) {
-    nextCommand = 'Open Roblox Studio and enable/pair the Codex Studio Bridge plugin.';
-    nextReason = 'Studio is not connected.';
+  } else if (!studioFresh) {
+    nextCommand = 'tools\\bridge.cmd connect';
+    nextReason = activeSnapshot.studio.lastSeenAt ? 'Studio heartbeat is stale.' : 'Studio is not connected.';
   } else if (!readiness.toolkitInstalled) {
     nextCommand = 'tools\\bridge.cmd ready bootstrap';
     nextReason = 'Codex Ready toolkit is not fully installed.';
@@ -5329,11 +5337,11 @@ function codexLiveContext(options = {}) {
     at: nowIso(),
     mode: 'fastLiveContext',
     connection: {
-      paired: Boolean(sessionToken),
-      studioConnected: Boolean(activeSnapshot.studio.lastSeenAt),
+      paired: Boolean(activeSnapshot.sessionToken),
+      studioConnected: studioFresh,
       pluginVersion: activeSnapshot.studio.pluginVersion,
       versionMatch: activeSnapshot.studio.pluginVersion === VERSION,
-      activeStudioId,
+      activeStudioId: targetEntry ? targetEntry.studioId : activeStudioId,
       targetStudioId: targetEntry ? targetEntry.studioId : activeStudioId,
       place: targetEntry ? compactPlaceEntry(targetEntry) : placeSummary(),
     },
@@ -5407,6 +5415,10 @@ async function noHangStatus() {
     at: nowIso(),
     mode: 'httpFirstNoHangStatus',
     serverEndpointAvailable: true,
+    mcpHttpEndpointAvailable: true,
+    mcpTransport: 'streamableHttpStateless',
+    mcpEndpoint: `http://${HOST}:${PORT}/mcp`,
+    stdioCompatibility: ['json-lines', 'content-length'],
     bridgeVersionAligned: true,
     pluginVersionAligned,
     expectedVersion: VERSION,
@@ -5422,6 +5434,8 @@ async function noHangStatus() {
       : 'Reload/reopen the Roblox Studio plugin window, then pair with tools\\bridge.cmd pair code.',
     guarantees: [
       'Fast HTTP context endpoints avoid heavy Studio scans.',
+      'Primary MCP calls use independent stateless HTTP requests to the Always-On bridge.',
+      'The disabled stdio fallback accepts MCP JSON-lines and legacy Content-Length framing.',
       'MCP proxy stdout is reserved for MCP JSON-RPC protocol frames.',
       'Helper run/do paths use bounded HTTP and subprocess timeouts.',
       'Dead raw StudioMCP transport returns diagnostics instead of blocking the helper path.',
@@ -7012,6 +7026,64 @@ async function route(req, res) {
 
   const requestUrl = new URL(req.url, `http://${HOST}:${PORT}`);
   const path = requestUrl.pathname;
+
+  if (path === '/mcp/health' && req.method === 'GET') {
+    const active = getActiveStudioEntry();
+    sendJson(res, 200, {
+      ok: true,
+      version: VERSION,
+      transport: 'streamableHttpStateless',
+      endpoint: `http://${HOST}:${PORT}/mcp`,
+      toolCount: McpProxy.toolsList().length,
+      protocolVersions: McpProxy.SUPPORTED_PROTOCOL_VERSIONS,
+      studioConnected: Boolean(active && isPlaceFresh(active)),
+      nextCommand: 'tools\\bridge.cmd mcp-proxy smoke',
+    });
+    return;
+  }
+
+  if (path === '/mcp' && req.method === 'POST') {
+    const body = await readBody(req);
+    const requests = Array.isArray(body) ? body : [body];
+    const responses = (await Promise.all(requests.map((message) => McpProxy.handleRpcMessage(message))))
+      .filter(Boolean);
+    if (responses.length === 0) {
+      res.writeHead(202, {
+        'Access-Control-Allow-Origin': 'http://127.0.0.1',
+        'Cache-Control': 'no-store',
+        'MCP-Protocol-Version': McpProxy.SUPPORTED_PROTOCOL_VERSIONS[0],
+      });
+      res.end();
+      return;
+    }
+    res.setHeader('Access-Control-Allow-Origin', 'http://127.0.0.1');
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('MCP-Protocol-Version', McpProxy.SUPPORTED_PROTOCOL_VERSIONS[0]);
+    sendJson(res, 200, Array.isArray(body) ? responses : responses[0]);
+    return;
+  }
+
+  if (path === '/mcp' && req.method === 'GET') {
+    res.setHeader('Allow', 'POST, DELETE, OPTIONS');
+    sendError(res, 405, 'mcp_post_required', 'StudioBridge MCP uses stateless Streamable HTTP. Send JSON-RPC requests with POST.');
+    return;
+  }
+
+  if (path === '/mcp' && req.method === 'DELETE') {
+    sendJson(res, 200, { ok: true, version: VERSION, status: 'statelessSessionClosed' });
+    return;
+  }
+
+  if (path === '/mcp' && req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      Allow: 'POST, DELETE, OPTIONS',
+      'Access-Control-Allow-Origin': 'http://127.0.0.1',
+      'Access-Control-Allow-Headers': 'content-type, accept, mcp-protocol-version, mcp-session-id',
+      'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
+    });
+    res.end();
+    return;
+  }
 
   if (req.method === 'GET' && path === '/dashboard') {
     sendContent(res, 200, 'text/html; charset=utf-8', Dashboard.getHtml());

@@ -68,7 +68,7 @@ If another Codex chat reports `Transport closed`, first run:
 
 If those commands show bridge health green, plugin version matched, Studio connected, supervisor running, proxy status OK, and duplicate count `0`, then the local Roblox StudioBridge/Roblox side is healthy. In that case raw `StudioMCP.exe` `Transport closed` is the Codex desktop internal MCP tool session, not the local Node bridge or Roblox Studio plugin. Prefer the durable proxy path below; only restart/reload the affected Codex chat/app session after installing the proxy or when the private Codex MCP session itself is wedged.
 
-V55 adds a durable StudioBridge MCP proxy that should be the default Roblox tool path for future Codex chats. It exposes Roblox-style tools through the supervised StudioBridge HTTP API instead of depending on raw `StudioMCP.exe` transport. Install it once, then reload Codex so tool discovery picks up the new `Roblox_Studio` server:
+V97 makes the durable StudioBridge MCP endpoint the default Roblox tool path for future Codex chats. `Roblox_Studio` points to the Always-On stateless HTTP endpoint on `http://127.0.0.1:28123/mcp`, so individual tool calls do not depend on one long-lived stdio pipe or raw `StudioMCP.exe`. Install it once, then reload/toggle Codex MCP servers so tool discovery picks up the recreated `Roblox_Studio` server:
 
 ```powershell
 .\tools\bridge.cmd mcp-proxy status
@@ -77,7 +77,7 @@ V55 adds a durable StudioBridge MCP proxy that should be the default Roblox tool
 .\tools\bridge.cmd mcp-proxy tools
 ```
 
-`mcp-proxy install` backs up `C:\Users\tommy\.codex\config.toml`, preserves the old raw Roblox MCP entry as `Roblox_Studio_Raw`, and points `Roblox_Studio` at `bridge\mcp-proxy.js`. After reloading Codex, calls like `mcp__Roblox_Studio.list_roblox_studios` and `mcp__Roblox_Studio.get_studio_state` should return structured StudioBridge diagnostics instead of `Transport closed`. Use `.\tools\bridge.cmd mcp-proxy uninstall` only if the raw Roblox MCP transport is explicitly needed again.
+`mcp-proxy install` backs up `C:\Users\tommy\.codex\config.toml`, installs the stateless HTTP MCP URL as `Roblox_Studio`, and keeps a disabled dual-framing stdio proxy as `Roblox_Studio_Raw` for compatibility/debugging. The stdio fallback accepts modern JSON-lines and legacy `Content-Length` frames. After reloading Codex, calls like `mcp__Roblox_Studio.list_roblox_studios` and `mcp__Roblox_Studio.get_studio_state` should use the Always-On bridge and survive proxy child-process churn. The independent `.\tools\bridge.cmd do/run` route remains the recovery path if Codex tool discovery itself is stale.
 
 Use these MCP-specific commands for recovery and fallback routing:
 

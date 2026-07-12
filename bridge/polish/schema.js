@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const path = require('node:path');
 
-const VERSION = '0.96.0';
+const VERSION = '0.97.0';
 
 const ROOTS = {
   local: path.join(process.cwd(), '.codex-studio', 'polish-v96'),

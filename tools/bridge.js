@@ -26,8 +26,8 @@ const Fidelity = require('../bridge/fidelity');
 const Dashboard = require('../bridge/dashboard');
 const Polish = require('../bridge/polish');
 
-const HELPER_VERSION = '0.96.0';
-const MCP_PROXY_VERSION = '0.96.0';
+const HELPER_VERSION = '0.97.0';
+const MCP_PROXY_VERSION = '0.97.0';
 const MCP_PROXY_TOOLS = [
   'bridge_health',
   'pairing_status',
@@ -2084,6 +2084,20 @@ function mcpProxyScriptPath() {
   return path.join(process.cwd(), 'bridge', 'mcp-proxy.js');
 }
 
+function currentMcpProxyToolNames() {
+  return require('../bridge/mcp-proxy').toolsList().map((tool) => tool.name);
+}
+
+function mcpHttpUrl() {
+  const configured = process.env.CODEX_STUDIO_MCP_HTTP_URL;
+  if (configured) return configured;
+  const base = new URL(BASE_URL);
+  base.pathname = '/mcp';
+  base.search = '';
+  base.hash = '';
+  return base.toString();
+}
+
 function codexConfigPath() {
   return process.env.CODEX_CONFIG_FILE || path.join(os.homedir(), '.codex', 'config.toml');
 }
@@ -2174,9 +2188,24 @@ function rawMcpStateFromBlocks(blocks) {
 function proxyConfigBlock() {
   return [
     '[mcp_servers.Roblox_Studio]',
+    `url = ${tomlString(mcpHttpUrl())}`,
+    'enabled = true',
+    'default_tools_approval_mode = "auto"',
+    'startup_timeout_sec = 15',
+    'tool_timeout_sec = 45',
+    '',
+  ];
+}
+
+function stdioProxyBackupBlock() {
+  return [
+    '[mcp_servers.Roblox_Studio_Raw]',
     `command = ${tomlString(process.execPath)}`,
     `args = ${tomlArray([mcpProxyScriptPath()])}`,
-    'enabled = true',
+    'enabled = false',
+    'default_tools_approval_mode = "auto"',
+    'startup_timeout_sec = 15',
+    'tool_timeout_sec = 45',
     '',
   ];
 }
@@ -2200,7 +2229,9 @@ function inspectMcpProxyInstall() {
   const blocks = splitMcpConfigBlocks(text);
   const proxyPath = mcpProxyScriptPath();
   const studioText = blocks.studio.join('\n');
-  const installed = studioText.includes(proxyPath) || studioText.includes(proxyPath.replace(/\\/g, '\\\\'));
+  const httpUrl = mcpHttpUrl();
+  const installed = studioText.includes(httpUrl) || studioText.includes(httpUrl.replace(/\\/g, '\\\\'));
+  const legacyStdioInstalled = studioText.includes(proxyPath) || studioText.includes(proxyPath.replace(/\\/g, '\\\\'));
   const rawState = rawMcpStateFromBlocks(blocks);
   return {
     ok: true,
@@ -2210,7 +2241,10 @@ function inspectMcpProxyInstall() {
     configExists: exists,
     proxyScript: proxyPath,
     proxyScriptExists: fs.existsSync(proxyPath),
+    transport: installed ? 'streamableHttp' : (legacyStdioInstalled ? 'legacyStdio' : 'missing'),
+    httpUrl,
     installed,
+    legacyStdioInstalled,
     hasRawBackupSection: blocks.raw.length > 0,
     rawMcpState: rawState,
     rawMcpEnabled: tomlBlockEnabledState(blocks.raw),
@@ -2229,14 +2263,19 @@ function installMcpProxyConfig() {
   const previous = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
   const backupPath = backupCodexConfig(filePath, previous);
   const blocks = splitMcpConfigBlocks(previous);
+  const existingStudioText = blocks.studio.join('\n');
+  const existingStudioIsOurProxy = existingStudioText.includes(mcpProxyScriptPath())
+    || existingStudioText.includes(mcpHttpUrl());
   const rawBlock = blocks.raw.length > 0
     ? setTomlBlockEnabled(blocks.raw, false)
-    : (blocks.studio.length > 0 ? setTomlBlockEnabled(renameMcpSectionLines(blocks.studio, 'Roblox_Studio', 'Roblox_Studio_Raw'), false) : []);
+    : (blocks.studio.length > 0 && !existingStudioIsOurProxy
+      ? setTomlBlockEnabled(renameMcpSectionLines(blocks.studio, 'Roblox_Studio', 'Roblox_Studio_Raw'), false)
+      : stdioProxyBackupBlock());
   const nextLines = [
     ...blocks.keep.filter((line, index, array) => !(line.trim() === '' && index === array.length - 1)),
     '',
     ...rawBlock,
-    rawBlock.length > 0 ? '' : '# No previous Roblox_Studio MCP config was present when StudioBridge proxy was installed.',
+    '# Disabled stdio compatibility backup. The primary route is the Always-On HTTP MCP endpoint.',
     ...proxyConfigBlock(),
   ];
   fs.writeFileSync(filePath, `${nextLines.join('\n').replace(/\n{4,}/g, '\n\n\n').trim()}\n`, 'utf8');
@@ -2247,11 +2286,13 @@ function installMcpProxyConfig() {
     configPath: filePath,
     backupPath,
     installed: true,
+    transport: 'streamableHttp',
+    httpUrl: mcpHttpUrl(),
     preservedRawConfig: rawBlock.length > 0,
-    rawMcpState: rawBlock.length > 0 ? 'disabledBackup' : 'missingBackup',
+    rawMcpState: 'disabledBackup',
     nextSteps: [
       'Reload/toggle Codex MCP servers so tool discovery uses the durable StudioBridge proxy.',
-      'Use mcp__Roblox_Studio.list_roblox_studios, not Roblox_Studio_Raw, for normal work.',
+      'Use mcp__Roblox_Studio.list_roblox_studios through the Always-On HTTP endpoint for normal work.',
       'Run .\\tools\\bridge.cmd mcp-proxy smoke for a local smoke test.',
     ],
   };
@@ -2370,7 +2411,7 @@ async function runMcpProxyProtocolSmoke(timeoutMs = 8000) {
   } catch (error) {
     return {
       ok: false,
-      protocol: 'mcp-jsonrpc-stdio',
+      protocol: 'mcp-jsonrpc-stdio-jsonlines',
       durationMs: 0,
       error: error.message,
       recovery: 'Run this from a normal PowerShell terminal, or use tools\\bridge.cmd run/do as the primary HTTP path.',
@@ -2401,20 +2442,11 @@ async function runMcpProxyProtocolSmoke(timeoutMs = 8000) {
   proc.stdout.on('data', (chunk) => {
     stdoutBuffer = Buffer.concat([stdoutBuffer, chunk]);
     for (;;) {
-      const headerEnd = stdoutBuffer.indexOf('\r\n\r\n');
-      if (headerEnd === -1) break;
-      const header = stdoutBuffer.slice(0, headerEnd).toString('utf8');
-      const match = header.match(/content-length:\s*(\d+)/i);
-      if (!match) {
-        stdoutBuffer = stdoutBuffer.slice(headerEnd + 4);
-        continue;
-      }
-      const length = Number(match[1]);
-      const bodyStart = headerEnd + 4;
-      const bodyEnd = bodyStart + length;
-      if (stdoutBuffer.length < bodyEnd) break;
-      const body = stdoutBuffer.slice(bodyStart, bodyEnd).toString('utf8');
-      stdoutBuffer = stdoutBuffer.slice(bodyEnd);
+      const newline = stdoutBuffer.indexOf('\n');
+      if (newline === -1) break;
+      const body = stdoutBuffer.slice(0, newline).toString('utf8').replace(/\r$/, '').trim();
+      stdoutBuffer = stdoutBuffer.slice(newline + 1);
+      if (!body) continue;
       try {
         handleMessage(JSON.parse(body));
       } catch (error) {
@@ -2442,9 +2474,7 @@ async function runMcpProxyProtocolSmoke(timeoutMs = 8000) {
   });
 
   const send = (message) => {
-    const body = Buffer.from(JSON.stringify(message), 'utf8');
-    proc.stdin.write(`Content-Length: ${body.length}\r\n\r\n`);
-    proc.stdin.write(body);
+    proc.stdin.write(`${JSON.stringify(message)}\n`);
   };
 
   const requestRpc = (method, params = {}) => {
@@ -2475,7 +2505,7 @@ async function runMcpProxyProtocolSmoke(timeoutMs = 8000) {
     cleanup();
     return {
       ok: true,
-      protocol: 'mcp-jsonrpc-stdio',
+      protocol: 'mcp-jsonrpc-stdio-jsonlines',
       durationMs: Date.now() - startedAt,
       initialize: {
         serverInfo: initialize && initialize.serverInfo,
@@ -2491,10 +2521,58 @@ async function runMcpProxyProtocolSmoke(timeoutMs = 8000) {
     cleanup();
     return {
       ok: false,
-      protocol: 'mcp-jsonrpc-stdio',
+      protocol: 'mcp-jsonrpc-stdio-jsonlines',
       durationMs: Date.now() - startedAt,
       error: error.message,
       stderr: stderrText.trim() || null,
+    };
+  }
+}
+
+async function runMcpHttpProtocolSmoke(timeoutMs = 8000) {
+  const startedAt = Date.now();
+  let nextId = 1;
+  const rpc = async (method, params = {}) => {
+    const response = await request('/mcp', {
+      method: 'POST',
+      timeoutMs: Math.min(3500, timeoutMs),
+      headers: {
+        Accept: 'application/json, text/event-stream',
+        'MCP-Protocol-Version': '2025-06-18',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: nextId++, method, params }),
+    });
+    if (response.error) throw new Error(response.error.message || JSON.stringify(response.error));
+    return response.result;
+  };
+  try {
+    const initialize = await rpc('initialize', {
+      protocolVersion: '2025-06-18',
+      capabilities: {},
+      clientInfo: { name: 'studiobridge-http-smoke', version: HELPER_VERSION },
+    });
+    const tools = await rpc('tools/list', {});
+    const bridgeHealth = await rpc('tools/call', { name: 'bridge_health', arguments: {} });
+    const healthValue = parseMcpContentJson(bridgeHealth);
+    return {
+      ok: true,
+      protocol: 'mcp-streamable-http-stateless',
+      endpoint: mcpHttpUrl(),
+      durationMs: Date.now() - startedAt,
+      initialize: {
+        serverInfo: initialize && initialize.serverInfo,
+        protocolVersion: initialize && initialize.protocolVersion,
+      },
+      toolCount: tools && Array.isArray(tools.tools) ? tools.tools.length : 0,
+      bridge_health: healthValue || bridgeHealth,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      protocol: 'mcp-streamable-http-stateless',
+      endpoint: mcpHttpUrl(),
+      durationMs: Date.now() - startedAt,
+      error: error.message,
     };
   }
 }
@@ -2548,6 +2626,7 @@ function compactTransportForProxy(transport) {
     ok: transport.ok,
     version: transport.version,
     status: transport.status,
+    primaryTransport: transport.primaryTransport || null,
     studioMcp: transport.studioMcp ? {
       ok: transport.studioMcp.ok,
       studios: transport.studioMcp.studios,
@@ -2712,14 +2791,15 @@ async function localMcpProxyStatus() {
       activePlace: compactPlaceForProxy(current.value.activePlace),
     } : { ok: false, error: current.error },
     transport: transport.ok ? compactTransportForProxy(transport.value) : { ok: false, error: transport.error },
-    toolCount: MCP_PROXY_TOOLS.length,
+    toolCount: currentMcpProxyToolNames().length,
   };
 }
 
 async function localMcpProxySmoke() {
-  const [status, protocolSmoke] = await Promise.all([
+  const [status, protocolSmoke, httpProtocolSmoke] = await Promise.all([
     localMcpProxyStatus(),
     runMcpProxyProtocolSmoke(8000),
+    runMcpHttpProtocolSmoke(8000),
   ]);
   const [context, watch] = await Promise.all([
     requestSafe('/codex/context', { timeoutMs: 3000 }),
@@ -2740,16 +2820,18 @@ async function localMcpProxySmoke() {
     transport: status.transport,
   };
   return {
-    ok: status.ok && protocolSmoke.ok,
+    ok: status.ok && protocolSmoke.ok && httpProtocolSmoke.ok,
     proxyVersion: MCP_PROXY_VERSION,
-    toolCount: MCP_PROXY_TOOLS.length,
+    toolCount: currentMcpProxyToolNames().length,
     protocolSmoke,
+    httpProtocolSmoke,
     bridge_health: status.bridgeHealth,
     list_roblox_studios: listRobloxStudios,
     get_studio_state: getStudioState,
-    warnings: status.ok && protocolSmoke.ok ? [] : [
+    warnings: status.ok && protocolSmoke.ok && httpProtocolSmoke.ok ? [] : [
       !status.ok ? 'Bridge or active Studio context is not fully healthy. Run .\\tools\\bridge.cmd connect, then pair Studio if needed.' : null,
       !protocolSmoke.ok ? 'MCP proxy protocol smoke failed. Reload Codex after reinstalling the proxy, or use tools\\bridge.cmd run/do as the primary path.' : null,
+      !httpProtocolSmoke.ok ? 'Always-On HTTP MCP smoke failed. Run tools\\bridge.cmd always-on restart, then reinstall the proxy config.' : null,
     ].filter(Boolean),
   };
 }
@@ -2777,7 +2859,8 @@ async function runMcpProxy(subcommand = 'status') {
     return;
   }
   if (subcommand === 'tools') {
-    print({ ok: true, version: HELPER_VERSION, proxyVersion: MCP_PROXY_VERSION, toolCount: MCP_PROXY_TOOLS.length, tools: MCP_PROXY_TOOLS });
+    const tools = currentMcpProxyToolNames();
+    print({ ok: true, version: HELPER_VERSION, proxyVersion: MCP_PROXY_VERSION, toolCount: tools.length, tools });
     return;
   }
   if (subcommand === 'smoke') {
@@ -4104,7 +4187,8 @@ async function runPluginHealth() {
   const installStatus = readInstalledPluginStatus();
   const sourceAudit = localSourceAudit(installStatus);
   const loadedPluginVersion = health.ok && health.value && health.value.activePlace && health.value.activePlace.pluginVersion;
-  const pluginVersionAligned = !connected || !loadedPluginVersion || loadedPluginVersion === HELPER_VERSION;
+  const pluginVersionAligned = Boolean(connected && loadedPluginVersion && loadedPluginVersion === HELPER_VERSION);
+  const installedPluginVersionAligned = installStatus.version === HELPER_VERSION;
   const pluginReport = !connected
     ? { ok: false, error: 'Studio is not connected yet.' }
     : (!pluginVersionAligned
@@ -4120,9 +4204,14 @@ async function runPluginHealth() {
     version: HELPER_VERSION,
     plugin: pluginReport.ok ? pluginReport.value : { error: pluginReport.error },
     loadedPluginVersion: loadedPluginVersion || null,
+    loadedPluginFresh: connected,
     expectedPluginVersion: HELPER_VERSION,
     pluginVersionAligned,
-    manualNextStep: pluginVersionAligned ? null : 'Reload/reopen the Roblox Studio plugin window, then run tools\\bridge.cmd plugin-health.',
+    installedPluginVersion: installStatus.version || null,
+    installedPluginVersionAligned,
+    manualNextStep: pluginVersionAligned
+      ? null
+      : 'Reload/reopen the Roblox Studio plugin window, reconnect/pair if requested, then run tools\\bridge.cmd plugin-health.',
     localFiles: files,
     sourceAudit,
     nextChecks: [

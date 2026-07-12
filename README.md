@@ -611,7 +611,9 @@ If Codex direct Roblox MCP tools return `Transport closed` while local bridge he
 .\tools\bridge.cmd mcp-proxy smoke
 ```
 
-`mcp-proxy install` backs up the current Codex MCP config, preserves the raw Roblox Studio MCP entry as `Roblox_Studio_Raw`, disables that raw backup by default, and points `Roblox_Studio` to `bridge\mcp-proxy.js`. Reload Codex after install so the next tool discovery uses the durable proxy. The proxy routes `list_roblox_studios`, `get_studio_state`, script/search/play/test/animation/VFX/audio/build/brain helper tools through StudioBridge on `127.0.0.1:28123` and returns structured recovery states instead of crashing with `Transport closed`. Keep `Roblox_Studio_Raw` disabled unless debugging official Roblox MCP directly.
+As of V97, `mcp-proxy install` backs up the current Codex MCP config and points `Roblox_Studio` at the Always-On stateless MCP endpoint `http://127.0.0.1:28123/mcp`. This is the primary transport: every call is an independent HTTP request, so there is no long-lived stdio pipe to strand after a child-process restart. A disabled `Roblox_Studio_Raw` entry remains as a dual-framing stdio compatibility backup. Reload or toggle Codex MCP servers after install. The endpoint exposes the full StudioBridge tool catalog and returns structured recovery states instead of raw `Transport closed` failures.
+
+The compatibility proxy accepts both MCP JSON-lines framing and legacy `Content-Length` framing. `mcp-proxy smoke` verifies the Always-On HTTP endpoint and the stdio fallback independently. Normal Roblox work should still use `tools\bridge.cmd do/run` as an independent recovery route whenever Codex tool discovery itself is unavailable.
 
 ## V63 Premium Director Core
 

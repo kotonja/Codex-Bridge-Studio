@@ -1,7 +1,7 @@
 -- Codex Studio Bridge V96.0
 -- Local Roblox Studio plugin that pairs with bridge/server.js over localhost.
 
-local VERSION = "0.96.0"
+local VERSION = "0.97.0"
 local DEFAULT_PORT = 28123
 local POLL_SECONDS = 0.75
 local HEARTBEAT_SECONDS = 1.0

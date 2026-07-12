@@ -15,7 +15,7 @@ const Fidelity = require('./fidelity');
 const Dashboard = require('./dashboard');
 const Polish = require('./polish');
 
-const VERSION = '0.96.0';
+const VERSION = '0.97.0';
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.CODEX_STUDIO_BRIDGE_URL || `http://127.0.0.1:${process.env.CODEX_STUDIO_BRIDGE_PORT || 28123}`;
 const SERVER_SCRIPT = path.join(ROOT, 'bridge', 'server.js');
@@ -24,6 +24,7 @@ const LOG_DIR = path.join(ROOT, '.codex-studio', 'mcp-proxy');
 const DEFAULT_READ_TIMEOUT_MS = Number(process.env.CODEX_STUDIO_MCP_PROXY_HTTP_MS || 2500);
 const DEFAULT_COMMAND_TIMEOUT_MS = Number(process.env.CODEX_STUDIO_MCP_PROXY_COMMAND_MS || 20000);
 const TERMINAL_STATUSES = new Set(['executed', 'failed', 'rejected', 'blockedExternalRisk', 'cancelledByPairReset', 'duplicateIgnored']);
+const SUPPORTED_PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 
 function nowIso() {
   return new Date().toISOString();
@@ -120,6 +121,7 @@ function compactTransport(transport) {
     ok: transport.ok,
     version: transport.version,
     status: transport.status,
+    primaryTransport: transport.primaryTransport || null,
     studioMcp: transport.studioMcp ? {
       ok: transport.studioMcp.ok,
       studios: transport.studioMcp.studios,
@@ -784,6 +786,8 @@ const toolHandlers = {
   assetforge_mesh_plan: async (args) => requestBridge('GET', `/codex/assetforge/mesh-plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
   assetforge_material_plan: async (args) => requestBridge('GET', `/codex/assetforge/material-plan?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
   assetforge_generate: async (args) => requestBridge('GET', `/codex/assetforge/generate?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  generate_asset: async (args) => requestBridge('GET', `/codex/assetforge/generate?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
+  kitbash: async (args) => requestBridge('GET', `/codex/assetforge/kit?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
   assetforge_audit: async (args) => requestBridge('GET', `/codex/assetforge/audit?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
   assetforge_polish: async (args) => requestBridge('GET', `/codex/assetforge/polish?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
   assetforge_budget: async (args) => requestBridge('GET', `/codex/assetforge/budget?goal=${encodeURIComponent(args.goal || args.intent || args.text || 'premium Roblox asset kit')}`, undefined, 2500),
@@ -1140,6 +1144,8 @@ const toolDefinitions = [
   ['assetforge_mesh_plan', 'Return honest manualRequired mesh specs plus primitive fallback plans without fake asset IDs.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['assetforge_material_plan', 'Return MaterialVariant, SurfaceAppearance, decal, and fallback material specs.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['assetforge_generate', 'Return or execute a V67 Codex-owned asset kit generation plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['generate_asset', 'Direct alias for Asset Forge generation planning.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
+  ['kitbash', 'Direct alias for reusable Asset Forge kitbash planning.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['assetforge_audit', 'Audit V67 asset kit quality, sockets, LOD, material readiness, and premium feel.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['assetforge_polish', 'Return the V67 eleven-stage asset kit polish plan.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
   ['assetforge_budget', 'Return V67 LOD, collision, mobile fallback, and performance budgets.', { goal: { type: 'string' }, intent: { type: 'string' }, text: { type: 'string' } }],
@@ -1247,73 +1253,123 @@ function mcpResultFromValue(value) {
   };
 }
 
-function sendJsonRpc(id, result, error) {
-  const message = error
+function jsonRpcResponse(id, result, error) {
+  return error
     ? { jsonrpc: '2.0', id, error }
     : { jsonrpc: '2.0', id, result };
-  const body = Buffer.from(JSON.stringify(message), 'utf8');
-  process.stdout.write(`Content-Length: ${body.length}\r\n\r\n`);
-  process.stdout.write(body);
 }
 
-async function handleRpc(message) {
-  if (!message || typeof message !== 'object') return;
+function negotiatedProtocolVersion(requested) {
+  return SUPPORTED_PROTOCOL_VERSIONS.includes(requested)
+    ? requested
+    : SUPPORTED_PROTOCOL_VERSIONS[0];
+}
+
+async function handleRpcMessage(message) {
+  if (!message || typeof message !== 'object' || Array.isArray(message)) {
+    return jsonRpcResponse(null, null, { code: -32600, message: 'Invalid JSON-RPC request.' });
+  }
   const id = message.id;
   const method = message.method;
   try {
     if (method === 'initialize') {
-      sendJsonRpc(id, {
-        protocolVersion: message.params && message.params.protocolVersion ? message.params.protocolVersion : '2024-11-05',
+      return jsonRpcResponse(id, {
+        protocolVersion: negotiatedProtocolVersion(message.params && message.params.protocolVersion),
         capabilities: { tools: {} },
         serverInfo: { name: 'codex-studiobridge-mcp-proxy', version: VERSION },
       });
-      return;
     }
-    if (method === 'notifications/initialized' || method === 'initialized') return;
+    if (method === 'notifications/initialized' || method === 'initialized' || method === 'notifications/cancelled') return null;
+    if (method === 'ping') return jsonRpcResponse(id, {});
     if (method === 'tools/list') {
-      sendJsonRpc(id, { tools: toolsList() });
-      return;
+      return jsonRpcResponse(id, { tools: toolsList() });
     }
     if (method === 'tools/call') {
       const params = message.params || {};
       const value = await callTool(params.name, params.arguments || {});
-      sendJsonRpc(id, mcpResultFromValue(value));
-      return;
+      return jsonRpcResponse(id, mcpResultFromValue(value));
     }
     if (id !== undefined && id !== null) {
-      sendJsonRpc(id, null, { code: -32601, message: `Unsupported method: ${method}` });
+      return jsonRpcResponse(id, null, { code: -32601, message: `Unsupported method: ${method}` });
     }
+    return null;
   } catch (error) {
-    if (id !== undefined && id !== null) sendJsonRpc(id, null, { code: -32603, message: error.message });
+    return id !== undefined && id !== null
+      ? jsonRpcResponse(id, null, { code: -32603, message: error.message })
+      : null;
   }
 }
 
 function runStdioServer() {
   let buffer = Buffer.alloc(0);
-  process.stdin.on('data', (chunk) => {
-    buffer = Buffer.concat([buffer, chunk]);
+  let framing = null;
+  let chain = Promise.resolve();
+
+  const writeMessage = (message) => {
+    if (!message) return;
+    const body = Buffer.from(JSON.stringify(message), 'utf8');
+    if (framing === 'content-length') {
+      process.stdout.write(`Content-Length: ${body.length}\r\n\r\n`);
+      process.stdout.write(body);
+      return;
+    }
+    process.stdout.write(body);
+    process.stdout.write('\n');
+  };
+
+  const dispatch = (body) => {
+    chain = chain.then(async () => {
+      try {
+        writeMessage(await handleRpcMessage(JSON.parse(body)));
+      } catch (error) {
+        appendLog({ type: 'badJsonRpc', framing, error: error.message });
+        writeMessage(jsonRpcResponse(null, null, { code: -32700, message: 'Parse error.' }));
+      }
+    });
+  };
+
+  const drain = () => {
     for (;;) {
-      const headerEnd = buffer.indexOf('\r\n\r\n');
-      if (headerEnd === -1) break;
-      const header = buffer.slice(0, headerEnd).toString('utf8');
-      const match = header.match(/content-length:\s*(\d+)/i);
-      if (!match) {
-        buffer = buffer.slice(headerEnd + 4);
+      if (framing === null) {
+        const probe = buffer.toString('utf8', 0, Math.min(buffer.length, 64));
+        if (/^content-length\s*:/i.test(probe)) framing = 'content-length';
+        else if (buffer.indexOf('\n') !== -1) framing = 'json-lines';
+        else return;
+      }
+
+      if (framing === 'content-length') {
+        const headerEnd = buffer.indexOf('\r\n\r\n');
+        if (headerEnd === -1) return;
+        const header = buffer.slice(0, headerEnd).toString('utf8');
+        const match = header.match(/content-length:\s*(\d+)/i);
+        if (!match) {
+          buffer = buffer.slice(headerEnd + 4);
+          framing = null;
+          continue;
+        }
+        const length = Number(match[1]);
+        const bodyStart = headerEnd + 4;
+        const bodyEnd = bodyStart + length;
+        if (buffer.length < bodyEnd) return;
+        const body = buffer.slice(bodyStart, bodyEnd).toString('utf8');
+        buffer = buffer.slice(bodyEnd);
+        dispatch(body);
         continue;
       }
-      const length = Number(match[1]);
-      const bodyStart = headerEnd + 4;
-      const bodyEnd = bodyStart + length;
-      if (buffer.length < bodyEnd) break;
-      const body = buffer.slice(bodyStart, bodyEnd).toString('utf8');
-      buffer = buffer.slice(bodyEnd);
-      try {
-        handleRpc(JSON.parse(body));
-      } catch (error) {
-        appendLog({ type: 'badJsonRpc', error: error.message });
-      }
+
+      const newline = buffer.indexOf('\n');
+      if (newline === -1) return;
+      const line = buffer.slice(0, newline).toString('utf8').replace(/\r$/, '').trim();
+      buffer = buffer.slice(newline + 1);
+      if (line) dispatch(line);
     }
+  };
+
+  process.stdin.on('data', (chunk) => {
+    buffer = Buffer.concat([buffer, chunk]);
+    drain();
   });
+  process.stdin.resume();
 }
 
 function cliStatus() {
@@ -1365,8 +1421,20 @@ async function main() {
   runStdioServer();
 }
 
-main().catch((error) => {
-  appendLog({ type: 'fatal', error: error.stack || error.message });
-  process.stderr.write(`${error.stack || error.message}\n`);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    appendLog({ type: 'fatal', error: error.stack || error.message });
+    process.stderr.write(`${error.stack || error.message}\n`);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  VERSION,
+  SUPPORTED_PROTOCOL_VERSIONS,
+  toolsList,
+  callTool,
+  handleRpcMessage,
+  mcpResultFromValue,
+  runStdioServer,
+};

@@ -12,7 +12,7 @@ function run() {
   const goal = 'premium dark purple anime dungeon gate hub';
   const status = Polish.createStatus();
   assert.equal(status.ok, true);
-  assert.equal(status.version, '0.96.0');
+  assert.equal(status.version, '0.97.0');
   assert.equal(status.safety.executionRequiresV72, true);
   assert.equal(status.safety.approvalRequired, true);
 
